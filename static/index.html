@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Job Dashboard</title>
+  <!-- Tailwind via CDN for a single-file build. Use the Next.js app for production. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Brand tokens — keep in sync with the Next.js tailwind.config.ts so
+    // the static and live versions look identical.
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              ink: "#1f3bb3",
+              inkHover: "#172d8a",
+              canvas: "#f8f9fc",
+              card: "#ffffff",
+              border: "#e9eaed",
+              subtleBorder: "#f1f2f5",
+              heading: "#1c1d2b",
+              body: "#54566c",
+              muted: "#8a8d9e",
+            },
+            status: {
+              blue: { bg: "#dbe7ff", fg: "#1d3fad" },
+              cyan: { bg: "#d6f0f5", fg: "#0e6480" },
+              teal: { bg: "#cdf1e6", fg: "#0d6b54" },
+              green: { bg: "#d8f0d4", fg: "#1f6f1a" },
+              yellow: { bg: "#fcecc1", fg: "#7c5800" },
+              orange: { bg: "#ffd9c5", fg: "#9a3a05" },
+              red: { bg: "#ffd5d5", fg: "#a31515" },
+              pink: { bg: "#fcd5ea", fg: "#8a195e" },
+              purple: { bg: "#e0d6f5", fg: "#522d8d" },
+              gray: { bg: "#e6e7ec", fg: "#4a4d61" },
+            },
+          },
+          fontFamily: {
+            sans: ["ui-sans-serif","system-ui","-apple-system","Segoe UI","Roboto","Helvetica Neue","Arial","sans-serif"],
+          },
+          boxShadow: {
+            card: "0 1px 2px rgba(20, 23, 47, 0.04)",
+          },
+          borderRadius: { card: "10px" },
+        },
+      },
+    };
+  </script>
+  <style>
+    body { background: #f8f9fc; color: #1c1d2b; -webkit-font-smoothing: antialiased; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb { background: #d8dae3; border-radius: 8px; border: 2px solid #f8f9fc; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .nav-link.active { background: rgba(31,59,179,0.08); color: #1f3bb3; font-weight: 600; }
+    .nav-link.active svg { color: #1f3bb3; }
+
+    /* Clickable widget — gives KPI tiles, preview cards and table rows
+       a "drill-down" affordance: cursor changes, subtle shadow lift,
+       border tints toward brand-ink. Reveals a small "→" indicator on hover. */
+    .clickable { cursor: pointer; transition: box-shadow 150ms ease, border-color 150ms ease, transform 150ms ease, background 150ms ease; position: relative; }
+    .clickable:hover { box-shadow: 0 4px 14px rgba(20, 23, 47, 0.08); border-color: rgba(31, 59, 179, 0.35); }
+    .clickable:active { transform: translateY(1px); }
+    .clickable::after {
+      content: "→"; position: absolute; top: 12px; right: 14px;
+      font-size: 14px; color: #1f3bb3; opacity: 0; transition: opacity 150ms ease, transform 150ms ease;
+      transform: translateX(-4px);
+    }
+    .clickable:hover::after { opacity: 1; transform: translateX(0); }
+
+    /* Clickable table row (no arrow — just a hover tint). */
+    .clickable-row { cursor: pointer; transition: background-color 120ms ease; }
+    .clickable-row:hover { background-color: rgba(31, 59, 179, 0.04); }
+
+    [data-tooltip] { position: relative; }
+    [data-tooltip]:hover::after {
+      content: attr(data-tooltip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+      background: #1c1d2b; color: #fff; font-size: 11px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; z-index: 10;
+    }
+  </style>
+</head>
+<body class="font-sans text-brand-body">
+  <div class="flex min-h-screen">
+
+    <!-- ============ Sidebar ============ -->
+    <aside class="hidden md:flex md:flex-col w-[240px] shrink-0 border-r border-brand-border bg-white">
+      <div class="px-6 h-16 flex items-center border-b border-brand-border">
+        <a href="#" class="text-[20px] tracking-tight text-brand-heading">
+          <span class="font-bold">Job</span><span class="font-medium text-brand-ink">Dash</span>
+        </a>
+      </div>
+      <nav class="px-3 py-4">
+        <p class="px-3 mb-2 text-[10px] uppercase tracking-wider text-brand-muted font-semibold">Pipeline</p>
+        <ul class="space-y-0.5" id="nav">
+          <li><a href="#" data-page="overview" class="nav-link active flex items-center gap-3 px-3 py-2 rounded-md text-[14px] text-brand-body hover:bg-brand-subtleBorder hover:text-brand-heading transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-[18px] h-[18px] text-brand-muted">
+              <rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/>
+              <rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>
+            </svg>Overview</a></li>
+          <li><a href="#" data-page="listings" class="nav-link flex items-center gap-3 px-3 py-2 rounded-md text-[14px] text-brand-body hover:bg-brand-subtleBorder hover:text-brand-heading transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-[18px] h-[18px] text-brand-muted">
+              <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/>
+            </svg>Job Listings</a></li>
+          <li><a href="#" data-page="outreach" class="nav-link flex items-center gap-3 px-3 py-2 rounded-md text-[14px] text-brand-body hover:bg-brand-subtleBorder hover:text-brand-heading transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-[18px] h-[18px] text-brand-muted">
+              <path d="M3 7l9 6 9-6"/><rect x="3" y="5" width="18" height="14" rx="2"/>
+            </svg>Outreach</a></li>
+          <li><a href="#" data-page="applications" class="nav-link flex items-center gap-3 px-3 py-2 rounded-md text-[14px] text-brand-body hover:bg-brand-subtleBorder hover:text-brand-heading transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-[18px] h-[18px] text-brand-muted">
+              <path d="M9 4h6l3 3v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M9 13l2 2 4-4"/>
+            </svg>Applications</a></li>
+          <li><a href="#" data-page="interviews" class="nav-link flex items-center gap-3 px-3 py-2 rounded-md text-[14px] text-brand-body hover:bg-brand-subtleBorder hover:text-brand-heading transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-[18px] h-[18px] text-brand-muted">
+              <circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 6-5s6 2 6 5"/><circle cx="17" cy="6" r="2"/><path d="M15 12c1.5 0 4 1 4 4"/>
+            </svg>Interviews</a></li>
+          <li><a href="#" data-page="targets" class="nav-link flex items-center gap-3 px-3 py-2 rounded-md text-[14px] text-brand-body hover:bg-brand-subtleBorder hover:text-brand-heading transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-[18px] h-[18px] text-brand-muted">
+              <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+            </svg>Target Companies</a></li>
+        </ul>
+      </nav>
+      <div class="mt-auto px-6 py-4 border-t border-brand-border text-[11px] text-brand-muted">
+        Static preview · matches Airtable
+      </div>
+    </aside>
+
+    <!-- ============ Content column ============ -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+      <!-- Pages ====================================================== -->
+      <main id="content">
+
+        <!-- ========== OVERVIEW ========== -->
+        <section class="page active" data-page="overview">
+          <header class="h-16 border-b border-brand-border bg-white px-8 flex items-center justify-between">
+            <div>
+              <h1 class="text-[20px] font-semibold text-brand-heading leading-tight">Overview</h1>
+              <p class="text-[12px] text-brand-muted mt-0.5">End-to-end view of the job search — listings, outreach, applications, interviews.</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 border border-brand-border rounded-md text-[13px] text-brand-body">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-4 h-4 text-brand-muted"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+                05/28/2026
+              </div>
+              <div class="w-8 h-8 rounded-full bg-brand-ink text-white flex items-center justify-center text-[12px] font-semibold">TA</div>
+            </div>
+          </header>
+          <div class="p-8 space-y-6">
+
+            <!-- KPI row — each tile drills into the matching detail page -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="clickable bg-white border border-brand-border rounded-card shadow-card p-6" data-link="targets" role="link" tabindex="0">
+                <span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Target Companies</span>
+                <div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">151</div>
+                <p class="text-[12px] text-brand-body mt-1">H1B-friendly + Bay Area/Remote</p>
+              </div>
+              <div class="clickable bg-white border border-brand-border rounded-card shadow-card p-6" data-link="listings" role="link" tabindex="0">
+                <span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Job Listings</span>
+                <div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">5</div>
+                <p class="text-[12px] text-brand-body mt-1">1 new · 1 applied</p>
+              </div>
+              <div class="clickable bg-white border border-brand-border rounded-card shadow-card p-6" data-link="outreach" role="link" tabindex="0">
+                <span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Outreach</span>
+                <div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">11</div>
+                <p class="text-[12px] text-brand-body mt-1">6 sent · 2 replied <span class="text-status-green-fg ml-1">↑ 33% reply rate</span></p>
+              </div>
+              <div class="clickable bg-white border border-brand-border rounded-card shadow-card p-6" data-link="applications" role="link" tabindex="0">
+                <span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Applications</span>
+                <div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">5</div>
+                <p class="text-[12px] text-brand-body mt-1">1 interviewing · 0 offered <span class="text-status-red-fg ml-1">↓ 60% rejected</span></p>
+              </div>
+            </div>
+
+            <!-- Funnel + Scrape Health -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div class="lg:col-span-2 bg-white border border-brand-border rounded-card shadow-card">
+                <div class="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 class="text-[16px] font-semibold text-brand-heading leading-tight">Pipeline funnel</h2>
+                    <p class="text-[12px] text-brand-muted mt-1">Conversion from target list to offer · click a stage to drill in</p>
+                  </div>
+                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-status-yellow-bg text-status-yellow-fg">
+                    <span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg"></span>Mock
+                  </span>
+                </div>
+                <div class="px-6 pb-5 space-y-2">
+                  <!-- Each funnel row drills into the relevant page. -->
+                  <div class="flex items-center gap-4 px-2 py-1 -mx-2 rounded clickable-row" data-link="targets" role="link" tabindex="0">
+                    <div class="w-28 text-[13px] text-brand-body font-medium">Targets</div>
+                    <div class="flex-1 relative h-7 bg-brand-canvas rounded-md overflow-hidden">
+                      <div class="absolute inset-y-0 left-0 bg-brand-ink/85" style="width:100%"></div>
+                      <div class="absolute inset-0 flex items-center justify-end pr-3 text-[12px] font-semibold text-white">151</div>
+                    </div>
+                    <div class="w-12 text-[11px] text-brand-muted text-right">—</div>
+                  </div>
+                  <div class="flex items-center gap-4 px-2 py-1 -mx-2 rounded clickable-row" data-link="listings" role="link" tabindex="0">
+                    <div class="w-28 text-[13px] text-brand-body font-medium">Listings</div>
+                    <div class="flex-1 relative h-7 bg-brand-canvas rounded-md overflow-hidden">
+                      <div class="absolute inset-y-0 left-0 bg-brand-ink/85" style="width:4%"></div>
+                      <div class="absolute inset-0 flex items-center justify-end pr-3 text-[12px] font-semibold text-brand-heading">5</div>
+                    </div>
+                    <div class="w-12 text-[11px] text-brand-muted text-right">3%</div>
+                  </div>
+                  <div class="flex items-center gap-4 px-2 py-1 -mx-2 rounded clickable-row" data-link="outreach" role="link" tabindex="0">
+                    <div class="w-28 text-[13px] text-brand-body font-medium">Outreach</div>
+                    <div class="flex-1 relative h-7 bg-brand-canvas rounded-md overflow-hidden">
+                      <div class="absolute inset-y-0 left-0 bg-brand-ink/85" style="width:7%"></div>
+                      <div class="absolute inset-0 flex items-center justify-end pr-3 text-[12px] font-semibold text-brand-heading">11</div>
+                    </div>
+                    <div class="w-12 text-[11px] text-brand-muted text-right">7%</div>
+                  </div>
+                  <div class="flex items-center gap-4 px-2 py-1 -mx-2 rounded clickable-row" data-link="applications" role="link" tabindex="0">
+                    <div class="w-28 text-[13px] text-brand-body font-medium">Applied</div>
+                    <div class="flex-1 relative h-7 bg-brand-canvas rounded-md overflow-hidden">
+                      <div class="absolute inset-y-0 left-0 bg-brand-ink/85" style="width:4%"></div>
+                      <div class="absolute inset-0 flex items-center justify-end pr-3 text-[12px] font-semibold text-brand-heading">5</div>
+                    </div>
+                    <div class="w-12 text-[11px] text-brand-muted text-right">3%</div>
+                  </div>
+                  <div class="flex items-center gap-4 px-2 py-1 -mx-2 rounded clickable-row" data-link="interviews" role="link" tabindex="0">
+                    <div class="w-28 text-[13px] text-brand-body font-medium">Interviewing</div>
+                    <div class="flex-1 relative h-7 bg-brand-canvas rounded-md overflow-hidden">
+                      <div class="absolute inset-y-0 left-0 bg-brand-ink/85" style="width:4%"></div>
+                      <div class="absolute inset-0 flex items-center justify-end pr-3 text-[12px] font-semibold text-brand-heading">1</div>
+                    </div>
+                    <div class="w-12 text-[11px] text-brand-muted text-right">1%</div>
+                  </div>
+                  <div class="flex items-center gap-4 px-2 py-1 -mx-2 rounded clickable-row" data-link="interviews" role="link" tabindex="0">
+                    <div class="w-28 text-[13px] text-brand-body font-medium">Offered</div>
+                    <div class="flex-1 relative h-7 bg-brand-canvas rounded-md overflow-hidden">
+                      <div class="absolute inset-y-0 left-0 bg-brand-ink/85" style="width:4%"></div>
+                      <div class="absolute inset-0 flex items-center justify-end pr-3 text-[12px] font-semibold text-brand-heading">0</div>
+                    </div>
+                    <div class="w-12 text-[11px] text-brand-muted text-right">0%</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white border border-brand-border rounded-card shadow-card">
+                <div class="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 class="text-[16px] font-semibold text-brand-heading leading-tight">Scrape health</h2>
+                    <p class="text-[12px] text-brand-muted mt-1">Recent Apify actor runs</p>
+                  </div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <a href="#listings" data-link="listings" class="text-[12px] font-medium text-brand-ink hover:text-brand-inkHover">View all →</a>
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-status-yellow-bg text-status-yellow-fg">
+                      <span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg"></span>Mock
+                    </span>
+                  </div>
+                </div>
+                <ul class="divide-y divide-brand-subtleBorder">
+                  <li class="px-6 py-3 flex items-center justify-between gap-3 clickable-row" data-link="listings" role="link" tabindex="0">
+                    <div class="min-w-0">
+                      <p class="text-[13px] font-medium text-brand-heading truncate">Greenhouse Job Board Scraper</p>
+                      <p class="text-[11px] text-brand-muted">today · 247 items</p>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-teal-bg text-status-teal-fg">SUCCEEDED</span>
+                  </li>
+                  <li class="px-6 py-3 flex items-center justify-between gap-3 clickable-row" data-link="listings" role="link" tabindex="0">
+                    <div class="min-w-0">
+                      <p class="text-[13px] font-medium text-brand-heading truncate">Lever Postings Scraper</p>
+                      <p class="text-[11px] text-brand-muted">today · 89 items</p>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-teal-bg text-status-teal-fg">SUCCEEDED</span>
+                  </li>
+                  <li class="px-6 py-3 flex items-center justify-between gap-3 clickable-row" data-link="listings" role="link" tabindex="0">
+                    <div class="min-w-0">
+                      <p class="text-[13px] font-medium text-brand-heading truncate">LinkedIn Jobs Scraper</p>
+                      <p class="text-[11px] text-brand-muted">today</p>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-yellow-bg text-status-yellow-fg">RUNNING</span>
+                  </li>
+                  <li class="px-6 py-3 flex items-center justify-between gap-3 clickable-row" data-link="listings" role="link" tabindex="0">
+                    <div class="min-w-0">
+                      <p class="text-[13px] font-medium text-brand-heading truncate">Workday Jobs Scraper</p>
+                      <p class="text-[11px] text-brand-muted">yesterday · 0 items</p>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-red-bg text-status-red-fg">FAILED</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Recent apps + outreach -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Recent apps -->
+              <div class="bg-white border border-brand-border rounded-card shadow-card">
+                <div class="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 class="text-[16px] font-semibold text-brand-heading leading-tight">Recent applications</h2>
+                    <p class="text-[12px] text-brand-muted mt-1">Last 5 submitted</p>
+                  </div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <a href="#applications" data-link="applications" class="text-[12px] font-medium text-brand-ink hover:text-brand-inkHover">View all →</a>
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-status-yellow-bg text-status-yellow-fg">
+                      <span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg"></span>Mock
+                    </span>
+                  </div>
+                </div>
+                <div class="w-full overflow-x-auto">
+                  <table class="w-full text-[13px]">
+                    <thead><tr class="text-left text-[11px] uppercase tracking-wider text-brand-muted">
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Company</th>
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Role</th>
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Status</th>
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Stage</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3"><span class="font-medium text-brand-heading">Airbnb</span></td>
+                        <td class="px-6 py-3 text-brand-body">Senior Staff Data Engineer, Marketplaces DNA</td>
+                        <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-yellow-bg text-status-yellow-fg">interviewing</span></td>
+                        <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-blue-bg text-status-blue-fg">Recruiter Screen</span></td>
+                      </tr>
+                      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3"><span class="font-medium text-brand-heading">Stripe</span></td>
+                        <td class="px-6 py-3 text-brand-body">Data Engineer III</td>
+                        <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-blue-bg text-status-blue-fg">submitted</span></td>
+                        <td class="px-6 py-3 text-brand-muted text-[12px]">—</td>
+                      </tr>
+                      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3"><span class="font-medium text-brand-heading">Kikoff</span></td>
+                        <td class="px-6 py-3 text-brand-body">Unknown — see Kikoff email</td>
+                        <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-red-bg text-status-red-fg">rejected</span></td>
+                        <td class="px-6 py-3 text-brand-muted text-[12px]">—</td>
+                      </tr>
+                      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3"><span class="font-medium text-brand-heading">FloQast</span></td>
+                        <td class="px-6 py-3 text-brand-body">Solutions Data Engineer</td>
+                        <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-red-bg text-status-red-fg">rejected</span></td>
+                        <td class="px-6 py-3 text-brand-muted text-[12px]">—</td>
+                      </tr>
+                      <tr class="hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3"><span class="font-medium text-brand-heading">IBM</span></td>
+                        <td class="px-6 py-3 text-brand-body">AI &amp; Data Engineer</td>
+                        <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-red-bg text-status-red-fg">rejected</span></td>
+                        <td class="px-6 py-3 text-brand-muted text-[12px]">—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Recent outreach -->
+              <div class="bg-white border border-brand-border rounded-card shadow-card">
+                <div class="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 class="text-[16px] font-semibold text-brand-heading leading-tight">Recent outreach</h2>
+                    <p class="text-[12px] text-brand-muted mt-1">Last 5 reachouts (both bases)</p>
+                  </div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <a href="#outreach" data-link="outreach" class="text-[12px] font-medium text-brand-ink hover:text-brand-inkHover">View all →</a>
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-status-yellow-bg text-status-yellow-fg">
+                      <span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg"></span>Mock
+                    </span>
+                  </div>
+                </div>
+                <div class="w-full overflow-x-auto">
+                  <table class="w-full text-[13px]">
+                    <thead><tr class="text-left text-[11px] uppercase tracking-wider text-brand-muted">
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40"></th>
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Company</th>
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Contact</th>
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Status</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3"><span data-tooltip="Sourced via Automation Dev Outreach" class="relative inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider border border-status-purple-bg bg-status-purple-bg text-status-purple-fg">Leads</span></td>
+                        <td class="px-6 py-3"><span class="font-medium text-brand-heading">Workday</span></td>
+                        <td class="px-6 py-3">Jessica Tallerico</td>
+                        <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-teal-bg text-status-teal-fg">draft</span></td>
+                      </tr>
+                      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3"><span data-tooltip="Manual reachouts (Job Outreach base)" class="relative inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider border border-status-blue-bg bg-status-blue-bg text-status-blue-fg">Outreach</span></td>
+                        <td class="px-6 py-3"><span class="font-medium text-brand-heading">nvidia.com</span></td>
+                        <td class="px-6 py-3">Sarah Park</td>
+                        <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-blue-bg text-status-blue-fg">Drafted</span></td>
+                      </tr>
+                      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3"><span class="relative inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider border border-status-purple-bg bg-status-purple-bg text-status-purple-fg">Leads</span></td>
+                        <td class="px-6 py-3"><span class="font-medium text-brand-heading">Apple</span></td>
+                        <td class="px-6 py-3">Mahesh Molakalapalli</td>
+                        <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-cyan-bg text-status-cyan-fg">sent</span></td>
+                      </tr>
+                      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3"><span class="relative inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider border border-status-purple-bg bg-status-purple-bg text-status-purple-fg">Leads</span></td>
+                        <td class="px-6 py-3"><span class="font-medium text-brand-heading">LinkedIn</span></td>
+                        <td class="px-6 py-3">Alex Busuttil</td>
+                        <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-orange-bg text-status-orange-fg">responded</span></td>
+                      </tr>
+                      <tr class="hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3"><span class="relative inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider border border-status-blue-bg bg-status-blue-bg text-status-blue-fg">Outreach</span></td>
+                        <td class="px-6 py-3"><span class="font-medium text-brand-heading">dbtlabs.com</span></td>
+                        <td class="px-6 py-3">Tristan Handy</td>
+                        <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-cyan-bg text-status-cyan-fg">Sent</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Apollo + Gmail -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="bg-white border border-brand-border rounded-card shadow-card">
+                <div class="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 class="text-[16px] font-semibold text-brand-heading leading-tight">Apollo sequences</h2>
+                    <p class="text-[12px] text-brand-muted mt-1">Outreach campaigns</p>
+                  </div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <a href="#outreach" data-link="outreach" class="text-[12px] font-medium text-brand-ink hover:text-brand-inkHover">View all →</a>
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-status-yellow-bg text-status-yellow-fg">
+                      <span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg"></span>Mock
+                    </span>
+                  </div>
+                </div>
+                <div class="w-full overflow-x-auto">
+                  <table class="w-full text-[13px]">
+                    <thead><tr class="text-left text-[11px] uppercase tracking-wider text-brand-muted">
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Sequence</th>
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40 text-right">Contacts</th>
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40 text-right">Sent</th>
+                      <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40 text-right">Replied</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3 font-medium text-brand-heading">DE Recruiter Cold Touch — Bay Area</td>
+                        <td class="px-6 py-3 text-right">38</td><td class="px-6 py-3 text-right">36</td><td class="px-6 py-3 text-right">4 (11%)</td>
+                      </tr>
+                      <tr class="hover:bg-brand-canvas/60">
+                        <td class="px-6 py-3 font-medium text-brand-heading">H1B Founder Warm Intro Ask</td>
+                        <td class="px-6 py-3 text-right">14</td><td class="px-6 py-3 text-right">12</td><td class="px-6 py-3 text-right">3 (25%)</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="bg-white border border-brand-border rounded-card shadow-card">
+                <div class="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 class="text-[16px] font-semibold text-brand-heading leading-tight">Gmail — Job Outreach label</h2>
+                    <p class="text-[12px] text-brand-muted mt-1">Recent threads</p>
+                  </div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <a href="#outreach" data-link="outreach" class="text-[12px] font-medium text-brand-ink hover:text-brand-inkHover">View all →</a>
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-status-yellow-bg text-status-yellow-fg">
+                      <span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg"></span>Mock
+                    </span>
+                  </div>
+                </div>
+                <ul class="divide-y divide-brand-subtleBorder">
+                  <li class="px-6 py-3">
+                    <div class="flex items-baseline justify-between gap-3">
+                      <p class="text-[13px] font-medium text-brand-heading truncate">Re: Curious about Data Platform roles at Airbnb</p>
+                      <span class="shrink-0 inline-flex items-center gap-1 text-[10.5px] font-semibold text-status-orange-fg">
+                        <span class="w-1.5 h-1.5 rounded-full bg-status-orange-fg"></span>unread
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-brand-muted mt-0.5">Sarah Park &lt;sarah.park@airbnb.com&gt;</p>
+                    <p class="text-[12px] text-brand-body mt-1 truncate">Hi Tejas — thanks for reaching out. Let's set up a 30-min chat next week...</p>
+                  </li>
+                  <li class="px-6 py-3">
+                    <p class="text-[13px] font-medium text-brand-heading truncate">Re: Senior DE referral?</p>
+                    <p class="text-[11px] text-brand-muted mt-0.5">Tristan Handy &lt;tristan@dbtlabs.com&gt;</p>
+                    <p class="text-[12px] text-brand-body mt-1 truncate">Happy to refer you in — can you send me your latest resume and what teams interest you?</p>
+                  </li>
+                  <li class="px-6 py-3">
+                    <p class="text-[13px] font-medium text-brand-heading truncate">Application received — Stripe Data Engineer III</p>
+                    <p class="text-[11px] text-brand-muted mt-0.5">Stripe Recruiting &lt;noreply@stripe.com&gt;</p>
+                    <p class="text-[12px] text-brand-body mt-1 truncate">Thanks for your interest in Stripe. We've received your application and will be in touch...</p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========== LISTINGS ========== -->
+        <section class="page" data-page="listings">
+          <header class="h-16 border-b border-brand-border bg-white px-8 flex items-center justify-between">
+            <div>
+              <h1 class="text-[20px] font-semibold text-brand-heading leading-tight">Job Listings</h1>
+              <p class="text-[12px] text-brand-muted mt-0.5">Apify-scraped postings from Greenhouse, Lever, LinkedIn, Workday</p>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-brand-ink text-white flex items-center justify-center text-[12px] font-semibold">TA</div>
+          </header>
+          <div class="p-8 space-y-6">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">New</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">1</div><p class="text-[12px] text-brand-body mt-1">Awaiting triage</p></div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Queued</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">1</div><p class="text-[12px] text-brand-body mt-1">Ready for review</p></div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Approved</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">1</div><p class="text-[12px] text-brand-body mt-1">Cleared to apply</p></div>
+              <div class="clickable bg-white border border-brand-border rounded-card shadow-card p-6" data-link="applications" role="link" tabindex="0"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Applied</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">1</div><p class="text-[12px] text-brand-body mt-1">Submitted</p></div>
+            </div>
+
+            <div class="bg-white border border-brand-border rounded-card shadow-card">
+              <div class="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+                <div>
+                  <h2 class="text-[16px] font-semibold text-brand-heading leading-tight">All listings</h2>
+                  <p class="text-[12px] text-brand-muted mt-1">5 postings · 5 H1B-verified</p>
+                </div>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-status-yellow-bg text-status-yellow-fg"><span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg"></span>Mock</span>
+              </div>
+              <div class="w-full overflow-x-auto">
+                <table class="w-full text-[13px]">
+                  <thead><tr class="text-left text-[11px] uppercase tracking-wider text-brand-muted">
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Role</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Board</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Location</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Status</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Scraped</th>
+                  </tr></thead>
+                  <tbody>
+                    <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                      <td class="px-6 py-3"><p class="font-medium text-brand-heading">Senior Staff Data Engineer, Marketplaces DNA</p><p class="text-[11px] text-brand-muted">Airbnb</p></td>
+                      <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-green-bg text-status-green-fg">Greenhouse</span></td>
+                      <td class="px-6 py-3">United States (Remote) <span class="ml-2 text-[10.5px] uppercase tracking-wider text-status-teal-fg font-semibold">Remote</span></td>
+                      <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-green-bg text-status-green-fg">applied</span></td>
+                      <td class="px-6 py-3 text-brand-muted text-[12px]">2d ago</td>
+                    </tr>
+                    <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                      <td class="px-6 py-3"><p class="font-medium text-brand-heading">Data Engineer III, Analytics Platform</p><p class="text-[11px] text-brand-muted">Stripe</p></td>
+                      <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-green-bg text-status-green-fg">Greenhouse</span></td>
+                      <td class="px-6 py-3">South San Francisco, CA</td>
+                      <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-teal-bg text-status-teal-fg">approved</span></td>
+                      <td class="px-6 py-3 text-brand-muted text-[12px]">yesterday</td>
+                    </tr>
+                    <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                      <td class="px-6 py-3"><p class="font-medium text-brand-heading">Senior Data Engineer</p><p class="text-[11px] text-brand-muted">Databricks</p></td>
+                      <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-blue-bg text-status-blue-fg">Lever</span></td>
+                      <td class="px-6 py-3">San Francisco, CA</td>
+                      <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-yellow-bg text-status-yellow-fg">review_pending</span></td>
+                      <td class="px-6 py-3 text-brand-muted text-[12px]">yesterday</td>
+                    </tr>
+                    <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+                      <td class="px-6 py-3"><p class="font-medium text-brand-heading">Data Platform Engineer</p><p class="text-[11px] text-brand-muted">Snowflake</p></td>
+                      <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-orange-bg text-status-orange-fg">Workday</span></td>
+                      <td class="px-6 py-3">Remote — US <span class="ml-2 text-[10.5px] uppercase tracking-wider text-status-teal-fg font-semibold">Remote</span></td>
+                      <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-blue-bg text-status-blue-fg">new</span></td>
+                      <td class="px-6 py-3 text-brand-muted text-[12px]">today</td>
+                    </tr>
+                    <tr class="hover:bg-brand-canvas/60">
+                      <td class="px-6 py-3"><p class="font-medium text-brand-heading">Staff Analytics Engineer</p><p class="text-[11px] text-brand-muted">Notion</p></td>
+                      <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-green-bg text-status-green-fg">Greenhouse</span></td>
+                      <td class="px-6 py-3">San Francisco, CA</td>
+                      <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-purple-bg text-status-purple-fg">queued</span></td>
+                      <td class="px-6 py-3 text-brand-muted text-[12px]">today</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========== OUTREACH ========== -->
+        <section class="page" data-page="outreach">
+          <header class="h-16 border-b border-brand-border bg-white px-8 flex items-center justify-between">
+            <div>
+              <h1 class="text-[20px] font-semibold text-brand-heading leading-tight">Outreach</h1>
+              <p class="text-[12px] text-brand-muted mt-0.5">Cold mail and referrals — tracked across both Airtable bases</p>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-brand-ink text-white flex items-center justify-center text-[12px] font-semibold">TA</div>
+          </header>
+          <div class="p-8 space-y-6">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Total Reachouts</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">11</div><p class="text-[12px] text-brand-body mt-1">6 Outreach · 5 Leads</p></div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Replied</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">2</div><p class="text-[12px] text-brand-body mt-1"><span class="text-status-green-fg">↑ 18% reply rate</span></p></div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Follow-ups Due</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">1</div><p class="text-[12px] text-brand-body mt-1">Flagged for next touch</p></div>
+              <div class="clickable bg-white border border-brand-border rounded-card shadow-card p-6" data-link="interviews" role="link" tabindex="0"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Interviewing</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">1</div><p class="text-[12px] text-brand-body mt-1">From outreach path</p></div>
+            </div>
+
+            <div class="bg-white border border-brand-border rounded-card shadow-card">
+              <div class="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+                <div>
+                  <h2 class="text-[16px] font-semibold text-brand-heading leading-tight">All reachouts</h2>
+                  <p class="text-[12px] text-brand-muted mt-1">Merged across both Airtable bases — Outreach (manual) and Leads (sourced)</p>
+                </div>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-status-yellow-bg text-status-yellow-fg"><span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg"></span>Mock</span>
+              </div>
+              <div class="w-full overflow-x-auto">
+                <table class="w-full text-[13px]">
+                  <thead><tr class="text-left text-[11px] uppercase tracking-wider text-brand-muted">
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Base</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Company</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Contact</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Channel</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Status</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Stage</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Last touch</th>
+                  </tr></thead>
+                  <tbody id="outreach-rows"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========== APPLICATIONS ========== -->
+        <section class="page" data-page="applications">
+          <header class="h-16 border-b border-brand-border bg-white px-8 flex items-center justify-between">
+            <div>
+              <h1 class="text-[20px] font-semibold text-brand-heading leading-tight">Applications</h1>
+              <p class="text-[12px] text-brand-muted mt-0.5">Every application submitted, with current status and stage</p>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-brand-ink text-white flex items-center justify-center text-[12px] font-semibold">TA</div>
+          </header>
+          <div class="p-8 space-y-6">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Total</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">5</div><p class="text-[12px] text-brand-body mt-1">All submissions</p></div>
+              <div class="clickable bg-white border border-brand-border rounded-card shadow-card p-6" data-link="interviews" role="link" tabindex="0"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Interviewing</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">1</div><p class="text-[12px] text-brand-body mt-1"><span class="text-status-green-fg">↑ 20% of submitted</span></p></div>
+              <div class="clickable bg-white border border-brand-border rounded-card shadow-card p-6" data-link="interviews" role="link" tabindex="0"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Offered</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">0</div><p class="text-[12px] text-brand-body mt-1">0% offer rate</p></div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Rejected</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">3</div><p class="text-[12px] text-brand-body mt-1"><span class="text-status-red-fg">↓ 60% of submitted</span></p></div>
+            </div>
+
+            <div class="bg-white border border-brand-border rounded-card shadow-card">
+              <div class="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+                <div>
+                  <h2 class="text-[16px] font-semibold text-brand-heading leading-tight">All applications</h2>
+                  <p class="text-[12px] text-brand-muted mt-1">Sorted newest first</p>
+                </div>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-status-yellow-bg text-status-yellow-fg"><span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg"></span>Mock</span>
+              </div>
+              <div class="w-full overflow-x-auto">
+                <table class="w-full text-[13px]">
+                  <thead><tr class="text-left text-[11px] uppercase tracking-wider text-brand-muted">
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Company</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Role</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Board</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Status</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Stage</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Submitted</th>
+                  </tr></thead>
+                  <tbody id="apps-rows"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========== INTERVIEWS ========== -->
+        <section class="page" data-page="interviews">
+          <header class="h-16 border-b border-brand-border bg-white px-8 flex items-center justify-between">
+            <div>
+              <h1 class="text-[20px] font-semibold text-brand-heading leading-tight">Interviews</h1>
+              <p class="text-[12px] text-brand-muted mt-0.5">Active interview stages and stalled applications</p>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-brand-ink text-white flex items-center justify-center text-[12px] font-semibold">TA</div>
+          </header>
+          <div class="p-8 space-y-6">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Active</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">2</div><p class="text-[12px] text-brand-body mt-1">In an interview stage</p></div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Furthest Stage</span><div class="text-[20px] font-semibold text-brand-heading leading-none mt-1">Recruiter Screen</div><p class="text-[12px] text-brand-body mt-1">Most advanced stage</p></div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Offers</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">0</div><p class="text-[12px] text-brand-body mt-1">Open offer letters</p></div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Ghosted</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">0</div><p class="text-[12px] text-brand-body mt-1">No response after follow-up</p></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div class="lg:col-span-2 bg-white border border-brand-border rounded-card shadow-card">
+                <div class="px-6 pt-5 pb-4">
+                  <h2 class="text-[16px] font-semibold text-brand-heading leading-tight">Interview funnel</h2>
+                  <p class="text-[12px] text-brand-muted mt-1">Count of applications at each stage</p>
+                </div>
+                <div class="px-6 pb-5 space-y-3" id="interview-funnel"></div>
+              </div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card">
+                <div class="px-6 pt-5 pb-4"><h2 class="text-[16px] font-semibold text-brand-heading leading-tight">What's next</h2><p class="text-[12px] text-brand-muted mt-1">Stages with movement opportunity</p></div>
+                <div class="px-6 pb-5">
+                  <ul class="space-y-3 text-[13px] text-brand-body">
+                    <li class="flex items-center justify-between"><span>Recruiter Screen</span><span class="font-semibold text-brand-heading">1</span></li>
+                    <li class="flex items-center justify-between"><span>Technical Screen</span><span class="font-semibold text-brand-heading">0</span></li>
+                    <li class="flex items-center justify-between"><span>Take Home</span><span class="font-semibold text-brand-heading">0</span></li>
+                    <li class="flex items-center justify-between"><span>Onsite / Final</span><span class="font-semibold text-brand-heading">0</span></li>
+                    <li class="flex items-center justify-between"><span>Offer</span><span class="font-semibold text-brand-heading">0</span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========== TARGETS ========== -->
+        <section class="page" data-page="targets">
+          <header class="h-16 border-b border-brand-border bg-white px-8 flex items-center justify-between">
+            <div>
+              <h1 class="text-[20px] font-semibold text-brand-heading leading-tight">Target Companies</h1>
+              <p class="text-[12px] text-brand-muted mt-0.5">H1B-friendly employers with Bay Area / remote presence</p>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-brand-ink text-white flex items-center justify-center text-[12px] font-semibold">TA</div>
+          </header>
+          <div class="p-8 space-y-6">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Targets</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">151</div><p class="text-[12px] text-brand-body mt-1">H1B-verified</p></div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Done</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">1</div><p class="text-[12px] text-brand-body mt-1">Reached out / applied</p></div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">In Progress</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">2</div><p class="text-[12px] text-brand-body mt-1">Active research</p></div>
+              <div class="bg-white border border-brand-border rounded-card shadow-card p-6"><span class="text-[11px] uppercase tracking-wider text-brand-muted font-semibold">Bay Area</span><div class="text-[28px] font-semibold text-brand-heading leading-none mt-1">5</div><p class="text-[12px] text-brand-body mt-1">With local office</p></div>
+            </div>
+
+            <div class="bg-white border border-brand-border rounded-card shadow-card">
+              <div class="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+                <div>
+                  <h2 class="text-[16px] font-semibold text-brand-heading leading-tight">All target companies</h2>
+                  <p class="text-[12px] text-brand-muted mt-1">Sorted by LCA count (H1B sponsorship volume)</p>
+                </div>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-status-yellow-bg text-status-yellow-fg"><span class="w-1.5 h-1.5 rounded-full bg-status-yellow-fg"></span>Mock</span>
+              </div>
+              <div class="w-full overflow-x-auto">
+                <table class="w-full text-[13px]">
+                  <thead><tr class="text-left text-[11px] uppercase tracking-wider text-brand-muted">
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Employer</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Sector</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">City</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40 text-right">LCA</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40 text-center">Bay Area</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40 text-center">Remote</th>
+                    <th class="font-semibold px-6 py-3 border-b border-brand-border bg-brand-canvas/40">Status</th>
+                  </tr></thead>
+                  <tbody id="targets-rows"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // ----------- Navigation -----------
+    // Single source of truth: goto(page) switches the active section,
+    // updates the URL hash, and scrolls to top. The hash means refreshes
+    // and shared links land on the right page. The function is exposed
+    // globally so inline onclick handlers and the delegated listener
+    // can both call it.
+    function goto(page) {
+      document.querySelectorAll('.nav-link').forEach(a => a.classList.toggle('active', a.dataset.page === page));
+      document.querySelectorAll('section.page').forEach(s => s.classList.toggle('active', s.dataset.page === page));
+      if (window.location.hash !== '#' + page) {
+        history.replaceState(null, '', '#' + page);
+      }
+      window.scrollTo(0, 0);
+    }
+    window.goto = goto;
+
+    // Delegated click handler — catches clicks on any element marked
+    // `data-page` (sidebar nav) or `data-link` (clickable widget / row).
+    // Using delegation on `document` survives any DOM rewrites in the
+    // table renderers below.
+    document.addEventListener('click', (e) => {
+      const target = e.target.closest('[data-page], [data-link]');
+      if (!target) return;
+      // Don't hijack actual links inside the widgets (e.g. external "Open ↗").
+      if (e.target.closest('a[href]:not([href^="#"])')) return;
+      e.preventDefault();
+      const page = target.dataset.page || target.dataset.link;
+      if (page) goto(page);
+    });
+
+    // Honor the initial hash so deep links like /static/index.html#outreach work.
+    const initial = (window.location.hash || '#overview').slice(1);
+    if (document.querySelector(`section.page[data-page="${initial}"]`)) {
+      goto(initial);
+    }
+
+    // ----------- Data + render helpers -----------
+    // Status color palette mirrors the Next.js utils.ts.
+    const STATUS_PALETTE = {
+      Drafted: 'blue', Sent: 'cyan', Contacted: 'blue', Replied: 'teal',
+      'No Reply': 'green', 'No Response': 'teal', Bounced: 'cyan',
+      'Awaiting Review': 'yellow', Interviewing: 'orange', Offer: 'red', Rejected: 'pink',
+      Email: 'blue', LinkedIn: 'cyan', 'Email+LinkedIn': 'teal', Phone: 'blue',
+      new: 'blue', queued: 'purple', review_pending: 'yellow', approved: 'teal',
+      applied: 'green', skipped: 'gray',
+      Greenhouse: 'green', Lever: 'blue', Workday: 'orange', Other: 'gray',
+      submitted: 'blue', interviewing: 'yellow', offered: 'green',
+      rejected: 'red', withdrawn: 'gray', ghosted: 'pink',
+      'Recruiter Screen': 'blue', 'Technical Screen': 'purple', 'Take Home': 'yellow',
+      'Onsite / Final': 'orange', 'Phone Screen': 'gray',
+      pending: 'gray', in_progress: 'yellow', done: 'green',
+      research: 'blue', draft: 'teal', sent: 'cyan', followed_up: 'yellow',
+      responded: 'orange', closed: 'red',
+      cold_email: 'blue', linkedin: 'cyan', referral: 'teal',
+      Senior: 'blue', Staff: 'cyan', Principal: 'teal',
+    };
+    const badge = (label) => {
+      if (!label) return '<span class="text-brand-muted text-[12px]">—</span>';
+      const c = STATUS_PALETTE[label] || 'gray';
+      return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-status-${c}-bg text-status-${c}-fg">${label}</span>`;
+    };
+    const baseTag = (source) => {
+      const isLeads = source === 'leads';
+      const cls = isLeads ? 'border-status-purple-bg bg-status-purple-bg text-status-purple-fg'
+                          : 'border-status-blue-bg bg-status-blue-bg text-status-blue-fg';
+      const tip = isLeads ? 'Sourced via Automation Dev Outreach' : 'Manual reachouts (Job Outreach base)';
+      return `<span data-tooltip="${tip}" class="relative inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider border ${cls}">${isLeads ? 'Leads' : 'Outreach'}</span>`;
+    };
+    const fmt = (d) => {
+      if (!d) return '—';
+      const x = new Date(d);
+      if (isNaN(x)) return d;
+      return x.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    // ----------- Outreach table -----------
+    const outreach = [
+      { source: 'leads', company: 'Apple', contact: 'Mahesh Molakalapalli', channel: 'cold_email', status: 'sent', stage: null, date: '2026-05-26' },
+      { source: 'leads', company: 'Airbnb', contact: 'Taylor Thompson', channel: 'cold_email', status: 'sent', stage: null, date: '2026-05-26' },
+      { source: 'leads', company: 'LinkedIn', contact: 'Alex Busuttil', channel: 'cold_email', status: 'responded', stage: null, date: '2026-05-26' },
+      { source: 'leads', company: 'NVIDIA', contact: 'Candace Millar', channel: 'cold_email', status: 'sent', stage: null, date: '2026-05-26' },
+      { source: 'leads', company: 'Workday', contact: 'Jessica Tallerico', channel: 'linkedin', status: 'draft', stage: null, date: '2026-05-27' },
+      { source: 'outreach', company: 'nvidia.com', contact: 'Sarah Park', channel: 'Email+LinkedIn', status: 'Drafted', stage: null, date: '2026-05-26' },
+      { source: 'outreach', company: 'dbtlabs.com', contact: 'Tristan Handy', channel: 'Email+LinkedIn', status: 'Sent', stage: null, date: '2026-05-25' },
+      { source: 'outreach', company: 'salesforce.com', contact: 'Gayathri Balachandra', channel: 'Email+LinkedIn', status: 'Contacted', stage: null, date: '2026-05-25' },
+      { source: 'outreach', company: 'linkedin.com', contact: 'Elisa Herpin', channel: 'Email+LinkedIn', status: 'Replied', stage: null, date: '2026-05-22' },
+      { source: 'outreach', company: 'stripe.com', contact: 'Patrick Collison', channel: 'Email', status: 'No Reply', stage: null, date: '2026-05-18' },
+      { source: 'outreach', company: 'airbnb.com', contact: 'Brian Chesky', channel: 'LinkedIn', status: 'Interviewing', stage: 'Phone Screen', date: '2026-05-15' },
+    ];
+    document.getElementById('outreach-rows').innerHTML = outreach.map(r => `
+      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+        <td class="px-6 py-3">${baseTag(r.source)}</td>
+        <td class="px-6 py-3"><span class="font-medium text-brand-heading">${r.company}</span></td>
+        <td class="px-6 py-3">${r.contact ?? '—'}</td>
+        <td class="px-6 py-3">${badge(r.channel)}</td>
+        <td class="px-6 py-3">${badge(r.status)}</td>
+        <td class="px-6 py-3">${badge(r.stage)}</td>
+        <td class="px-6 py-3 text-brand-muted text-[12px]">${fmt(r.date)}</td>
+      </tr>`).join('');
+
+    // ----------- Applications table -----------
+    const apps = [
+      { company: 'Airbnb', role: 'Senior Staff Data Engineer, Marketplaces DNA', board: 'Greenhouse', status: 'interviewing', stage: 'Recruiter Screen', date: '2026-05-26' },
+      { company: 'Stripe', role: 'Data Engineer III', board: 'Greenhouse', status: 'submitted', stage: null, date: '2026-05-24' },
+      { company: 'Kikoff', role: 'Unknown — see Kikoff email', board: 'Other', status: 'rejected', stage: null, date: '2026-05-27' },
+      { company: 'FloQast', role: 'Solutions Data Engineer', board: 'Lever', status: 'rejected', stage: null, date: '2026-05-27' },
+      { company: 'IBM', role: 'AI & Data Engineer', board: 'Other', status: 'rejected', stage: null, date: '2026-05-26' },
+    ];
+    document.getElementById('apps-rows').innerHTML = apps.map(a => `
+      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+        <td class="px-6 py-3"><span class="font-medium text-brand-heading">${a.company}</span></td>
+        <td class="px-6 py-3 text-brand-body">${a.role}</td>
+        <td class="px-6 py-3">${badge(a.board)}</td>
+        <td class="px-6 py-3">${badge(a.status)}</td>
+        <td class="px-6 py-3">${badge(a.stage)}</td>
+        <td class="px-6 py-3 text-brand-muted text-[12px]">${fmt(a.date)}</td>
+      </tr>`).join('');
+
+    // ----------- Interview funnel -----------
+    const stages = [
+      { stage: 'Recruiter Screen', count: 1 },
+      { stage: 'Technical Screen', count: 0 },
+      { stage: 'Take Home', count: 0 },
+      { stage: 'Onsite / Final', count: 0 },
+      { stage: 'Offer', count: 0 },
+    ];
+    const top = Math.max(...stages.map(s => s.count), 1);
+    document.getElementById('interview-funnel').innerHTML = stages.map((s, i) => {
+      const w = Math.max(4, Math.round((s.count / top) * 100));
+      return `<div class="flex items-center gap-4">
+        <div class="w-28 text-[13px] text-brand-body font-medium">${s.stage}</div>
+        <div class="flex-1 relative h-7 bg-brand-canvas rounded-md overflow-hidden">
+          <div class="absolute inset-y-0 left-0 bg-brand-ink/85" style="width:${w}%"></div>
+          <div class="absolute inset-0 flex items-center justify-end pr-3 text-[12px] font-semibold ${s.count > 0 ? 'text-white' : 'text-brand-heading'}">${s.count}</div>
+        </div>
+        <div class="w-12 text-[11px] text-brand-muted text-right">${i === 0 ? '—' : Math.round((s.count / stages[0].count) * 100) + '%'}</div>
+      </div>`;
+    }).join('');
+
+    // ----------- Targets table -----------
+    const targets = [
+      { employer: 'Google LLC', sector: 'Tech', city: 'Mountain View CA', lca: 770, bay: true, remote: false, status: 'done' },
+      { employer: 'Snowflake', sector: 'Data', city: 'Dublin CA', lca: 220, bay: true, remote: true, status: 'in_progress' },
+      { employer: 'Databricks', sector: 'Data', city: 'San Francisco CA', lca: 142, bay: true, remote: true, status: 'in_progress' },
+      { employer: 'Confluent Inc.', sector: 'Tech', city: 'Mountain View CA', lca: 38, bay: true, remote: true, status: 'pending' },
+      { employer: 'Fortinet Inc.', sector: 'Tech', city: 'Sunnyvale CA', lca: 36, bay: true, remote: false, status: 'pending' },
+    ];
+    document.getElementById('targets-rows').innerHTML = targets.map(t => `
+      <tr class="border-b border-brand-subtleBorder hover:bg-brand-canvas/60">
+        <td class="px-6 py-3"><span class="font-medium text-brand-heading">${t.employer}</span></td>
+        <td class="px-6 py-3 text-brand-body">${t.sector}</td>
+        <td class="px-6 py-3">${t.city}</td>
+        <td class="px-6 py-3 text-right font-mono text-[12px] text-brand-body">${t.lca}</td>
+        <td class="px-6 py-3 text-center">${t.bay ? '<span class="text-status-teal-fg text-[14px]">✓</span>' : '<span class="text-brand-muted">—</span>'}</td>
+        <td class="px-6 py-3 text-center">${t.remote ? '<span class="text-status-teal-fg text-[14px]">✓</span>' : '<span class="text-brand-muted">—</span>'}</td>
+        <td class="px-6 py-3">${badge(t.status)}</td>
+      </tr>`).join('');
+  </script>
+</body>
+</html>

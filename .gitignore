@@ -1,0 +1,17 @@
+# Dependencies & build output (any subdir)
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Secrets — never commit
+.env
+.env.local
+.env*.local
+
+# Vercel
+.vercel
+
+# Misc
+.DS_Store
+*.log

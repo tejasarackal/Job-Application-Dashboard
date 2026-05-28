@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  background: #f8f9fc;
+  color: #1c1d2b;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle focus ring tuned to the brand indigo. */
+*:focus-visible {
+  outline: 2px solid #1f3bb3;
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling — keeps the surface feeling light. */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #d8dae3; border-radius: 8px; border: 2px solid #f8f9fc; }
+::-webkit-scrollbar-thumb:hover { background: #b9bcca; }

@@ -27,9 +27,10 @@ import {
   getSummary,
 } from "@/lib/fetcher";
 import { formatRelative, pct, statusColor } from "@/lib/utils";
-import type { ApifyRun, ApolloSequence, Application, OutreachContact } from "@/lib/types";
+import type { ApolloSequence, Application, OutreachContact } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Overview" };
 
 // Funnel stage → detail page. Each funnel row deep-links to its sub-nav.
 const FUNNEL_ROUTES: Record<string, string> = {
@@ -56,6 +57,27 @@ export default async function OverviewPage() {
     .slice(0, 5);
   const recentOutreach = [...outreach.data]
     .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
+    .slice(0, 5);
+
+  // Collapse the repeated per-actor runs (e.g. five "Linkedin Jobs Scraper"
+  // rows) into one summary line per actor: latest status + total items + run count.
+  const scrapeHealth = Object.values(
+    runs.data.reduce<Record<string, { actorName: string; runs: number; items: number; latest?: string; status: string }>>(
+      (acc, r) => {
+        const key = r.actorName ?? "Unknown";
+        const g = (acc[key] ??= { actorName: key, runs: 0, items: 0, latest: r.startedAt, status: r.status });
+        g.runs += 1;
+        g.items += r.itemCount ?? 0;
+        if ((r.startedAt ?? "") >= (g.latest ?? "")) {
+          g.latest = r.startedAt;
+          g.status = r.status;
+        }
+        return acc;
+      },
+      {},
+    ),
+  )
+    .sort((a, b) => (b.latest ?? "").localeCompare(a.latest ?? ""))
     .slice(0, 5);
 
   return (
@@ -143,25 +165,26 @@ export default async function OverviewPage() {
             />
             <CardBody padded={false}>
               <ul className="divide-y divide-brand-subtleBorder">
-                {runs.data.slice(0, 5).map((r: ApifyRun) => (
-                  <li key={r.id} className="px-6 py-3 flex items-center justify-between gap-3">
+                {scrapeHealth.map((g) => (
+                  <li key={g.actorName} className="px-6 py-3 flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-[13px] font-medium text-brand-heading truncate">
-                        {r.actorName}
+                        {g.actorName}
                       </p>
                       <p className="text-[11px] text-brand-muted">
-                        {formatRelative(r.startedAt)}
-                        {r.itemCount !== undefined ? ` · ${r.itemCount} items` : ""}
+                        {formatRelative(g.latest)}
+                        {` · ${g.items} items`}
+                        {g.runs > 1 ? ` · ${g.runs} runs` : ""}
                       </p>
                     </div>
                     <StatusBadge
-                      label={r.status}
+                      label={g.status}
                       color={statusColor(
-                        r.status === "SUCCEEDED"
+                        g.status === "SUCCEEDED"
                           ? "approved"
-                          : r.status === "FAILED"
+                          : g.status === "FAILED"
                             ? "rejected"
-                            : r.status === "RUNNING"
+                            : g.status === "RUNNING"
                               ? "in_progress"
                               : "pending",
                       )}

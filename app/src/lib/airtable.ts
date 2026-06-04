@@ -10,9 +10,14 @@ import type {
   OutreachContact,
   Application,
   Interview,
+  ScrapeTarget,
   TargetCompany,
   PipelineSummary,
+  WorkflowRun,
+  WorkflowName,
+  WorkflowTrigger,
 } from "./types";
+import { lookupCompany } from "./company-registry";
 
 const API = "https://api.airtable.com/v0";
 
@@ -24,6 +29,10 @@ export const TABLES = {
   jobListings: "tbl4VpyV2wysMPrxL",
   applications: "tblRFVT8JwGccOHsv",
   interviews: "tblq3kP2aT6mOTn6N",
+  // Deduped scraper-read mart, derived from h1bCompanies by refresh_scrape_targets.
+  scrapeTargets: "tbl6bziCc2zjV10D4",
+  // Run log for dashboard-triggered workflows (see PRD-workflow-engine.md).
+  workflowRuns: "tblg1lBADrP2wfdGY",
   // Second base: Automation Dev Outreach (appkusCXgR7KcEmLO).
   // Used as a secondary outreach tracker (sourced/automated leads).
   leads: "tblI5KPof3PmTjDmY",
@@ -34,14 +43,14 @@ export const TABLES = {
 const DEFAULT_PRIMARY_BASE = "app8aBP9UPmxYaEgI";
 const DEFAULT_LEADS_BASE = "appkusCXgR7KcEmLO";
 
-function primaryBase(): string {
+export function primaryBase(): string {
   return process.env.AIRTABLE_BASE_ID || DEFAULT_PRIMARY_BASE;
 }
-function leadsBase(): string {
+export function leadsBase(): string {
   return process.env.AIRTABLE_LEADS_BASE_ID || DEFAULT_LEADS_BASE;
 }
 
-const FIELDS = {
+export const FIELDS = {
   jobListings: {
     title: "fldvG8tfxw9X9k0Ib",
     company: "fldpxGMiXpNR3PIRE",
@@ -54,6 +63,21 @@ const FIELDS = {
     salary: "fldgZFska9MJcnjTf",
     scrapedAt: "fldYq2oG1eQRLuFPm",
     h1bVerified: "fldcWxBMhtdj2QCEQ",
+    postedAt: "fldAUEjwZF38JOTEI",
+    matchPct: "fldjxMa1Ry45H2vgm",
+  },
+  scrapeTargets: {
+    company: "fldVWXI1xMOP5oQRT",
+    normalizedName: "flddWVp7lbY699TjW",
+    ats: "fldXnoS3j7bXl7QaT",
+    boardToken: "fld14LShpj9huxG2Y",
+    careersUrl: "fld1Jc39oV0Eyln6M",
+    linkedinId: "fld1UeL2ET3ocnNaG",
+    bayArea: "fldeXUUenhmcIA5vR",
+    remoteOk: "fldtw9PoaYpH9jVpt",
+    coverageStatus: "fldLWZR629LskkG5G",
+    lastScraped: "fldUDPyuywAKOjStP",
+    lastJobCount: "fldVEBut14cbW6BTu",
   },
   outreach: {
     company: "fldtL0SzPjKj7LS3b",
@@ -104,6 +128,19 @@ const FIELDS = {
     status: "fldBQykB3t3WmaPwi",
     bayArea: "fldMG3qNiLt1VTE89",
     remoteFriendly: "fldFET1ORd3Bq1OSA",
+    ats: "fldJRsNWtV9bw5Ngy",
+    careersUrl: "fldhFdAzRAgpLaGai",
+    linkedinId: "fldrsDe7bada7aNAw",
+  },
+  workflowRuns: {
+    run: "fld5XNYX8teMRB4s7",
+    workflow: "fldyLuR7AUSgSvLxk",
+    trigger: "fldbylVcg5NtgO8Zb",
+    status: "fldVVJhyWGUnaSJl6",
+    startedAt: "fldGUh23DE66t3iDI",
+    finishedAt: "fldEq3KyUNSjd0OWO",
+    counts: "fldaFhY5ELtrvr7aC",
+    notes: "fldb65eJR5x30c5W6",
   },
   leads: {
     firstName: "fldL8cWbBDzwCHdqd",
@@ -121,6 +158,13 @@ const FIELDS = {
     outreachDate: "fld5S4Hrfrfgefs28",
     followUpDate: "fldgFxwGfqVvMlxnJ",
     recentSignal: "fldx1FU0RcZUEPtDC",
+    companyInfo: "fldlK2Awkk30q2d1e",
+    dataStack: "fldUbpmFLdYc4YnZR",
+    jobPostingUrl: "fldS9DnORnkfH51av",
+    country: "fldt7XqoxALrdCkv4",
+    industry: "fldk8VUmDK4VDVCWD",
+    emailSubject: "fldkrnqZpvaQDaFkR",
+    emailBody: "fldIJnW51eO6GvPHw",
   },
 };
 
@@ -143,6 +187,7 @@ export function isConfigured(): boolean {
 async function fetchAllRecords(
   table: string,
   baseId?: string,
+  opts?: { fresh?: boolean },
 ): Promise<AirtableRecord[]> {
   const token = process.env.AIRTABLE_TOKEN;
   const base = baseId ?? primaryBase();
@@ -159,8 +204,9 @@ async function fetchAllRecords(
     if (offset) url.searchParams.set("offset", offset);
     const res = await fetch(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
-      // Cache for 30s server-side to avoid hammering Airtable.
-      next: { revalidate: 30 },
+      // Interactive surfaces (review gates) pass fresh:true to bypass the cache so
+      // an action shows immediately; everything else caches 30s to spare Airtable.
+      ...(opts?.fresh ? { cache: "no-store" as const } : { next: { revalidate: 30 } }),
     });
     if (!res.ok) throw new Error(`Airtable ${res.status} ${await res.text()}`);
     const json = (await res.json()) as AirtableListResponse;
@@ -179,21 +225,57 @@ function selectName(v: unknown): string | undefined {
   return undefined;
 }
 
-export async function listJobListings(): Promise<JobListing[]> {
-  const records = await fetchAllRecords(TABLES.jobListings, primaryBase());
+export async function listJobListings(opts?: { fresh?: boolean }): Promise<JobListing[]> {
+  const records = await fetchAllRecords(TABLES.jobListings, primaryBase(), opts);
+  const f = FIELDS.jobListings;
+  const rawPct = (v: unknown) =>
+    typeof v === "number" ? Math.round(v * 100) : undefined; // Airtable percent → 0-100
+  const listings: JobListing[] = records.map((r) => ({
+    id: r.id,
+    title: (r.fields[f.title] as string) ?? "Untitled",
+    company: (r.fields[f.company] as string) ?? "—",
+    url: r.fields[f.url] as string | undefined,
+    board: selectName(r.fields[f.board]),
+    location: r.fields[f.location] as string | undefined,
+    remote: Boolean(r.fields[f.remote]),
+    status: selectName(r.fields[f.status]),
+    skipReason: selectName(r.fields[f.skipReason]),
+    salary: r.fields[f.salary] as string | undefined,
+    scrapedAt: r.fields[f.scrapedAt] as string | undefined,
+    h1bVerified: Boolean(r.fields[f.h1bVerified]),
+    postedAt: r.fields[f.postedAt] as string | undefined,
+    matchPct: rawPct(r.fields[f.matchPct]),
+  }));
+  // Default order: most recently scraped first, then most recently posted, then
+  // best match. Mirrors ListingsTable#freshness so SSR and the interactive table
+  // agree (dates are day-granular "YYYY-MM-DD", so same-day rows tiebreak on match).
+  listings.sort(
+    (a, b) =>
+      (b.scrapedAt ?? "").localeCompare(a.scrapedAt ?? "") ||
+      (b.postedAt ?? "").localeCompare(a.postedAt ?? "") ||
+      (b.matchPct ?? -1) - (a.matchPct ?? -1),
+  );
+  return listings;
+}
+
+// Deduped scraper-read mart (one row per real company, verified ats + board_token).
+// scrape_jobs iterates this; refresh_scrape_targets populates it from h1bCompanies.
+export async function listScrapeTargets(opts?: { fresh?: boolean }): Promise<ScrapeTarget[]> {
+  const records = await fetchAllRecords(TABLES.scrapeTargets, primaryBase(), opts);
+  const f = FIELDS.scrapeTargets;
   return records.map((r) => ({
     id: r.id,
-    title: (r.fields[FIELDS.jobListings.title] as string) ?? "Untitled",
-    company: (r.fields[FIELDS.jobListings.company] as string) ?? "—",
-    url: r.fields[FIELDS.jobListings.url] as string | undefined,
-    board: selectName(r.fields[FIELDS.jobListings.board]),
-    location: r.fields[FIELDS.jobListings.location] as string | undefined,
-    remote: Boolean(r.fields[FIELDS.jobListings.remote]),
-    status: selectName(r.fields[FIELDS.jobListings.status]),
-    skipReason: selectName(r.fields[FIELDS.jobListings.skipReason]),
-    salary: r.fields[FIELDS.jobListings.salary] as string | undefined,
-    scrapedAt: r.fields[FIELDS.jobListings.scrapedAt] as string | undefined,
-    h1bVerified: Boolean(r.fields[FIELDS.jobListings.h1bVerified]),
+    company: (r.fields[f.company] as string) ?? "",
+    normalizedName: r.fields[f.normalizedName] as string | undefined,
+    ats: selectName(r.fields[f.ats]),
+    boardToken: r.fields[f.boardToken] as string | undefined,
+    careersUrl: r.fields[f.careersUrl] as string | undefined,
+    linkedinId: r.fields[f.linkedinId] as string | undefined,
+    bayArea: Boolean(r.fields[f.bayArea]),
+    remoteOk: Boolean(r.fields[f.remoteOk]),
+    coverageStatus: selectName(r.fields[f.coverageStatus]),
+    lastScraped: r.fields[f.lastScraped] as string | undefined,
+    lastJobCount: r.fields[f.lastJobCount] as number | undefined,
   }));
 }
 
@@ -217,11 +299,31 @@ export async function listOutreach(): Promise<OutreachContact[]> {
   }));
 }
 
+// Some lead text fields were written JSON-encoded upstream (researchLeads.ts),
+// so the value arrives wrapped in quotes with `\"` escapes that otherwise leak
+// into the rendered card. Decode once here so every consumer gets clean text.
+// (Fix the writer too — see researchLeads.ts#recentSignal — but this keeps the
+// dashboard honest regardless of what's already stored.)
+function cleanSignal(v: unknown): string | undefined {
+  if (typeof v !== "string") return undefined;
+  let s = v.trim();
+  if (!s) return undefined;
+  if (s.startsWith('"') && s.endsWith('"')) {
+    try {
+      const parsed: unknown = JSON.parse(s);
+      if (typeof parsed === "string") s = parsed;
+    } catch {
+      s = s.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+    }
+  }
+  return s.trim() || undefined;
+}
+
 // Leads = the second outreach tracker (Automation Dev Outreach base).
 // We normalize Leads rows into the same OutreachContact shape so the UI
 // can treat both the same way, with a `source` discriminator.
-export async function listLeads(): Promise<OutreachContact[]> {
-  const records = await fetchAllRecords(TABLES.leads, leadsBase());
+export async function listLeads(opts?: { fresh?: boolean }): Promise<OutreachContact[]> {
+  const records = await fetchAllRecords(TABLES.leads, leadsBase(), opts);
   return records.map((r) => {
     const fn = r.fields[FIELDS.leads.firstName] as string | undefined;
     const ln = r.fields[FIELDS.leads.lastName] as string | undefined;
@@ -239,9 +341,21 @@ export async function listLeads(): Promise<OutreachContact[]> {
       hiringSignal: selectName(r.fields[FIELDS.leads.hiringSignal]),
       roleLevel: selectName(r.fields[FIELDS.leads.roleLevel]),
       companyStage: selectName(r.fields[FIELDS.leads.companyStage]),
-      recentSignal: r.fields[FIELDS.leads.recentSignal] as string | undefined,
+      recentSignal: cleanSignal(r.fields[FIELDS.leads.recentSignal]),
+      emailSubject: r.fields[FIELDS.leads.emailSubject] as string | undefined,
+      emailBody: r.fields[FIELDS.leads.emailBody] as string | undefined,
     };
   });
+}
+
+// LinkedIn numeric company IDs entered on H1B_Companies — feeds the scrape's
+// `f_C=` source-filter so LinkedIn returns only sponsors. Empty until filled.
+export async function listH1bLinkedinIds(): Promise<string[]> {
+  const records = await fetchAllRecords(TABLES.h1bCompanies, primaryBase());
+  const ids = records
+    .map((r) => String(r.fields[FIELDS.h1bCompanies.linkedinId] ?? "").trim())
+    .filter((s) => /^\d{3,}$/.test(s));
+  return Array.from(new Set(ids));
 }
 
 // Convenience: both sources merged, sorted newest-first.
@@ -289,16 +403,140 @@ export async function listInterviews(): Promise<Interview[]> {
 
 export async function listTargets(): Promise<TargetCompany[]> {
   const records = await fetchAllRecords(TABLES.h1bCompanies, primaryBase());
-  return records.map((r) => ({
+  return records.map((r) => {
+    const employer = (r.fields[FIELDS.h1bCompanies.employer] as string) ?? "—";
+    // Read from Airtable fields when populated; fall back to static registry.
+    const airtableAts = FIELDS.h1bCompanies.ats
+      ? selectName(r.fields[FIELDS.h1bCompanies.ats])
+      : undefined;
+    const airtableUrl = FIELDS.h1bCompanies.careersUrl
+      ? (r.fields[FIELDS.h1bCompanies.careersUrl] as string | undefined)
+      : undefined;
+    const registry = lookupCompany(employer);
+    return {
+      id: r.id,
+      employer,
+      sector: r.fields[FIELDS.h1bCompanies.sector] as string | undefined,
+      city: r.fields[FIELDS.h1bCompanies.city] as string | undefined,
+      lcaCount: r.fields[FIELDS.h1bCompanies.lcaCount] as number | undefined,
+      status: selectName(r.fields[FIELDS.h1bCompanies.status]),
+      bayArea: Boolean(r.fields[FIELDS.h1bCompanies.bayArea]),
+      remoteFriendly: Boolean(r.fields[FIELDS.h1bCompanies.remoteFriendly]),
+      ats: airtableAts ?? registry?.ats,
+      careersUrl: airtableUrl ?? registry?.careersUrl,
+      linkedinId: String(r.fields[FIELDS.h1bCompanies.linkedinId] ?? "").trim() || undefined,
+    };
+  });
+}
+
+// ── Write layer ──────────────────────────────────────────────────────────────
+// The dashboard was read-only; these are the first writers (PRD-workflow-engine.md).
+// Airtable caps batch writes at 10 records/request, so we chunk. Field keys are
+// the same stable field IDs the read maps use.
+
+async function writeRecords(
+  method: "POST" | "PATCH",
+  table: string,
+  baseId: string,
+  records: Array<{ id?: string; fields: Record<string, unknown> }>,
+): Promise<AirtableRecord[]> {
+  const token = process.env.AIRTABLE_TOKEN;
+  if (!token) throw new Error("Airtable not configured");
+
+  const out: AirtableRecord[] = [];
+  for (let i = 0; i < records.length; i += 10) {
+    const batch = records.slice(i, i + 10);
+    const res = await fetch(`${API}/${baseId}/${table}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      // typecast lets us pass singleSelect option names as plain strings.
+      body: JSON.stringify({ records: batch, typecast: true }),
+    });
+    if (!res.ok) throw new Error(`Airtable ${method} ${res.status} ${await res.text()}`);
+    const json = (await res.json()) as { records: AirtableRecord[] };
+    out.push(...json.records);
+  }
+  return out;
+}
+
+export function createRecords(
+  table: string,
+  baseId: string,
+  rows: Array<Record<string, unknown>>,
+): Promise<AirtableRecord[]> {
+  return writeRecords("POST", table, baseId, rows.map((fields) => ({ fields })));
+}
+
+export function updateRecords(
+  table: string,
+  baseId: string,
+  rows: Array<{ id: string; fields: Record<string, unknown> }>,
+): Promise<AirtableRecord[]> {
+  return writeRecords("PATCH", table, baseId, rows);
+}
+
+// ── Workflow_Runs (run log) ──────────────────────────────────────────────────
+
+export async function listWorkflowRuns(limit = 50): Promise<WorkflowRun[]> {
+  const f = FIELDS.workflowRuns;
+  const records = await fetchAllRecords(TABLES.workflowRuns, primaryBase());
+  const runs: WorkflowRun[] = records.map((r) => ({
     id: r.id,
-    employer: (r.fields[FIELDS.h1bCompanies.employer] as string) ?? "—",
-    sector: r.fields[FIELDS.h1bCompanies.sector] as string | undefined,
-    city: r.fields[FIELDS.h1bCompanies.city] as string | undefined,
-    lcaCount: r.fields[FIELDS.h1bCompanies.lcaCount] as number | undefined,
-    status: selectName(r.fields[FIELDS.h1bCompanies.status]),
-    bayArea: Boolean(r.fields[FIELDS.h1bCompanies.bayArea]),
-    remoteFriendly: Boolean(r.fields[FIELDS.h1bCompanies.remoteFriendly]),
+    label: (r.fields[f.run] as string) ?? "—",
+    workflow: selectName(r.fields[f.workflow]) as WorkflowName | undefined,
+    trigger: selectName(r.fields[f.trigger]),
+    status: selectName(r.fields[f.status]),
+    startedAt: r.fields[f.startedAt] as string | undefined,
+    finishedAt: r.fields[f.finishedAt] as string | undefined,
+    counts: r.fields[f.counts] as string | undefined,
+    notes: r.fields[f.notes] as string | undefined,
   }));
+  // Newest first by start time.
+  runs.sort((a, b) => (b.startedAt ?? "").localeCompare(a.startedAt ?? ""));
+  return runs.slice(0, limit);
+}
+
+export async function createWorkflowRun(input: {
+  workflow: WorkflowName;
+  trigger: WorkflowTrigger;
+  label?: string;
+}): Promise<string> {
+  const f = FIELDS.workflowRuns;
+  const startedAt = new Date().toISOString();
+  const label =
+    input.label ?? `${startedAt.slice(0, 16).replace("T", " ")} — ${input.workflow}`;
+  const [rec] = await createRecords(TABLES.workflowRuns, primaryBase(), [
+    {
+      [f.run]: label,
+      [f.workflow]: input.workflow,
+      [f.trigger]: input.trigger,
+      [f.status]: "running",
+      [f.startedAt]: startedAt,
+    },
+  ]);
+  return rec.id;
+}
+
+export async function updateWorkflowRun(
+  id: string,
+  patch: {
+    status?: "running" | "success" | "partial" | "failed";
+    counts?: Record<string, number>;
+    notes?: string;
+    finished?: boolean;
+  },
+): Promise<void> {
+  const f = FIELDS.workflowRuns;
+  const fields: Record<string, unknown> = {};
+  if (patch.status) fields[f.status] = patch.status;
+  if (patch.counts) fields[f.counts] = JSON.stringify(patch.counts);
+  if (patch.notes !== undefined) fields[f.notes] = patch.notes;
+  if (patch.finished) fields[f.finishedAt] = new Date().toISOString();
+  if (Object.keys(fields).length === 0) return;
+  await updateRecords(TABLES.workflowRuns, primaryBase(), [{ id, fields }]);
 }
 
 export function summarize(

@@ -30,6 +30,7 @@ const STATUS_PALETTE: Record<string, StatusColor> = {
   // Job_Listings.Board / Applications.Board
   Greenhouse: "green",
   Lever: "blue",
+  Ashby: "purple",
   Workday: "orange",
   Other: "gray",
   // Applications.Status
@@ -47,6 +48,18 @@ const STATUS_PALETTE: Record<string, StatusColor> = {
   "Phone Screen": "gray",
   Technical: "gray",
   Final: "gray",
+  // Interviews.Stage — a distinct color per stage (was: HM/System Design/
+  // Behavioral/Interview all fell through to gray). Offer="red" via Outreach above.
+  "Hiring Manager": "teal",
+  "System Design": "cyan",
+  Behavioral: "pink",
+  Interview: "green",
+  // Interviews.Status — these had no entry → gray; give each a color.
+  Scheduled: "blue",
+  "Awaiting Feedback": "yellow",
+  Passed: "green",
+  Completed: "teal",
+  Cancelled: "gray",
   // H1B_Companies.Status
   pending: "gray",
   in_progress: "yellow",
@@ -80,6 +93,33 @@ const STATUS_PALETTE: Record<string, StatusColor> = {
 export function statusColor(name?: string | null): StatusColor {
   if (!name) return "gray";
   return STATUS_PALETTE[name] ?? "gray";
+}
+
+// Values that should read as "no value" rather than a literal badge.
+const EMPTY_STATUS = new Set(["", "unknown", "none", "n/a", "na", "null", "undefined"]);
+
+// Casing/spelling the generic humanizer can't infer. Keep this small — only
+// add entries the auto rule gets wrong.
+const STATUS_LABEL_OVERRIDES: Record<string, string> = {
+  linkedin: "LinkedIn",
+  "email+linkedin": "Email + LinkedIn",
+};
+
+// Turn a raw enum value (`cold_email`, `review_pending`, `in_progress`) into a
+// readable label ("Cold email", "Review pending", "In progress"). Leaves
+// already-cased labels ("LinkedIn", "Recruiter Screen", "Workday") untouched so
+// we never mangle proper nouns. Returns "" for empty/unknown sentinels.
+export function humanizeStatus(label?: string | null): string {
+  if (!label) return "";
+  const key = label.trim().toLowerCase();
+  if (EMPTY_STATUS.has(key)) return "";
+  if (STATUS_LABEL_OVERRIDES[key]) return STATUS_LABEL_OVERRIDES[key];
+  // Only transform "rawish" enums (all-lowercase or with separators); a label
+  // that already carries uppercase or spaces is assumed display-ready.
+  const rawish = label === label.toLowerCase() || /[_-]/.test(label);
+  if (!rawish) return label;
+  const spaced = label.replace(/[_-]+/g, " ").trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
 export function classNames(...parts: Array<string | false | undefined | null>): string {

@@ -99,11 +99,11 @@ export const mockInterviews: Interview[] = [
 ];
 
 export const mockTargets: TargetCompany[] = [
-  { id: "rec_t1", employer: "Google LLC", sector: "Tech", city: "Mountain View CA", lcaCount: 770, status: "done", bayArea: true, remoteFriendly: false },
-  { id: "rec_t2", employer: "Confluent Inc.", sector: "Tech", city: "Mountain View CA", lcaCount: 38, status: "pending", bayArea: true, remoteFriendly: true },
-  { id: "rec_t3", employer: "Fortinet Inc.", sector: "Tech", city: "Sunnyvale CA", lcaCount: 36, status: "pending", bayArea: true, remoteFriendly: false },
-  { id: "rec_t4", employer: "Databricks", sector: "Data", city: "San Francisco CA", lcaCount: 142, status: "in_progress", bayArea: true, remoteFriendly: true },
-  { id: "rec_t5", employer: "Snowflake", sector: "Data", city: "Dublin CA", lcaCount: 220, status: "in_progress", bayArea: true, remoteFriendly: true },
+  { id: "rec_t1", employer: "Google LLC", sector: "Tech", city: "Mountain View CA", lcaCount: 770, status: "done", bayArea: true, remoteFriendly: false, ats: "custom", careersUrl: "https://careers.google.com" },
+  { id: "rec_t2", employer: "Confluent Inc.", sector: "Tech", city: "Mountain View CA", lcaCount: 38, status: "pending", bayArea: true, remoteFriendly: true, ats: "greenhouse", careersUrl: "https://www.confluent.io/careers" },
+  { id: "rec_t3", employer: "Fortinet Inc.", sector: "Tech", city: "Sunnyvale CA", lcaCount: 36, status: "pending", bayArea: true, remoteFriendly: false, ats: "workday", careersUrl: "https://www.fortinet.com/corporate/about-us/careers" },
+  { id: "rec_t4", employer: "Databricks Inc.", sector: "Data", city: "San Francisco CA", lcaCount: 142, status: "in_progress", bayArea: true, remoteFriendly: true, ats: "greenhouse", careersUrl: "https://www.databricks.com/company/careers" },
+  { id: "rec_t5", employer: "Snowflake Inc.", sector: "Data", city: "Dublin CA", lcaCount: 220, status: "in_progress", bayArea: true, remoteFriendly: true, ats: "greenhouse", careersUrl: "https://careers.snowflake.com" },
 ];
 
 export const mockApolloSequences: ApolloSequence[] = [

@@ -1,28 +1,50 @@
 import { Header } from "@/components/layout/Header";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
-import { DataTable } from "@/components/ui/DataTable";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
+import { ListingsTable } from "./ListingsTable";
 import { getListings } from "@/lib/fetcher";
-import { formatRelative } from "@/lib/utils";
 import type { JobListing } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Job Listings" };
+
+// One section per status, rendered in pipeline order. Any status not listed here
+// (e.g. a new option added in Airtable) is appended after these so a row is
+// never silently dropped from the page.
+const SECTIONS: { status: string; title: string; hint: string }[] = [
+  { status: "new", title: "New", hint: "Awaiting triage" },
+  { status: "queued", title: "Queued", hint: "Ready for review" },
+  { status: "approved", title: "Approved", hint: "Cleared to apply" },
+  { status: "review_pending", title: "Review Pending", hint: "In review" },
+  { status: "applied", title: "Applied", hint: "Submitted" },
+  { status: "skipped", title: "Skipped", hint: "Filtered out" },
+];
+
+const titleCase = (s: string) =>
+  s.replace(/(^|[_\s])(\w)/g, (_, sep, ch) => (sep ? " " : "") + ch.toUpperCase()).trim();
 
 export default async function ListingsPage() {
   const { data, source } = await getListings();
 
-  const byStatus = data.reduce<Record<string, number>>((acc, l) => {
-    const k = l.status ?? "unknown";
-    acc[k] = (acc[k] ?? 0) + 1;
-    return acc;
-  }, {});
+  // Group by status (lower-cased so "New"/"new" land together).
+  const groups = new Map<string, JobListing[]>();
+  for (const l of data) {
+    const k = (l.status ?? "unknown").toLowerCase();
+    const arr = groups.get(k);
+    if (arr) arr.push(l);
+    else groups.set(k, [l]);
+  }
 
-  const newCount = byStatus["new"] ?? 0;
-  const queued = byStatus["queued"] ?? 0;
-  const approved = byStatus["approved"] ?? 0;
-  const applied = byStatus["applied"] ?? 0;
+  // Known statuses in pipeline order, then any leftover statuses appended.
+  const ordered = [
+    ...SECTIONS.filter((s) => groups.has(s.status)),
+    ...[...groups.keys()]
+      .filter((k) => !SECTIONS.some((s) => s.status === k))
+      .map((k) => ({ status: k, title: titleCase(k), hint: "" })),
+  ];
+
+  const count = (s: string) => groups.get(s)?.length ?? 0;
 
   return (
     <>
@@ -32,79 +54,44 @@ export default async function ListingsPage() {
       />
       <main className="p-8 space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card><div className="p-6"><Stat label="New" value={newCount} hint="Awaiting triage" /></div></Card>
-          <Card><div className="p-6"><Stat label="Queued" value={queued} hint="Ready for review" /></div></Card>
-          <Card><div className="p-6"><Stat label="Approved" value={approved} hint="Cleared to apply" /></div></Card>
-          <Card><div className="p-6"><Stat label="Applied" value={applied} hint="Submitted" /></div></Card>
+          <Card><div className="p-6"><Stat label="New" value={count("new")} hint="Awaiting triage" /></div></Card>
+          <Card><div className="p-6"><Stat label="Queued" value={count("queued")} hint="Ready for review" /></div></Card>
+          <Card><div className="p-6"><Stat label="Approved" value={count("approved")} hint="Cleared to apply" /></div></Card>
+          <Card><div className="p-6"><Stat label="Applied" value={count("applied")} hint="Submitted" /></div></Card>
         </div>
 
-        <Card>
-          <CardHeader
-            title="All listings"
-            subtitle={`${data.length} postings · ${data.filter((l) => l.h1bVerified).length} H1B-verified`}
-            right={<SourceBadge source={source} />}
-          />
-          <CardBody padded={false}>
-            <DataTable<JobListing>
-              rowKey={(r) => r.id}
-              rows={data}
-              columns={[
-                {
-                  key: "title",
-                  header: "Role",
-                  render: (r) => (
-                    <div>
-                      <p className="font-medium text-brand-heading">{r.title}</p>
-                      <p className="text-[11px] text-brand-muted">{r.company}</p>
-                    </div>
-                  ),
-                },
-                { key: "board", header: "Board", render: (r) => <StatusBadge label={r.board} /> },
-                {
-                  key: "loc",
-                  header: "Location",
-                  render: (r) => (
-                    <span className="text-brand-body">
-                      {r.location ?? "—"}
-                      {r.remote && (
-                        <span className="ml-2 text-[10.5px] uppercase tracking-wider text-status-teal-fg font-semibold">
-                          Remote
-                        </span>
-                      )}
-                    </span>
-                  ),
-                },
-                {
-                  key: "status",
-                  header: "Status",
-                  render: (r) => <StatusBadge label={r.status} />,
-                },
-                {
-                  key: "scraped",
-                  header: "Scraped",
-                  render: (r) => <span className="text-brand-muted text-[12px]">{formatRelative(r.scrapedAt)}</span>,
-                },
-                {
-                  key: "link",
-                  header: "",
-                  align: "right",
-                  render: (r) =>
-                    r.url ? (
-                      <a
-                        href={r.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-brand-ink hover:text-brand-inkHover text-[12px] font-medium"
-                      >
-                        Open ↗
-                      </a>
-                    ) : null,
-                },
-              ]}
-              empty="No listings have been scraped yet. Configure an Apify actor to populate this table."
-            />
-          </CardBody>
-        </Card>
+        {ordered.length === 0 ? (
+          <Card>
+            <CardHeader title="All listings" subtitle="0 postings" right={<SourceBadge source={source} />} />
+            <CardBody padded={false}>
+              <ListingsTable
+                rows={[]}
+                empty="No listings have been scraped yet. Run the scrape_jobs workflow to populate this table."
+              />
+            </CardBody>
+          </Card>
+        ) : (
+          ordered.map((section, i) => {
+            const rows = groups.get(section.status) ?? [];
+            const h1b = rows.filter((l) => l.h1bVerified).length;
+            const subtitle = [section.hint, `${rows.length} ${rows.length === 1 ? "posting" : "postings"}`, `${h1b} H1B-verified`]
+              .filter(Boolean)
+              .join(" · ");
+            return (
+              <Card key={section.status}>
+                <CardHeader
+                  title={`${section.title} · ${rows.length}`}
+                  subtitle={subtitle}
+                  // Show the live/mock indicator once, on the first section.
+                  right={i === 0 ? <SourceBadge source={source} /> : undefined}
+                />
+                <CardBody padded={false}>
+                  <ListingsTable rows={rows} />
+                </CardBody>
+              </Card>
+            );
+          })
+        )}
       </main>
     </>
   );

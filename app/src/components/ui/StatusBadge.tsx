@@ -1,5 +1,5 @@
 import type { StatusColor } from "@/lib/types";
-import { classNames, statusColor } from "@/lib/utils";
+import { classNames, humanizeStatus, statusColor } from "@/lib/utils";
 
 const PALETTE: Record<StatusColor, string> = {
   blue: "bg-status-blue-bg text-status-blue-fg",
@@ -21,7 +21,10 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ label, color, className }: StatusBadgeProps) {
-  if (!label) return <span className="text-brand-muted text-[12px]">—</span>;
+  // Color keys off the raw value (the palette map); the visible text is humanized.
+  // Empty/"unknown" sentinels render as a muted dash, not a literal badge.
+  const display = humanizeStatus(label);
+  if (!display) return <span className="text-brand-muted text-[12px]">—</span>;
   const c = color ?? statusColor(label);
   return (
     <span
@@ -31,7 +34,7 @@ export function StatusBadge({ label, color, className }: StatusBadgeProps) {
         className,
       )}
     >
-      {label}
+      {display}
     </span>
   );
 }

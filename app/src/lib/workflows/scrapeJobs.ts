@@ -1,0 +1,290 @@
+// A1 — Job scraping → Job_Listings, driven by the Scrape_Targets mart.
+// For each target company we call its NATIVE public board API (Greenhouse / Lever
+// / Ashby / Workday) directly — deterministic, complete, no Apify — and companies
+// with no resolved board fall back to ONE Apify LinkedIn f_C search over their
+// LinkedIn IDs. All sources feed the unchanged collectRows() filter/dedup/match
+// pass. Runs in one invocation within a ~48s budget (board GETs are fast +
+// parallel); the freshness window is 45d because board APIs return only OPEN roles.
+import { isH1bSponsor, checkLocation, isDeTitle, canonicalJobKey, matchScore, normalizeCompany } from "./filters";
+import { fetchBoardJobs, BOARD_LABEL, type RawJob } from "./boards";
+import {
+  listJobListings,
+  listScrapeTargets,
+  createRecords,
+  createWorkflowRun,
+  updateWorkflowRun,
+  TABLES,
+  FIELDS,
+  primaryBase,
+} from "@/lib/airtable";
+import type { RunResult } from "./runLog";
+import type { ScrapeTarget, WorkflowTrigger } from "@/lib/types";
+
+const APIFY = "https://api.apify.com/v2";
+const LINKEDIN_ACTOR = process.env.APIFY_LINKEDIN_ACTOR_ID || "hKByXkMQaC5Qt9UMN";
+
+// Board APIs list only currently-OPEN roles, so a tight window would hide still-
+// hireable postings. 45d = "recently posted" without dropping active listings.
+const SCRAPE_WINDOW_DAYS = 45;
+const LI_COUNT = 50;
+
+const NATIVE_ATS = new Set(["greenhouse", "lever", "ashby", "workday"]);
+// A target is natively scrapable iff it has a verified ATS + board token.
+function nativeOk(t: ScrapeTarget): boolean {
+  return Boolean(t.boardToken && t.ats && NATIVE_ATS.has(t.ats));
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// ── LinkedIn f_C fallback (Apify) — only for targets with no native board ──────
+function linkedinSearchUrl(ids: string[]): string {
+  const base = `https://www.linkedin.com/jobs/search/?keywords=Data%20Engineer&location=San%20Francisco%20Bay%20Area&f_TPR=r${SCRAPE_WINDOW_DAYS * 86_400}`;
+  if (!ids.length) return base;
+  try {
+    const u = new URL(base);
+    u.searchParams.set("f_C", ids.join(","));
+    return u.toString();
+  } catch {
+    return base;
+  }
+}
+
+async function fetchLinkedinFallback(
+  ids: string[],
+  token: string | undefined,
+  deadline: number,
+  totals: Record<string, number>,
+): Promise<RawJob[]> {
+  if (!token || !ids.length) return [];
+  const input = { urls: [linkedinSearchUrl(ids)], count: LI_COUNT, scrapeCompany: false };
+  try {
+    const res = await fetch(`${APIFY}/acts/${LINKEDIN_ACTOR}/runs?token=${token}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) { bump(totals, "sourceErrors"); return []; }
+    const run = (await res.json()).data as { id: string; defaultDatasetId: string };
+    while (Date.now() < deadline) {
+      try {
+        const st = await fetch(`${APIFY}/actor-runs/${run.id}?token=${token}`);
+        const rd = (await st.json()).data as { status: string; defaultDatasetId: string };
+        if (rd.status === "SUCCEEDED") {
+          const dsId = run.defaultDatasetId || rd.defaultDatasetId;
+          const items = (await (await fetch(`${APIFY}/datasets/${dsId}/items?clean=true&limit=200&token=${token}`)).json()) as unknown;
+          return Array.isArray(items) ? (items as RawJob[]) : [];
+        }
+        if (rd.status !== "RUNNING" && rd.status !== "READY") { bump(totals, "sourceErrors"); return []; }
+      } catch {
+        // transient — keep polling to the deadline
+      }
+      await sleep(2000);
+    }
+    bump(totals, "timedOut");
+    return [];
+  } catch {
+    bump(totals, "sourceErrors");
+    return [];
+  }
+}
+
+// Diagnostic for {check:true} — shows the resolved target mix without scraping.
+export async function describeInputs() {
+  const targets = await listScrapeTargets();
+  const byAts: Record<string, number> = {};
+  for (const t of targets) byAts[t.ats ?? "none"] = (byAts[t.ats ?? "none"] ?? 0) + 1;
+  const native = targets.filter(nativeOk);
+  const fallback = targets.filter((t) => !nativeOk(t) && t.linkedinId);
+  return {
+    totalTargets: targets.length,
+    byAts,
+    nativeBoards: native.length,
+    linkedinFallback: fallback.length,
+    windowDays: SCRAPE_WINDOW_DAYS,
+    sample: native.slice(0, 8).map((t) => ({ company: t.company, ats: t.ats, token: t.boardToken })),
+  };
+}
+
+// ── normalization (actor/board outputs are inconsistently shaped) ─────────────
+type Raw = Record<string, unknown>;
+
+function str(v: unknown): string {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  if (Array.isArray(v)) return v.map(str).filter(Boolean).join(", ");
+  if (typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    return str(o.name ?? o.text ?? o.label ?? o.title ?? o.value ?? "");
+  }
+  return "";
+}
+function pick(it: Raw, ...keys: string[]): string {
+  for (const k of keys) {
+    const s = str(it[k]);
+    if (s) return s;
+  }
+  return "";
+}
+function normalize(it: Raw) {
+  const title = pick(it, "title", "positionName", "jobTitle", "position");
+  const company = pick(it, "company", "companyName", "company_name", "employer");
+  const url = pick(it, "url", "jobUrl", "link", "applyUrl", "absolute_url");
+  const location = pick(it, "location", "jobLocation", "locationName", "locations");
+  const remote = Boolean(it.remote) || /remote/i.test(location);
+  const postedAt = pick(
+    it, "postedAt", "postedTime", "listedAt", "datePosted", "posted_at", "postedDate", "postedDateTime", "publishedAt", "updated_at", "created_at",
+  );
+  const rawScore = it.score ?? it.relevanceScore ?? it.matchScore ?? it.match;
+  const n = typeof rawScore === "number" ? rawScore : Number(rawScore);
+  const actorScore = Number.isFinite(n) ? (n > 1 ? n / 100 : n) : undefined;
+  return { title, company, url, location, remote, postedAt, actorScore };
+}
+
+function bump(t: Record<string, number>, k: string, n = 1) {
+  t[k] = (t[k] ?? 0) + n;
+}
+
+interface CollectCtx {
+  totals: Record<string, number>;
+  keys: Set<string>;
+  seen: Set<string>;
+  toCreate: Array<Record<string, unknown>>;
+  windowDays?: number;
+  sponsors: Set<string>; // normalized names of all Scrape_Targets (H1B sponsors)
+  samples: { title: string[]; loc: string[]; stale: string[] };
+}
+
+const SAMPLE_CAP = 12;
+function sample(arr: string[], v: string): void {
+  if (v && arr.length < SAMPLE_CAP) arr.push(v);
+}
+
+// `trusted` = the batch came from a known H1B target's own board, so the H1B gate
+// is satisfied by construction (skip it). LinkedIn fallback is untrusted → verify
+// the returned company is a known sponsor.
+function collectRows(items: Raw[], sourceBoard: string, ctx: CollectCtx, trusted: boolean): void {
+  for (const raw of items) {
+    bump(ctx.totals, "scraped");
+    try {
+      const it = normalize(raw);
+      if (!trusted && !(ctx.sponsors.has(normalizeCompany(it.company)) || isH1bSponsor(it.company))) {
+        bump(ctx.totals, "droppedH1b");
+        continue;
+      }
+      if (!isDeTitle(it.title)) { bump(ctx.totals, "droppedTitle"); sample(ctx.samples.title, it.title); continue; }
+      if (!checkLocation(it.location).pass) { bump(ctx.totals, "droppedLoc"); sample(ctx.samples.loc, it.location); continue; }
+      if (it.postedAt && ctx.windowDays) {
+        const t = Date.parse(it.postedAt);
+        if (!Number.isNaN(t) && Date.now() - t > ctx.windowDays * 86_400_000) {
+          bump(ctx.totals, "droppedStale");
+          sample(ctx.samples.stale, `${it.title} @ ${it.postedAt}`);
+          continue;
+        }
+      }
+
+      const ck = canonicalJobKey(it.url);
+      if (!ck.key || ctx.keys.has(ck.key) || ctx.seen.has(ck.key)) { bump(ctx.totals, "dupes"); continue; }
+      ctx.seen.add(ck.key);
+
+      const board = ck.board !== "Other" ? ck.board : sourceBoard;
+      const pct = matchScore({ title: it.title, location: it.location, remote: it.remote, postedAt: it.postedAt, actorScore: it.actorScore });
+
+      const row: Record<string, unknown> = {
+        [FIELDS.jobListings.title]: it.title,
+        [FIELDS.jobListings.company]: it.company,
+        [FIELDS.jobListings.url]: it.url,
+        [FIELDS.jobListings.board]: board,
+        [FIELDS.jobListings.location]: it.location,
+        [FIELDS.jobListings.remote]: it.remote,
+        [FIELDS.jobListings.status]: "new",
+        [FIELDS.jobListings.scrapedAt]: new Date().toISOString().slice(0, 10),
+        [FIELDS.jobListings.h1bVerified]: true,
+        [FIELDS.jobListings.matchPct]: pct / 100,
+      };
+      if (it.postedAt) {
+        const t = Date.parse(it.postedAt);
+        if (!Number.isNaN(t)) row[FIELDS.jobListings.postedAt] = new Date(t).toISOString().slice(0, 10);
+      }
+      ctx.toCreate.push(row);
+      bump(ctx.totals, "created");
+    } catch {
+      bump(ctx.totals, "droppedError");
+    }
+  }
+}
+
+export async function scrapeJobs(opts: {
+  dryRun?: boolean;
+  windowDays?: number;
+  trigger?: WorkflowTrigger;
+  deadlineMs?: number;
+} = {}): Promise<RunResult> {
+  const dryRun = Boolean(opts.dryRun);
+  const windowDays = opts.windowDays ?? SCRAPE_WINDOW_DAYS;
+  const deadline = Date.now() + (opts.deadlineMs ?? 48_000);
+  const totals: Record<string, number> = {};
+  const logRunId = await createWorkflowRun({ workflow: "scrape_jobs", trigger: opts.trigger ?? "manual" });
+
+  try {
+    const targets = await listScrapeTargets({ fresh: true });
+    const sponsors = new Set(targets.map((t) => normalizeCompany(t.company)));
+    const native = targets.filter(nativeOk);
+    const fallbackIds = targets.filter((t) => !nativeOk(t) && t.linkedinId).map((t) => t.linkedinId as string);
+
+    // Start LinkedIn fallback (Apify) + all native board GETs concurrently.
+    const liPromise = fetchLinkedinFallback(fallbackIds, process.env.APIFY_TOKEN, deadline, totals);
+    const nativePromise = Promise.all(
+      native.map(async (t) => ({ t, jobs: await fetchBoardJobs({ company: t.company, ats: t.ats, boardToken: t.boardToken }) })),
+    );
+    const [nativeResults, liItems] = await Promise.all([nativePromise, liPromise]);
+
+    const existing = await listJobListings({ fresh: true });
+    const ctx: CollectCtx = {
+      totals,
+      keys: new Set(existing.map((l) => canonicalJobKey(l.url).key).filter(Boolean)),
+      seen: new Set<string>(),
+      toCreate: [],
+      windowDays,
+      sponsors,
+      samples: { title: [], loc: [], stale: [] },
+    };
+
+    // Board jobs are trusted (came from a known sponsor's own board).
+    const zeroBoards: string[] = [];
+    for (const { t, jobs } of nativeResults) {
+      bump(totals, `got_${t.ats}`, jobs.length);
+      if (jobs.length === 0) zeroBoards.push(t.company);
+      collectRows(jobs as unknown as Raw[], BOARD_LABEL[t.ats ?? ""] ?? "Other", ctx, true);
+    }
+    // LinkedIn fallback is untrusted — verify each company is a known sponsor.
+    bump(totals, "got_LinkedIn", liItems.length);
+    collectRows(liItems as unknown as Raw[], "LinkedIn", ctx, false);
+
+    if (!dryRun && ctx.toCreate.length) await createRecords(TABLES.jobListings, primaryBase(), ctx.toCreate);
+
+    const incomplete = (totals.timedOut ?? 0) > 0 || (totals.sourceErrors ?? 0) > 0;
+    const summary = summarize(totals);
+    const coverage = `coverage: ${native.length - zeroBoards.length}/${native.length} boards returned jobs + ${fallbackIds.length} via LinkedIn` +
+      (zeroBoards.length ? `; 0-job boards (check token): ${zeroBoards.slice(0, 20).join(", ")}` : "");
+    const diag = diagnostics(ctx.samples);
+    const notes = [summary, coverage, diag].filter(Boolean).join("\n\n");
+    await updateWorkflowRun(logRunId, { status: incomplete ? "partial" : "success", counts: totals, notes, finished: true });
+    return { counts: totals, partial: false, notes: dryRun ? notes : `${summary}\n\n${coverage}` };
+  } catch (e) {
+    await updateWorkflowRun(logRunId, { status: "failed", notes: (e as Error).message, finished: true }).catch(() => {});
+    return { counts: totals, partial: false, notes: `error: ${(e as Error).message}` };
+  }
+}
+
+function summarize(t: Record<string, number>): string {
+  return `scraped ${t.scraped ?? 0}, added ${t.created ?? 0}, dupes ${t.dupes ?? 0}; dropped h1b:${t.droppedH1b ?? 0} title:${t.droppedTitle ?? 0} loc:${t.droppedLoc ?? 0} stale:${t.droppedStale ?? 0}`;
+}
+
+function diagnostics(s: { title: string[]; loc: string[]; stale: string[] }): string {
+  const parts: string[] = [];
+  if (s.title.length) parts.push(`dropped-title e.g.: ${s.title.join(" | ")}`);
+  if (s.loc.length) parts.push(`dropped-loc e.g.: ${s.loc.join(" | ")}`);
+  if (s.stale.length) parts.push(`dropped-stale e.g.: ${s.stale.join(" | ")}`);
+  return parts.join("\n");
+}

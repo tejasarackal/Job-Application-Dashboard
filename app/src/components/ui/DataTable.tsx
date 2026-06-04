@@ -27,7 +27,32 @@ export function DataTable<T>({ columns, rows, empty, rowKey }: DataTableProps<T>
     );
   }
   return (
-    <div className="w-full overflow-x-auto">
+    <>
+      {/* Mobile: stacked cards — each row becomes a labeled card (first column
+          is the card title) so a wide table stays readable on a phone. */}
+      <ul className="md:hidden divide-y divide-brand-subtleBorder">
+        {rows.map((row) => (
+          <li key={rowKey(row)} className="px-5 py-4 space-y-2">
+            {columns.map((c, i) =>
+              i === 0 || !c.header ? (
+                <div key={c.key} className="text-[13px] text-brand-body">
+                  {c.render(row)}
+                </div>
+              ) : (
+                <div key={c.key} className="flex items-start justify-between gap-3">
+                  <span className="text-[11px] uppercase tracking-wider text-brand-muted shrink-0">
+                    {c.header}
+                  </span>
+                  <span className="text-[13px] text-brand-body text-right min-w-0">{c.render(row)}</span>
+                </div>
+              ),
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {/* Desktop: the full table, horizontally scrollable as a fallback. */}
+      <div className="hidden md:block w-full overflow-x-auto">
       <table className="w-full text-[13px]">
         <thead>
           <tr className="text-left text-[11px] uppercase tracking-wider text-brand-muted">
@@ -68,6 +93,7 @@ export function DataTable<T>({ columns, rows, empty, rowKey }: DataTableProps<T>
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }

@@ -18,6 +18,25 @@ export interface JobListing {
   salary?: string;
   scrapedAt?: string;
   h1bVerified?: boolean;
+  postedAt?: string;
+  matchPct?: number; // 0-100 deterministic fit score
+}
+
+// A row of the Scrape_Targets mart — one real company the scraper polls, with a
+// verified ATS + board token. Derived from H1B_Companies by refresh_scrape_targets.
+export interface ScrapeTarget {
+  id: string;
+  company: string;
+  normalizedName?: string;
+  ats?: string; // greenhouse | lever | ashby | workday | custom | unknown
+  boardToken?: string; // board slug; workday = "host|tenant|site"
+  careersUrl?: string;
+  linkedinId?: string;
+  bayArea?: boolean;
+  remoteOk?: boolean;
+  coverageStatus?: string;
+  lastScraped?: string;
+  lastJobCount?: number;
 }
 
 // `source` distinguishes the two outreach trackers in Airtable:
@@ -45,6 +64,8 @@ export interface OutreachContact {
   roleLevel?: string;
   companyStage?: string;
   recentSignal?: string;
+  emailSubject?: string;
+  emailBody?: string;
 }
 
 export interface Application {
@@ -87,6 +108,34 @@ export interface TargetCompany {
   status?: string;
   bayArea?: boolean;
   remoteFriendly?: boolean;
+  careersUrl?: string;
+  ats?: string;
+  linkedinId?: string;
+}
+
+// Dashboard-triggered workflows (see docs/plan/PRD-workflow-engine.md).
+export type WorkflowName =
+  | "scrape_jobs"
+  | "refresh_scrape_targets"
+  | "sync_applications"
+  | "sync_interviews"
+  | "research"
+  | "draft_emails";
+
+export type WorkflowTrigger = "manual" | "scheduled";
+export type WorkflowStatus = "running" | "success" | "partial" | "failed";
+
+// One row in the Airtable Workflow_Runs table — the run log every workflow writes.
+export interface WorkflowRun {
+  id: string;
+  label: string;
+  workflow?: WorkflowName;
+  trigger?: string;
+  status?: string;
+  startedAt?: string;
+  finishedAt?: string;
+  counts?: string; // JSON blob: { scanned, created, updated, skipped, ... }
+  notes?: string;
 }
 
 export interface ApolloSequence {

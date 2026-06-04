@@ -19,17 +19,18 @@ All `npm`/`vercel`/`git` commands run from the **`app/`** folder unless noted.
 
 > Heads-up: `npm install` flagged a security advisory on `next@14.2.15`. Consider bumping to a patched 14.2.x during Phase 5 (don't `audit fix --force` — it pulls breaking changes).
 
-## Phase 1 — Version control
-- [ ] Decide git root: **project root** `Job Application Dashboard/` (tracks `docs/` + `brand/`; set Vercel root directory to `app/`) **vs.** inside `app/` per DEPLOY.md Path B
-- [ ] `git init` + verify `.gitignore` covers `node_modules`, `.next`, `.env*`
-- [ ] Initial commit
-- [ ] (Optional) `gh repo create job-application-dashboard --private --source=. --push`
+## Phase 1 — Version control ✅ (2026-05-28)
+- [x] Git root = **project root** `Job Application Dashboard/` (tracks `docs/` + `brand/` + `app/`). Vercel deploys from `app/`.
+- [x] `git init` + root `.gitignore` (ignores `.env*`, `node_modules`, `.next`, `.vercel` repo-wide). Verified `app/.env.local` is NOT tracked.
+- [x] Initial commit `9f51746` (59 files).
+- [ ] (Optional, not done) push to a GitHub remote — currently local-only.
 
-## Phase 2 — Deploy to Vercel (mock data)
-- [ ] `npx vercel login`
-- [ ] `npx vercel link` → scope **Tejas Arackal's projects** (`team_4IeLgkmcM9kOuQ5OOAv1Hd00`), new project `job-application-dashboard`
-- [ ] `npx vercel --prod`
-- [ ] Capture the deploy URL; confirm it renders with Mock pills
+## Phase 2 — Deploy to Vercel ✅ (2026-05-28)
+- [x] CLI already authed (tejasarackal90-9019); linked `app/` → project **job-application-dashboard** (`prj_VmJGbFmaOEoZUyeF69c3gY4tS1vm`) under team `team_4IeLgkmcM9kOuQ5OOAv1Hd00`.
+- [x] Set `AIRTABLE_TOKEN` + `APOLLO_API_KEY` in Vercel **Production** before deploying, so the first prod deploy was already **live** (not mock).
+- [x] `vercel --prod` → **READY**. Production URL: **https://job-application-dashboard-nine.vercel.app**
+- [x] Verified: all 6 pages HTTP 200, `source: live`, GEICO interview renders, Apollo live, public (no auth wall).
+- Note: deploys are CLI-driven from `app/`. To enable git-push deploys, connect a GitHub remote + set Vercel Root Directory = `app/`.
 
 ## Phase 3 — Wire live data (incremental)
 - [x] **Airtable (required):** `AIRTABLE_TOKEN` set in `app/.env.local` (copied from `job-outreach-portal`). Live verified 2026-05-28: targets 151, listings 1, outreach 17 (12 sent), applications 4. All sources show **Live**.
@@ -74,6 +75,11 @@ Authored 2026-05-28 — SOPs that keep Airtable accurate so the dashboard stays 
   - [x] `_instructions_gmail_scrape_interviews.md` written.
   - [x] Dashboard Interviews page rewired to read the `Interviews` table (was derived from `Applications`).
   - [x] **Validated end-to-end:** synced the real GEICO recruiter prescreen (Jayashree Venkatachalam, Zoom, 2026-05-27) into the table (`recIHpLgjQuuviyiE`); the page renders it live.
+
+## SOP hardening + applications reconcile — 2026-05-28
+- [x] After real-Gmail testing, hardened the Gmail queries in `_instructions_update_applications.md` and `_instructions_gmail_scrape_interviews.md`: broadened rejection phrases, banned bare `offer`, full-text (not subject-only) search, anchored interview/feedback queries (dropped standalone "next steps"), added a stage-abbreviation map (e.g. "HM"→Hiring Manager), and a **pipeline-scope** rule (allowlist OR existing Application/Interview/Leads row) so reactive opportunities like GEICO aren't skipped. Added explicit noise exclusions (own-employer/Meta layoff mail, immigration/banking/travel service notices).
+- [x] Ran the corrected confirmation query → imported **19 untracked applications** to the Applications table (now **24** total: 20 submitted, 1 interviewing, 3 rejected).
+- [ ] **Not imported (need a per-thread pass):** Meta (current-employer applications — skipped for sensitivity) and 7 companies whose role wasn't in the confirmation snippet — Robinhood, OpenAI, xAI, Twitch, Neuralink, Together AI, Pivotal Health.
 
 ## Gmail in the dashboard — RESOLVED 2026-05-28 (Airtable-sync)
 - [x] Connector can't be used by the deployed app, so the raw Gmail-threads card was **removed** from Overview + Outreach (it was the only mock surface left). The dashboard takes Gmail data via Airtable instead (items 4 & 7 sync through the connector in-session).

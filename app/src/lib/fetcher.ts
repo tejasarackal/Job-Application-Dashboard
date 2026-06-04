@@ -9,6 +9,7 @@ import {
   listInterviews,
   listJobListings,
   listTargets,
+  listWorkflowRuns,
   summarize,
 } from "./airtable";
 import { isConfigured as apolloConfigured, listSequences } from "./apollo";
@@ -36,6 +37,7 @@ import type {
   OutreachContact,
   PipelineSummary,
   TargetCompany,
+  WorkflowRun,
 } from "./types";
 
 async function wrap<T>(
@@ -51,8 +53,9 @@ async function wrap<T>(
   }
 }
 
+// Fresh read so status edits + new scrape results show immediately (no 30s lag).
 export const getListings = () =>
-  wrap<JobListing[]>(airtableConfigured(), listJobListings, mockListings);
+  wrap<JobListing[]>(airtableConfigured(), () => listJobListings({ fresh: true }), mockListings);
 
 // Outreach reads from the Leads table only (Automation Dev Outreach base) —
 // the source of truth for job-search reachouts.
@@ -67,6 +70,9 @@ export const getInterviews = () =>
 
 export const getTargets = () =>
   wrap<TargetCompany[]>(airtableConfigured(), listTargets, mockTargets);
+
+export const getWorkflowRuns = () =>
+  wrap<WorkflowRun[]>(airtableConfigured(), () => listWorkflowRuns(), []);
 
 export const getSequences = () =>
   wrap<ApolloSequence[]>(apolloConfigured(), listSequences, mockApolloSequences);

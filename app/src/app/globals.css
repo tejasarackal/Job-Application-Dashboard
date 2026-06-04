@@ -19,3 +19,8 @@ html, body {
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: #d8dae3; border-radius: 8px; border: 2px solid #f8f9fc; }
 ::-webkit-scrollbar-thumb:hover { background: #b9bcca; }
+
+/* Hide the scrollbar on the horizontally-scrollable top-nav tab strip on
+   mobile — the tabs still scroll, just without the chrome. */
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

@@ -9,6 +9,7 @@ import { formatDate, pct } from "@/lib/utils";
 import type { Application } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Applications" };
 
 export default async function ApplicationsPage() {
   const { data, source } = await getApplications();
@@ -17,6 +18,16 @@ export default async function ApplicationsPage() {
   const interviewing = data.filter((a) => a.status === "interviewing").length;
   const offered = data.filter((a) => a.status === "offered").length;
   const rejected = data.filter((a) => a.status === "rejected").length;
+
+  // Pin "active" applications — a stage has been reached and the status isn't a
+  // dead end — to the top for quick access; everything else stays newest-first.
+  const TERMINAL = new Set(["rejected", "withdrawn", "ghosted"]);
+  const isActive = (a: Application) => Boolean(a.interviewStage) && !TERMINAL.has(a.status ?? "");
+  const rows = [...data].sort(
+    (a, b) =>
+      (isActive(a) ? 0 : 1) - (isActive(b) ? 0 : 1) ||
+      (b.submittedAt ?? "").localeCompare(a.submittedAt ?? ""),
+  );
 
   return (
     <>
@@ -62,18 +73,28 @@ export default async function ApplicationsPage() {
         <Card>
           <CardHeader
             title="All applications"
-            subtitle="Sorted newest first"
+            subtitle="Active interviews pinned on top, then newest first"
             right={<SourceBadge source={source} />}
           />
           <CardBody padded={false}>
             <DataTable<Application>
               rowKey={(r) => r.id}
-              rows={[...data].sort((a, b) => (b.submittedAt ?? "").localeCompare(a.submittedAt ?? ""))}
+              rows={rows}
               columns={[
                 {
                   key: "company",
                   header: "Company",
-                  render: (r) => <span className="font-medium text-brand-heading">{r.company}</span>,
+                  render: (r) => (
+                    <span className="font-medium text-brand-heading">
+                      {isActive(r) && (
+                        <span
+                          title="Active interview"
+                          className="mr-1.5 inline-block w-1.5 h-1.5 rounded-full bg-status-teal-fg align-middle"
+                        />
+                      )}
+                      {r.company}
+                    </span>
+                  ),
                 },
                 {
                   key: "role",

@@ -6,10 +6,11 @@ import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
 import { Funnel } from "@/components/ui/Funnel";
 import { getInterviews } from "@/lib/fetcher";
-import { formatDate } from "@/lib/utils";
+import { formatDate, statusColor } from "@/lib/utils";
 import type { Interview } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Interviews" };
 
 // Reads the dedicated Interviews table (Job Outreach base), populated from
 // Gmail by automate-job-search/_instructions_gmail_scrape_interviews.md.
@@ -40,6 +41,7 @@ export default async function InterviewsPage() {
   const stageCounts = STAGES.map((s) => ({
     stage: s,
     count: data.filter((i) => i.stage === s).length,
+    color: statusColor(s),
   }));
 
   return (
@@ -48,9 +50,9 @@ export default async function InterviewsPage() {
       <main className="p-8 space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           <Card><div className="p-6"><Stat label="Active" value={active.length} hint="Scheduled / awaiting feedback" /></div></Card>
-          <Card><div className="p-6"><Stat label="Furthest stage" value={furthest} hint="Most advanced stage reached" /></div></Card>
+          <Card><div className="p-6"><Stat label="Furthest stage" value={furthest} size="sm" hint="Most advanced stage reached" /></div></Card>
           <Card><div className="p-6"><Stat label="Offers" value={offers} hint="At offer stage" trend={offers ? "up" : "flat"} /></div></Card>
-          <Card><div className="p-6"><Stat label="Next follow-up" value={nextFollow ? formatDate(nextFollow) : "—"} hint="Soonest scheduled" /></div></Card>
+          <Card><div className="p-6"><Stat label="Next follow-up" value={nextFollow ? formatDate(nextFollow) : "None scheduled"} size="sm" hint="Soonest scheduled" /></div></Card>
         </div>
 
         <Card>

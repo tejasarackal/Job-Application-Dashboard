@@ -10,6 +10,7 @@ import { formatRelative, pct } from "@/lib/utils";
 import type { OutreachContact, ApolloSequence } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Outreach" };
 
 export default async function OutreachPage() {
   const [outreach, sequences] = await Promise.all([

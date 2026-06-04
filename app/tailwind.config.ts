@@ -20,7 +20,9 @@ const config: Config = {
           // Typography
           heading: "#1c1d2b",
           body: "#54566c",
-          muted: "#8a8d9e",
+          // Darkened from #8a8d9e (≈3.6:1 on white, failed WCAG-AA) to ≈4.7:1
+          // so the small uppercase labels / subtitles / table headers pass AA.
+          muted: "#64748b",
         },
         status: {
           // mirrors Airtable Light2 + Bright color names

@@ -2,12 +2,14 @@ import { describe, it, expect } from "vitest";
 import {
   isH1bSponsor,
   isDeTitle,
+  DE_TITLE_RE,
   checkLocation,
   canonicalJobKey,
   matchScore,
   isFresh,
   normalizeCompany,
 } from "./filters";
+import { DE_KEYWORDS } from "./boards/keywords";
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString();
 
@@ -50,6 +52,20 @@ describe("isDeTitle", () => {
     expect(isDeTitle("Internship, Data Engineer, Fleet Data")).toBe(false);
     expect(isDeTitle("Data Engineer Co-op")).toBe(false);
     expect(isDeTitle("New Grad Data Engineer")).toBe(false);
+  });
+  it("accepts the four real-world misses that triggered the coverage fix", () => {
+    expect(isDeTitle("Sr. Data Engineer, Enterprise - Slack")).toBe(true);
+    expect(isDeTitle("Analytics Engineer – People Data")).toBe(true); // en-dash, not hyphen
+    expect(isDeTitle("Senior Data Engineer")).toBe(true);
+    expect(isDeTitle("Staff Data Engineer - Technical Strategic Programs")).toBe(true);
+  });
+});
+
+describe("DE_KEYWORDS / DE_TITLE_RE sync", () => {
+  // A source keyword that the title gate would reject is wasted work (it can only
+  // pull in titles collectRows() then drops). Keep the two in lockstep.
+  it("every shared search keyword satisfies the DE title gate", () => {
+    for (const kw of DE_KEYWORDS) expect(DE_TITLE_RE.test(kw)).toBe(true);
   });
 });
 

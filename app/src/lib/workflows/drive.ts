@@ -11,9 +11,12 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 //   scrape   → the async Apify scrape (its own budget; it's the long pole)
 //   pipeline → the chunked Gmail-sync + outreach generation, in priority order
 // (On Vercel Pro these could be split into per-workflow crons at any frequency.)
+// detect_boards runs LAST in the pipeline (resolves/repairs Workday tokens with
+// whatever budget remains) so it never starves the outreach workflows; it's
+// idempotent + resumable, so a partial sweep finishes over subsequent days.
 const JOBS: Record<string, string[]> = {
   scrape: ["scrape_jobs"],
-  pipeline: ["sync_applications", "sync_interviews", "research", "draft_emails"],
+  pipeline: ["sync_applications", "sync_interviews", "research", "draft_emails", "detect_boards"],
 };
 
 export function jobWorkflows(job: string): string[] | undefined {

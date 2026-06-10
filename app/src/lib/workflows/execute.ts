@@ -8,6 +8,7 @@ import { syncInterviews } from "./syncInterviews";
 import { researchLeads } from "./researchLeads";
 import { draftEmails } from "./draftEmails";
 import { refreshScrapeTargets } from "./refreshScrapeTargets";
+import { detectBoards } from "./detectBoards";
 import type { WorkflowName, WorkflowTrigger } from "@/lib/types";
 
 type SyncOpts = { maxItems?: number; dryRun?: boolean; cursor?: { offset?: number } };
@@ -21,6 +22,7 @@ const SYNC_RUNNERS: Record<string, (o: SyncOpts) => Promise<RunResult>> = {
   research: researchLeads,
   draft_emails: draftEmails,
   refresh_scrape_targets: () => refreshScrapeTargets(),
+  detect_boards: detectBoards,
 };
 
 export function isKnownWorkflow(name: string): boolean {

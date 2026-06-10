@@ -7,10 +7,12 @@
 // parallel); the freshness window is 45d because board APIs return only OPEN roles.
 import { isH1bSponsor, checkLocation, isDeTitle, canonicalJobKey, matchScore, normalizeCompany } from "./filters";
 import { fetchBoardJobs, BOARD_LABEL, type RawJob } from "./boards";
+import { linkedinKeywordQuery } from "./boards/keywords";
 import {
   listJobListings,
   listScrapeTargets,
   createRecords,
+  updateRecords,
   createWorkflowRun,
   updateWorkflowRun,
   TABLES,
@@ -26,7 +28,11 @@ const LINKEDIN_ACTOR = process.env.APIFY_LINKEDIN_ACTOR_ID || "hKByXkMQaC5Qt9UMN
 // Board APIs list only currently-OPEN roles, so a tight window would hide still-
 // hireable postings. 45d = "recently posted" without dropping active listings.
 const SCRAPE_WINDOW_DAYS = 45;
-const LI_COUNT = 50;
+const LI_COUNT = 75; // broader OR keyword query returns more candidates/company
+// Cap simultaneous Workday boards: each now paginates per keyword (many POSTs), so
+// uncapped parallelism across ~30+ tenants could exhaust the ~48s budget. Cheap
+// single-GET boards (Greenhouse/Lever/Ashby) stay fully parallel.
+const WORKDAY_CONCURRENCY = 8;
 
 const NATIVE_ATS = new Set(["greenhouse", "lever", "ashby", "workday"]);
 // A target is natively scrapable iff it has a verified ATS + board token.
@@ -37,8 +43,10 @@ function nativeOk(t: ScrapeTarget): boolean {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // ── LinkedIn f_C fallback (Apify) — only for targets with no native board ──────
-function linkedinSearchUrl(ids: string[]): string {
-  const base = `https://www.linkedin.com/jobs/search/?keywords=Data%20Engineer&location=San%20Francisco%20Bay%20Area&f_TPR=r${SCRAPE_WINDOW_DAYS * 86_400}`;
+// keywords is an OR-expression over DE_KEYWORDS so adjacent roles (Analytics
+// Engineer, Data Platform, …) surface in the ONE run, not just "Data Engineer".
+function linkedinSearchUrl(ids: string[], keywords: string = linkedinKeywordQuery()): string {
+  const base = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(keywords)}&location=San%20Francisco%20Bay%20Area&f_TPR=r${SCRAPE_WINDOW_DAYS * 86_400}`;
   if (!ids.length) return base;
   try {
     const u = new URL(base);
@@ -47,6 +55,20 @@ function linkedinSearchUrl(ids: string[]): string {
   } catch {
     return base;
   }
+}
+
+// Bounded-concurrency map — runs at most `limit` of `fn` at once, preserving order.
+async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, async () => {
+    while (next < items.length) {
+      const idx = next++;
+      out[idx] = await fn(items[idx]);
+    }
+  });
+  await Promise.all(workers);
+  return out;
 }
 
 async function fetchLinkedinFallback(
@@ -232,12 +254,20 @@ export async function scrapeJobs(opts: {
     const native = targets.filter(nativeOk);
     const fallbackIds = targets.filter((t) => !nativeOk(t) && t.linkedinId).map((t) => t.linkedinId as string);
 
-    // Start LinkedIn fallback (Apify) + all native board GETs concurrently.
+    // Start LinkedIn fallback (Apify) + native board fetches concurrently. Workday
+    // boards paginate per keyword (many POSTs each), so cap their concurrency; the
+    // cheap single-GET boards (Greenhouse/Lever/Ashby) stay fully parallel.
+    const fetchOne = async (t: ScrapeTarget) => ({
+      t,
+      jobs: await fetchBoardJobs({ company: t.company, ats: t.ats, boardToken: t.boardToken }, { deadlineMs: deadline }),
+    });
+    const wdTargets = native.filter((t) => t.ats === "workday");
+    const fastTargets = native.filter((t) => t.ats !== "workday");
     const liPromise = fetchLinkedinFallback(fallbackIds, process.env.APIFY_TOKEN, deadline, totals);
-    const nativePromise = Promise.all(
-      native.map(async (t) => ({ t, jobs: await fetchBoardJobs({ company: t.company, ats: t.ats, boardToken: t.boardToken }) })),
-    );
-    const [nativeResults, liItems] = await Promise.all([nativePromise, liPromise]);
+    const fastPromise = Promise.all(fastTargets.map(fetchOne));
+    const wdPromise = mapLimit(wdTargets, WORKDAY_CONCURRENCY, fetchOne);
+    const [fastResults, wdResults, liItems] = await Promise.all([fastPromise, wdPromise, liPromise]);
+    const nativeResults = [...fastResults, ...wdResults];
 
     const existing = await listJobListings({ fresh: true });
     const ctx: CollectCtx = {
@@ -250,23 +280,48 @@ export async function scrapeJobs(opts: {
       samples: { title: [], loc: [], stale: [] },
     };
 
-    // Board jobs are trusted (came from a known sponsor's own board).
+    // Board jobs are trusted (came from a known sponsor's own board). Track per-
+    // board fetched/kept so we can write coverage back per company and surface the
+    // "fetched-but-kept-0" case — the wrong-site/token signature an all-or-nothing
+    // zeroBoards check misses.
     const zeroBoards: string[] = [];
+    const keptZeroBoards: string[] = [];
+    const today = new Date().toISOString().slice(0, 10);
+    const targetUpdates: Array<{ id: string; fields: Record<string, unknown> }> = [];
     for (const { t, jobs } of nativeResults) {
       bump(totals, `got_${t.ats}`, jobs.length);
-      if (jobs.length === 0) zeroBoards.push(t.company);
+      const before = ctx.toCreate.length;
       collectRows(jobs as unknown as Raw[], BOARD_LABEL[t.ats ?? ""] ?? "Other", ctx, true);
+      const kept = ctx.toCreate.length - before;
+      if (jobs.length === 0) zeroBoards.push(t.company);
+      else if (kept === 0) keptZeroBoards.push(t.company);
+      if (t.id) {
+        const fields: Record<string, unknown> = {
+          [FIELDS.scrapeTargets.lastScraped]: today,
+          [FIELDS.scrapeTargets.lastJobCount]: jobs.length,
+        };
+        // Regression self-heal: a Workday board that USED to return jobs but now
+        // returns none = a dead/changed token (the Salesforce wrong-site class) →
+        // re-queue it for detect_boards to re-resolve. (A consistently-empty board
+        // had lastJobCount 0 already, so it isn't re-flagged — no oscillation.)
+        if (t.ats === "workday" && jobs.length === 0 && t.coverageStatus === "detected" && (t.lastJobCount ?? 0) > 0) {
+          fields[FIELDS.scrapeTargets.coverageStatus] = "needs_detection";
+        }
+        targetUpdates.push({ id: t.id, fields });
+      }
     }
     // LinkedIn fallback is untrusted — verify each company is a known sponsor.
     bump(totals, "got_LinkedIn", liItems.length);
     collectRows(liItems as unknown as Raw[], "LinkedIn", ctx, false);
 
     if (!dryRun && ctx.toCreate.length) await createRecords(TABLES.jobListings, primaryBase(), ctx.toCreate);
+    if (!dryRun && targetUpdates.length) await updateRecords(TABLES.scrapeTargets, primaryBase(), targetUpdates);
 
     const incomplete = (totals.timedOut ?? 0) > 0 || (totals.sourceErrors ?? 0) > 0;
     const summary = summarize(totals);
     const coverage = `coverage: ${native.length - zeroBoards.length}/${native.length} boards returned jobs + ${fallbackIds.length} via LinkedIn` +
-      (zeroBoards.length ? `; 0-job boards (check token): ${zeroBoards.slice(0, 20).join(", ")}` : "");
+      (zeroBoards.length ? `; 0-job boards (check token): ${zeroBoards.slice(0, 20).join(", ")}` : "") +
+      (keptZeroBoards.length ? `; fetched-but-kept-0 (check site/title/loc): ${keptZeroBoards.slice(0, 20).join(", ")}` : "");
     const diag = diagnostics(ctx.samples);
     const notes = [summary, coverage, diag].filter(Boolean).join("\n\n");
     await updateWorkflowRun(logRunId, { status: incomplete ? "partial" : "success", counts: totals, notes, finished: true });

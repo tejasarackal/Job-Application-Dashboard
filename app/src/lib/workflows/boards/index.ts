@@ -24,7 +24,7 @@ export const BOARD_LABEL: Record<string, string> = {
   workday: "Workday",
 };
 
-export async function fetchBoardJobs(t: BoardTarget): Promise<RawJob[]> {
+export async function fetchBoardJobs(t: BoardTarget, opts: { deadlineMs?: number } = {}): Promise<RawJob[]> {
   const token = (t.boardToken ?? "").trim();
   if (!token) return [];
   switch (t.ats) {
@@ -35,7 +35,8 @@ export async function fetchBoardJobs(t: BoardTarget): Promise<RawJob[]> {
     case "ashby":
       return fetchAshby(token, t.company);
     case "workday":
-      return fetchWorkdayBoard(token, t.company);
+      // Workday paginates per keyword, so it needs the global deadline to stay in budget.
+      return fetchWorkdayBoard(token, t.company, { deadlineMs: opts.deadlineMs });
     default:
       return [];
   }

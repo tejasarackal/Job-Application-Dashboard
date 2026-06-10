@@ -13,6 +13,7 @@ export const metadata = { title: "Workflows" };
 // Static catalog of the workflows the engine runs. See docs/plan/PRD-workflow-engine.md.
 const WORKFLOWS: { name: string; title: string; desc: string }[] = [
   { name: "scrape_jobs", title: "Job Scraping", desc: "Apify job boards → Job Listings" },
+  { name: "detect_boards", title: "Detect Boards", desc: "Resolve & repair Workday board tokens in Scrape Targets" },
   { name: "sync_applications", title: "Application Sync", desc: "Gmail → Application statuses" },
   { name: "sync_interviews", title: "Interview Sync", desc: "Gmail → Interviews" },
   { name: "research", title: "Lead Research", desc: "Apollo → leads. Approve in Outreach Review." },

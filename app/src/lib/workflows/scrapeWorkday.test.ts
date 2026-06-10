@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseWorkdayPosted, workdayLocation } from "./boards/workday";
+import { parseWorkdayPosted, workdayLocation, workdayReqId, parseWorkdayPostings } from "./boards/workday";
 import { workdayTargets } from "@/lib/company-registry";
 
 const daysFrom = (iso: string | undefined) =>
@@ -31,6 +31,50 @@ describe("workdayLocation", () => {
   });
   it("keeps a non-Bay location identifiable (so it's correctly dropped)", () => {
     expect(workdayLocation({ locationsText: "Israel", externalPath: "/job/Israel-Tel-Hai/X_JR1" })).toMatch(/tel hai/i);
+  });
+});
+
+describe("workdayReqId", () => {
+  it("extracts the requisition id (segment after the last _) from externalPath", () => {
+    // The exact Salesforce/Slack miss that triggered this work.
+    expect(workdayReqId("/job/California---San-Francisco/Sr-Data-Engineer---Enterprise---Slack_JR341884-1")).toBe("jr341884-1");
+    expect(workdayReqId("/job/US-CA-Santa-Clara/Senior-Data-Engineer_JR1")).toBe("jr1");
+  });
+  it("ignores query/hash and trailing slash", () => {
+    expect(workdayReqId("/job/X/Role_JR9/?source=LinkedIn_Jobs")).toBe("jr9");
+  });
+  it("falls back to the last path segment when there is no _ ; empty for undefined", () => {
+    expect(workdayReqId("/job/X/plain-slug")).toBe("plain-slug");
+    expect(workdayReqId(undefined)).toBe("");
+  });
+});
+
+describe("parseWorkdayPostings", () => {
+  const host = "intuit.wd1.myworkdayjobs.com";
+  const site = "Intuit_Careers";
+  it("dedups the same requisition returned under multiple keywords/pages", () => {
+    const staff = { title: "Staff Data Engineer", externalPath: "/job/US-CA-MTV/Staff-Data-Engineer_JR99", postedOn: "Posted Today" };
+    const ae = { title: "Analytics Engineer", externalPath: "/job/US-CA-MTV/Analytics-Engineer_JR12" };
+    // JR99 shows up under both the "data engineer" page and the "data platform" page.
+    const out = parseWorkdayPostings([[staff, ae], [staff]], "Intuit Inc.", host, site);
+    expect(out).toHaveLength(2);
+    expect(out.map((j) => j.title)).toEqual(["Staff Data Engineer", "Analytics Engineer"]);
+  });
+  it("builds an absolute url from host/site/externalPath and recovers the city", () => {
+    const out = parseWorkdayPostings(
+      [[{ title: "Senior Data Engineer", externalPath: "/job/US-CA-Santa-Clara/Senior-Data-Engineer_JR1" }]],
+      "X",
+      host,
+      site,
+    );
+    expect(out[0].url).toBe(`https://${host}/${site}/job/US-CA-Santa-Clara/Senior-Data-Engineer_JR1`);
+    expect(out[0].location).toContain("Santa Clara");
+    expect(out[0].company).toBe("X");
+  });
+  it("drops postings missing title or externalPath; tolerates empty pages", () => {
+    expect(parseWorkdayPostings([], "X", host, site)).toEqual([]);
+    const out = parseWorkdayPostings([[{ title: "No Path" }, { externalPath: "/job/x/y_JR2" }]], "X", host, site);
+    expect(out).toEqual([]);
   });
 });
 

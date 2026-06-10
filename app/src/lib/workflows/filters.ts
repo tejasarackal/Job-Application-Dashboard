@@ -130,6 +130,68 @@ export function canonicalJobKey(url: string | undefined): CanonicalKey {
   return { board: "Other", key: `url:${norm}` };
 }
 
+// ── Canonical posting URL (durable, query-stripped) ───────────────────────────
+// The URLs boards/Apify emit are fragile: LinkedIn carries position/refId/tracking
+// params that can rot to a dead-end, Greenhouse varies by host (boards. vs
+// job-boards.greenhouse.io), Workday sometimes includes an /en-US/ locale segment.
+// Rewrite each to its stable canonical form so the stored link stays clickable.
+// Mirrors canonicalJobKey's per-board parsing; canonicalJobKey(canonicalUrl(u))
+// equals canonicalJobKey(u), so dedup keys are unaffected.
+export function canonicalUrl(url: string | undefined): string {
+  if (!url) return "";
+  const u = url.trim();
+
+  // Greenhouse → canonical job-boards host, no query (boards.greenhouse.io 301s here).
+  let m = u.match(/greenhouse\.io\/(?:embed\/job_app\?for=)?([^/&?]+)[\s\S]*?(?:jobs\/|token=)(\d+)/i);
+  if (m) return `https://job-boards.greenhouse.io/${m[1]}/jobs/${m[2]}`;
+
+  // Lever → jobs.lever.co/{org}/{id}, no query.
+  m = u.match(/jobs\.lever\.co\/([^/]+)\/([0-9a-f-]{6,})/i);
+  if (m) return `https://jobs.lever.co/${m[1]}/${m[2]}`;
+
+  // Ashby → jobs.ashbyhq.com/{org}/{id}, no query.
+  m = u.match(/jobs\.ashbyhq\.com\/([^/]+)\/([0-9a-f-]{6,})/i);
+  if (m) return `https://jobs.ashbyhq.com/${m[1]}/${m[2]}`;
+
+  // LinkedIn → bare /jobs/view/{id} (drop the slug prefix + all tracking params).
+  const li = u.match(/linkedin\.com\/jobs\/view\/(?:[^/?#]*?-)?(\d{6,})/i);
+  if (li) return `https://www.linkedin.com/jobs/view/${li[1]}`;
+
+  // Workday → drop a leading locale segment (/en-US/) + any query/hash, keeping the
+  // consistent {host}/{site}{externalPath} form (the requisition id lives in the path).
+  const wd = u.match(/^https?:\/\/([a-z0-9-]+\.wd\d+\.myworkdayjobs\.com)\/([\s\S]*)$/i);
+  if (wd) {
+    const path = wd[2].replace(/^[a-z]{2}-[A-Z]{2}\//, "").replace(/[?#].*$/, "").replace(/\/+$/, "");
+    return `https://${wd[1]}/${path}`;
+  }
+
+  // Other → leave UNTOUCHED. We can't safely strip the query here: custom-domain
+  // Greenhouse career sites (pinterestcareers.com, instacart.careers, …) carry the
+  // job id ONLY in ?gh_jid=, and some SPAs route via the #fragment — dropping either
+  // dead-ends the link. The id is in the path for every branch we DO rewrite above.
+  return u;
+}
+
+// ── Role identity (company + normalized title) ────────────────────────────────
+// A coarser key than canonicalJobKey: identifies the SAME ROLE across distinct
+// postings — the same job on LinkedIn vs the company's own board, or a re-post
+// under a new requisition id. Used to avoid resurrecting a role the user already
+// actioned. Sr./Jr. normalized so "Sr. Data Engineer" and "Senior Data Engineer"
+// collapse; the FULL title is slugified (never truncated) so genuinely different
+// roles that share a prefix (e.g. two Snowflake "Senior Software Engineer…") stay
+// distinct.
+export function titleSlug(title: string | undefined): string {
+  return (title ?? "")
+    .toLowerCase()
+    .replace(/\bsr\.?\b/g, "senior")
+    .replace(/\bjr\.?\b/g, "junior")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+export function roleKey(company: string | undefined, title: string | undefined): string {
+  return `${normalizeCompany(company)}::${titleSlug(title)}`;
+}
+
 // ── Freshness ─────────────────────────────────────────────────────────────────
 // Verify a posting's own date is inside the window; fail closed when undated
 // (Apify's posted_after filter is unreliable — see SOP Step 2).

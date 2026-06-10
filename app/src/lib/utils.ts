@@ -27,6 +27,7 @@ const STATUS_PALETTE: Record<string, StatusColor> = {
   approved: "teal",
   applied: "green",
   skipped: "gray",
+  expired: "gray",
   // Job_Listings.Board / Applications.Board
   Greenhouse: "green",
   Lever: "blue",

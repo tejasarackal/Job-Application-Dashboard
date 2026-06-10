@@ -6,7 +6,7 @@
 // so re-running to cover the rest is safe.
 import { searchMessageIds, getMessage } from "./gmail";
 import { callClaude, parseJsonObject } from "./llm";
-import { normalizeCompany, isH1bSponsor, canonicalJobKey } from "./filters";
+import { normalizeCompany, isH1bSponsor, canonicalJobKey, roleKey } from "./filters";
 import {
   listApplications,
   listInterviews,
@@ -96,16 +96,15 @@ async function markListingApplied(
   jobUrl: string | undefined,
   dryRun: boolean,
 ): Promise<boolean> {
-  // Normalize Sr./Jr. so an email's "Sr. Data Engineer" matches a "Senior Data
-  // Engineer" listing (and vice-versa) before slugging.
-  const titleKey = (s: string) => slug(s.replace(/\bsr\.?\b/gi, "senior").replace(/\bjr\.?\b/gi, "junior"));
-  const norm = normalizeCompany(company);
-  const rkey = titleKey(role);
+  // Match by job URL when known, else by shared role identity (company + Sr./Jr.-
+  // normalized title) so an email's "Sr. Data Engineer" matches a "Senior Data
+  // Engineer" listing at the same company.
+  const rk = roleKey(company, role);
   const urlKey = jobUrl ? canonicalJobKey(jobUrl).key : "";
   const match = listings.find((l) => {
     if (l.status && !PRE_APPLY.has(l.status)) return false; // already applied/skipped/etc.
     if (urlKey && l.url && canonicalJobKey(l.url).key === urlKey) return true;
-    return normalizeCompany(l.company) === norm && titleKey(l.title) === rkey;
+    return roleKey(l.company, l.title) === rk;
   });
   if (!match) return false;
   if (!dryRun) {

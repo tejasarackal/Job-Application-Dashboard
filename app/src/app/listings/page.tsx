@@ -19,6 +19,7 @@ const SECTIONS: { status: string; title: string; hint: string }[] = [
   { status: "review_pending", title: "Review Pending", hint: "In review" },
   { status: "applied", title: "Applied", hint: "Submitted" },
   { status: "skipped", title: "Skipped", hint: "Filtered out" },
+  { status: "expired", title: "Expired", hint: "Posting closed / superseded" },
 ];
 
 const titleCase = (s: string) =>

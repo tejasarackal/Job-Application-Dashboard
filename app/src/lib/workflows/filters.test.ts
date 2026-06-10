@@ -5,6 +5,8 @@ import {
   DE_TITLE_RE,
   checkLocation,
   canonicalJobKey,
+  canonicalUrl,
+  roleKey,
   matchScore,
   isFresh,
   normalizeCompany,
@@ -133,6 +135,83 @@ describe("canonicalJobKey", () => {
   });
   it("returns Other + empty key for missing URLs", () => {
     expect(canonicalJobKey(undefined)).toEqual({ board: "Other", key: "" });
+  });
+});
+
+describe("canonicalUrl", () => {
+  it("strips LinkedIn slug + tracking params to the bare /jobs/view/{id}", () => {
+    expect(
+      canonicalUrl(
+        "https://www.linkedin.com/jobs/view/sr-data-engineer-at-adobe-4401883451?position=29&pageNum=0&refId=abc%3D%3D&trackingId=def",
+      ),
+    ).toBe("https://www.linkedin.com/jobs/view/4401883451");
+    expect(canonicalUrl("https://www.linkedin.com/jobs/view/4420225049")).toBe(
+      "https://www.linkedin.com/jobs/view/4420225049",
+    );
+  });
+  it("canonicalizes Greenhouse to the job-boards host without query", () => {
+    expect(canonicalUrl("https://boards.greenhouse.io/chime/jobs/8505462002?gh_jid=8505462002")).toBe(
+      "https://job-boards.greenhouse.io/chime/jobs/8505462002",
+    );
+    expect(canonicalUrl("https://job-boards.greenhouse.io/clickhouse/jobs/6000537004")).toBe(
+      "https://job-boards.greenhouse.io/clickhouse/jobs/6000537004",
+    );
+  });
+  it("strips a Workday /en-US/ locale + query, keeping {host}/{site}{path}", () => {
+    expect(
+      canonicalUrl("https://adobe.wd5.myworkdayjobs.com/en-US/external_experienced/job/San-Jose/Sr-Data-Engineer_R166280?src=x"),
+    ).toBe("https://adobe.wd5.myworkdayjobs.com/external_experienced/job/San-Jose/Sr-Data-Engineer_R166280");
+    // already-canonical Workday URL is unchanged
+    expect(
+      canonicalUrl("https://paypal.wd1.myworkdayjobs.com/jobs/job/San-Jose/Staff-Data-Engineer_R0135832-1"),
+    ).toBe("https://paypal.wd1.myworkdayjobs.com/jobs/job/San-Jose/Staff-Data-Engineer_R0135832-1");
+  });
+  it("strips query/suffix from Lever and Ashby (id is in the path)", () => {
+    expect(canonicalUrl("https://jobs.lever.co/plaid/abc123def456?lever-source=x")).toBe(
+      "https://jobs.lever.co/plaid/abc123def456",
+    );
+    expect(canonicalUrl("https://jobs.ashbyhq.com/notion/a1216dba-e175-4a3d-b712-401c9fbdcd92/application")).toBe(
+      "https://jobs.ashbyhq.com/notion/a1216dba-e175-4a3d-b712-401c9fbdcd92",
+    );
+    expect(canonicalUrl(undefined)).toBe("");
+  });
+  it("leaves unknown 'Other' URLs untouched (the id may live only in ?gh_jid= or a #route)", () => {
+    // Dropping the query here would dead-end these custom-domain Greenhouse boards.
+    expect(canonicalUrl("https://www.pinterestcareers.com/jobs/?gh_jid=7782546")).toBe(
+      "https://www.pinterestcareers.com/jobs/?gh_jid=7782546",
+    );
+    expect(canonicalUrl("https://instacart.careers/job/?gh_jid=7951036")).toBe(
+      "https://instacart.careers/job/?gh_jid=7951036",
+    );
+    expect(canonicalUrl("https://www.tesla.com/careers/search/job/sr-data-engineer-264796")).toBe(
+      "https://www.tesla.com/careers/search/job/sr-data-engineer-264796",
+    );
+  });
+  it("preserves the canonicalJobKey (so dedup is unchanged after normalization)", () => {
+    const urls = [
+      "https://www.linkedin.com/jobs/view/sr-data-engineer-at-adobe-4401883451?refId=x",
+      "https://boards.greenhouse.io/chime/jobs/8505462002?gh_jid=8505462002",
+      "https://adobe.wd5.myworkdayjobs.com/en-US/external_experienced/job/San-Jose/Sr-Data-Engineer_R166280",
+    ];
+    for (const u of urls) expect(canonicalJobKey(canonicalUrl(u)).key).toBe(canonicalJobKey(u).key);
+  });
+});
+
+describe("roleKey", () => {
+  it("treats Sr./Senior (and Jr./Junior) as the same role at the same company", () => {
+    expect(roleKey("Adobe", "Sr. Data Engineer")).toBe(roleKey("Adobe Inc.", "Senior Data Engineer"));
+    expect(roleKey("PayPal", "Jr Data Engineer")).toBe(roleKey("PayPal", "Junior Data Engineer"));
+  });
+  it("keeps genuinely-different titles distinct (full title, not truncated)", () => {
+    // Two real Snowflake roles that a 24-char truncation would have merged.
+    expect(roleKey("Snowflake", "Senior Software Engineer, Data Platform")).not.toBe(
+      roleKey("Snowflake", "Senior Software Engineer, Streaming Ingest"),
+    );
+  });
+  it("ignores company legal suffixes and punctuation", () => {
+    expect(roleKey("DoorDash, Inc.", "Senior Software Engineer")).toBe(
+      roleKey("DoorDash", "Senior Software Engineer"),
+    );
   });
 });
 

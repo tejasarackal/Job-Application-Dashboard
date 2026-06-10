@@ -9,7 +9,7 @@ import type { JobListing } from "@/lib/types";
 
 // Editable status control (e.g. triage new → skipped) — POSTs to /api/listings/{id}
 // then refreshes so the row moves into its new status section.
-const STATUS_OPTIONS = ["new", "queued", "approved", "applied", "review_pending", "skipped"];
+const STATUS_OPTIONS = ["new", "queued", "approved", "applied", "review_pending", "skipped", "expired"];
 
 function StatusSelect({ row }: { row: JobListing }) {
   const router = useRouter();

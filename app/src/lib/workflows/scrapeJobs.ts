@@ -5,7 +5,7 @@
 // LinkedIn IDs. All sources feed the unchanged collectRows() filter/dedup/match
 // pass. Runs in one invocation within a ~48s budget (board GETs are fast +
 // parallel); the freshness window is 45d because board APIs return only OPEN roles.
-import { isH1bSponsor, checkLocation, isDeTitle, canonicalJobKey, matchScore, normalizeCompany } from "./filters";
+import { isH1bSponsor, checkLocation, isDeTitle, canonicalJobKey, canonicalUrl, roleKey, matchScore, normalizeCompany } from "./filters";
 import { fetchBoardJobs, BOARD_LABEL, type RawJob } from "./boards";
 import { linkedinKeywordQuery } from "./boards/keywords";
 import {
@@ -20,7 +20,7 @@ import {
   primaryBase,
 } from "@/lib/airtable";
 import type { RunResult } from "./runLog";
-import type { ScrapeTarget, WorkflowTrigger } from "@/lib/types";
+import type { JobListing, ScrapeTarget, WorkflowTrigger } from "@/lib/types";
 
 const APIFY = "https://api.apify.com/v2";
 const LINKEDIN_ACTOR = process.env.APIFY_LINKEDIN_ACTOR_ID || "hKByXkMQaC5Qt9UMN";
@@ -171,11 +171,18 @@ interface CollectCtx {
   totals: Record<string, number>;
   keys: Set<string>;
   seen: Set<string>;
+  // roleKey()s of listings the user has already triaged/actioned — a fresh variant
+  // of one of these (same company+title, different posting) is NOT re-added as new.
+  actionedRoles: Set<string>;
   toCreate: Array<Record<string, unknown>>;
   windowDays?: number;
   sponsors: Set<string>; // normalized names of all Scrape_Targets (H1B sponsors)
   samples: { title: string[]; loc: string[]; stale: string[] };
 }
+
+// Listing statuses that mean "the user has already acted on this role" — used to
+// suppress resurrecting it (B1) and to protect it from auto-expiry.
+const ACTIONED_STATUSES = new Set(["applied", "skipped", "queued", "approved", "review_pending", "expired"]);
 
 const SAMPLE_CAP = 12;
 function sample(arr: string[], v: string): void {
@@ -209,13 +216,18 @@ function collectRows(items: Raw[], sourceBoard: string, ctx: CollectCtx, trusted
       if (!ck.key || ctx.keys.has(ck.key) || ctx.seen.has(ck.key)) { bump(ctx.totals, "dupes"); continue; }
       ctx.seen.add(ck.key);
 
+      // Don't resurrect a role the user already actioned (applied/skipped/triaged):
+      // the same role often re-appears as a different posting (other board / new
+      // req id) with a fresh canonical key, which is the "applied → back in New" bug.
+      if (ctx.actionedRoles.has(roleKey(it.company, it.title))) { bump(ctx.totals, "suppressedRole"); continue; }
+
       const board = ck.board !== "Other" ? ck.board : sourceBoard;
       const pct = matchScore({ title: it.title, location: it.location, remote: it.remote, postedAt: it.postedAt, actorScore: it.actorScore });
 
       const row: Record<string, unknown> = {
         [FIELDS.jobListings.title]: it.title,
         [FIELDS.jobListings.company]: it.company,
-        [FIELDS.jobListings.url]: it.url,
+        [FIELDS.jobListings.url]: canonicalUrl(it.url),
         [FIELDS.jobListings.board]: board,
         [FIELDS.jobListings.location]: it.location,
         [FIELDS.jobListings.remote]: it.remote,
@@ -234,6 +246,54 @@ function collectRows(items: Raw[], sourceBoard: string, ctx: CollectCtx, trusted
       bump(ctx.totals, "droppedError");
     }
   }
+}
+
+// Statuses still "in New's orbit" that an expiry may move to "expired". Actioned
+// states (applied/skipped/expired) are left untouched.
+const EXPIRABLE_STATUSES = new Set(["new", "queued", "approved", "review_pending"]);
+const LINKEDIN_STALE_DAYS = 30; // age-out for LinkedIn/Other rows (no open-set signal)
+
+// Pure: compute the {id, status:"expired"} updates for closed/stale listings.
+// Native rows are expired by absence from their board's fresh OPEN set (company +
+// board scoped, healthy fetches only); LinkedIn/Other rows by age. Exported for tests.
+export function buildExpiries(
+  existing: JobListing[],
+  nativeResults: Array<{ t: ScrapeTarget; jobs: RawJob[] }>,
+): Array<{ id: string; fields: Record<string, unknown> }> {
+  // Open canonical keys per "normalizedCompany::Board" — only from non-empty fetches
+  // (an empty/failed fetch is untrustworthy, so we never expire against it).
+  const openByCompanyBoard = new Map<string, Set<string>>();
+  for (const { t, jobs } of nativeResults) {
+    if (!jobs.length) continue;
+    const cbKey = `${normalizeCompany(t.company)}::${BOARD_LABEL[t.ats ?? ""] ?? "Other"}`;
+    let set = openByCompanyBoard.get(cbKey);
+    if (!set) { set = new Set<string>(); openByCompanyBoard.set(cbKey, set); }
+    for (const j of jobs) {
+      const k = canonicalJobKey(j.url).key;
+      if (k) set.add(k);
+    }
+  }
+
+  const updates: Array<{ id: string; fields: Record<string, unknown> }> = [];
+  for (const l of existing) {
+    if (!l.status || !EXPIRABLE_STATUSES.has(l.status)) continue;
+    const board = l.board ?? "Other";
+    const openSet = openByCompanyBoard.get(`${normalizeCompany(l.company)}::${board}`);
+    if (openSet) {
+      // Authoritative open set for this company+board: absent ⇒ closed.
+      const liveKey = canonicalJobKey(l.url).key;
+      if (liveKey && !openSet.has(liveKey)) {
+        updates.push({ id: l.id, fields: { [FIELDS.jobListings.status]: "expired" } });
+      }
+    } else if (board === "LinkedIn" || board === "Other") {
+      // No open set to compare against — age the row out instead.
+      const t = l.scrapedAt ? Date.parse(l.scrapedAt) : NaN;
+      if (!Number.isNaN(t) && (Date.now() - t) / 86_400_000 > LINKEDIN_STALE_DAYS) {
+        updates.push({ id: l.id, fields: { [FIELDS.jobListings.status]: "expired" } });
+      }
+    }
+  }
+  return updates;
 }
 
 export async function scrapeJobs(opts: {
@@ -274,6 +334,9 @@ export async function scrapeJobs(opts: {
       totals,
       keys: new Set(existing.map((l) => canonicalJobKey(l.url).key).filter(Boolean)),
       seen: new Set<string>(),
+      actionedRoles: new Set(
+        existing.filter((l) => l.status && ACTIONED_STATUSES.has(l.status)).map((l) => roleKey(l.company, l.title)),
+      ),
       toCreate: [],
       windowDays,
       sponsors,
@@ -314,7 +377,18 @@ export async function scrapeJobs(opts: {
     bump(totals, "got_LinkedIn", liItems.length);
     collectRows(liItems as unknown as Raw[], "LinkedIn", ctx, false);
 
+    // ── Expire listings whose posting is no longer open ───────────────────────
+    // A native board returns only currently-OPEN roles, so a previously-scraped row
+    // absent from a SUCCESSFUL, non-empty fetch of its own board is closed → expire
+    // it so its dead link drops out of New. Scoped by company AND board, pre-apply
+    // only; a transient/zero fetch yields no open set, so nothing is expired on it.
+    // LinkedIn/Other come from a keyword search (not a complete per-company set), so
+    // absence ≠ closed — age those out instead.
+    const listingUpdates = buildExpiries(existing, nativeResults);
+    bump(totals, "expired", listingUpdates.length);
+
     if (!dryRun && ctx.toCreate.length) await createRecords(TABLES.jobListings, primaryBase(), ctx.toCreate);
+    if (!dryRun && listingUpdates.length) await updateRecords(TABLES.jobListings, primaryBase(), listingUpdates);
     if (!dryRun && targetUpdates.length) await updateRecords(TABLES.scrapeTargets, primaryBase(), targetUpdates);
 
     const incomplete = (totals.timedOut ?? 0) > 0 || (totals.sourceErrors ?? 0) > 0;
@@ -333,7 +407,7 @@ export async function scrapeJobs(opts: {
 }
 
 function summarize(t: Record<string, number>): string {
-  return `scraped ${t.scraped ?? 0}, added ${t.created ?? 0}, dupes ${t.dupes ?? 0}; dropped h1b:${t.droppedH1b ?? 0} title:${t.droppedTitle ?? 0} loc:${t.droppedLoc ?? 0} stale:${t.droppedStale ?? 0}`;
+  return `scraped ${t.scraped ?? 0}, added ${t.created ?? 0}, dupes ${t.dupes ?? 0}, suppressed-role ${t.suppressedRole ?? 0}, expired ${t.expired ?? 0}; dropped h1b:${t.droppedH1b ?? 0} title:${t.droppedTitle ?? 0} loc:${t.droppedLoc ?? 0} stale:${t.droppedStale ?? 0}`;
 }
 
 function diagnostics(s: { title: string[]; loc: string[]; stale: string[] }): string {

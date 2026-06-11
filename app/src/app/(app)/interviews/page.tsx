@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { DataTable } from "@/components/ui/DataTable";
@@ -5,7 +6,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
 import { Funnel } from "@/components/ui/Funnel";
-import { getInterviews } from "@/lib/fetcher";
+import { getApplications, getInterviews } from "@/lib/fetcher";
 import { getViewContext } from "@/lib/session";
 import { formatDate, statusColor } from "@/lib/utils";
 import type { Interview } from "@/lib/types";
@@ -30,7 +31,12 @@ const ACTIVE_STATUSES = ["Scheduled", "Awaiting Feedback"];
 
 export default async function InterviewsPage() {
   const ctx = await getViewContext();
-  const { data, source } = await getInterviews(ctx.effectiveEmail);
+  const [{ data, source }, applications] = await Promise.all([
+    getInterviews(ctx.effectiveEmail),
+    getApplications(ctx.effectiveEmail),
+  ]);
+  // Interviews hang off applications — gate the CTA until one exists.
+  const hasApplications = applications.data.length > 0;
 
   const active = data.filter((i) => ACTIVE_STATUSES.includes(i.status ?? ""));
   const offers = data.filter((i) => i.stage === "Offer").length;
@@ -50,6 +56,28 @@ export default async function InterviewsPage() {
     <>
       <Header title="Interviews" subtitle="Live interview pipeline — synced from Gmail into Airtable" />
       <main className="p-8 space-y-6">
+        {!ctx.isViewAs && (
+          <div className="flex items-center justify-end gap-3">
+            {!hasApplications && (
+              <span className="text-[12px] text-brand-muted">Log an application first</span>
+            )}
+            {hasApplications ? (
+              <Link
+                href="/interviews/new"
+                className="bg-brand-ink text-white text-[12px] font-medium px-3 py-1.5 rounded-md hover:bg-brand-inkHover"
+              >
+                Log interview
+              </Link>
+            ) : (
+              <span
+                aria-disabled="true"
+                className="bg-brand-ink text-white text-[12px] font-medium px-3 py-1.5 rounded-md opacity-50 cursor-not-allowed"
+              >
+                Log interview
+              </span>
+            )}
+          </div>
+        )}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           <Card><div className="p-6"><Stat label="Active" value={active.length} hint="Scheduled / awaiting feedback" /></div></Card>
           <Card><div className="p-6"><Stat label="Furthest stage" value={furthest} size="sm" hint="Most advanced stage reached" /></div></Card>

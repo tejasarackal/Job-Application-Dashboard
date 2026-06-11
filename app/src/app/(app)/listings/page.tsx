@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { SourceBadge } from "@/components/ui/SourceBadge";
@@ -56,6 +57,16 @@ export default async function ListingsPage() {
         subtitle="Apify-scraped postings from Greenhouse, Lever, LinkedIn, Workday"
       />
       <main className="p-8 space-y-6">
+        {!ctx.isViewAs && (
+          <div className="flex justify-end">
+            <Link
+              href="/listings/new"
+              className="bg-brand-ink text-white text-[12px] font-medium px-3 py-1.5 rounded-md hover:bg-brand-inkHover"
+            >
+              Add listing
+            </Link>
+          </div>
+        )}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           <Card><div className="p-6"><Stat label="New" value={count("new")} hint="Awaiting triage" /></div></Card>
           <Card><div className="p-6"><Stat label="Queued" value={count("queued")} hint="Ready for review" /></div></Card>

@@ -168,13 +168,14 @@ export default async function OverviewPage() {
                   <p className="mt-1.5 text-[13px] text-brand-body">
                     Add roles as you find them — your funnel builds as you track applications.
                   </p>
-                  {/* Wave 3: point at /listings/new */}
-                  <Link
-                    href="/listings"
-                    className="mt-5 inline-block px-4 py-2 rounded-md bg-brand-ink text-white text-[13px] font-medium hover:bg-brand-inkHover"
-                  >
-                    Add your first listing
-                  </Link>
+                  {!ctx.isViewAs && (
+                    <Link
+                      href="/listings/new"
+                      className="mt-5 inline-block px-4 py-2 rounded-md bg-brand-ink text-white text-[13px] font-medium hover:bg-brand-inkHover"
+                    >
+                      Add your first listing
+                    </Link>
+                  )}
                 </div>
               </CardBody>
             </Card>

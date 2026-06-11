@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { BaseTag } from "@/components/ui/BaseTag";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -40,6 +41,16 @@ export default async function OutreachPage() {
         subtitle="Cold mail and referrals — tracked in Airtable, with Apollo and Gmail context"
       />
       <main className="p-8 space-y-6">
+        {!ctx.isViewAs && (
+          <div className="flex justify-end">
+            <Link
+              href="/outreach/new"
+              className="bg-brand-ink text-white text-[12px] font-medium px-3 py-1.5 rounded-md hover:bg-brand-inkHover"
+            >
+              Log outreach
+            </Link>
+          </div>
+        )}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <div className="p-6">

@@ -183,3 +183,286 @@ describe("M0 multi-user guardrails", () => {
     expect(shared).toContain('includes("\\\\")'); // backslash tricks
   });
 });
+
+// ── M2 isolation guardrails (PRD §9 G5–G13) ──────────────────────────────────
+// Source-scan style, mirroring the M0 block above. Each assertion is written to
+// FAIL on the regression it guards against (isolation hole reintroduced).
+describe("M2 isolation guardrails", () => {
+  const SRC2 = path.resolve(process.cwd(), "src");
+  const srcFile = (rel: string) => readFileSync(path.join(SRC2, rel), "utf8");
+
+  // Every *.ts source file (no test files), as {file,text}.
+  const allFiles = allSource(SRC2);
+  const fileText = (rel: string) => srcFile(rel);
+
+  // Collect every route.ts under a directory (empty when the dir is absent).
+  function routeFilesUnder(rel: string): string[] {
+    const dir = path.join(SRC2, rel);
+    if (!existsSync(dir)) return [];
+    const out: string[] = [];
+    for (const name of readdirSync(dir)) {
+      const full = path.join(dir, name);
+      if (statSync(full).isDirectory()) out.push(...routeFilesUnder(path.relative(SRC2, full)));
+      else if (name === "route.ts") out.push(full);
+    }
+    return out;
+  }
+  const allRoutes = routeFilesUnder("app/api");
+  const posix = (p: string) => p.replace(/\\/g, "/");
+
+  // ── G5 — owned readers declare their tenant; unowned readers do not ─────────
+  it("G5: owned list* readers take a required userEmail and owner-filter; unowned do not", () => {
+    const air = fileText("lib/airtable.ts");
+    const ownedReaders = [
+      "listJobListings",
+      "listApplications",
+      "listInterviews",
+      "listOutreach",
+      "listLeads",
+      "listAllOutreach",
+      "listWorkflowRuns",
+    ];
+    for (const fn of ownedReaders) {
+      // `export async function listX(\n  userEmail: string` (allow newline/ws).
+      const re = new RegExp(`function ${fn}\\(\\s*userEmail: string`);
+      expect(air, `${fn} must take a required userEmail first param`).toMatch(re);
+    }
+    // The owner-filter helper + the defense-in-depth post-filter both exist.
+    expect(air).toMatch(/ownerFilter\(/);
+    expect(air).toMatch(/postFilterOwned\(/);
+    // The runtime tenancy guard: an owned-table read without a filter throws.
+    expect(air).toMatch(/owned table read without owner filter/);
+
+    // Unowned readers must NOT take a userEmail param (global/shared reads).
+    for (const fn of ["listTargets", "listScrapeTargets", "listH1bLinkedinIds"]) {
+      const sig = air.match(new RegExp(`function ${fn}\\(([^)]*)\\)`));
+      expect(sig, `${fn} declaration not found`).toBeTruthy();
+      expect(sig![1], `${fn} must NOT take userEmail`).not.toMatch(/userEmail/);
+    }
+  });
+
+  // ── G6 — no unauthenticated route exists ────────────────────────────────────
+  it("G6: every api route (minus pinned exemptions) calls requireUserApi/requireAdminApi", () => {
+    const EXEMPT = ["api/auth/", "api/cron/", "api/health/"];
+    const offenders: string[] = [];
+    for (const f of allRoutes) {
+      const rel = posix(f);
+      if (EXEMPT.some((e) => rel.includes(e))) continue;
+      const text = readFileSync(f, "utf8");
+      if (!/require(User|Admin)Api\(/.test(text)) offenders.push(rel);
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  // ── G7 — no mutation without ownership proof ────────────────────────────────
+  it("G7: mutating routes prove ownership (assertOwnership / withOwner / owner stamp)", () => {
+    const offenders: string[] = [];
+    for (const f of allRoutes) {
+      const rel = posix(f);
+      const text = readFileSync(f, "utf8");
+      const mutates = /updateRecords\(|createRecords\(/.test(text);
+      if (!mutates) continue;
+      const provesOwnership =
+        /assertOwnership\(/.test(text) ||
+        /withOwner\(/.test(text) ||
+        /FIELDS\.userTargets\.userEmail/.test(text) || // targets route explicit stamp
+        /\[f\.actorEmail\]|\[f\.targetEmail\]|normalizeEmail\(/.test(text); // admin/migrate owner-field stamp
+      if (!provesOwnership) offenders.push(rel);
+    }
+    expect(offenders).toEqual([]);
+
+    // Engine writer files (those that create/update owned rows) stamp owner.
+    const enginePath = path.join(SRC2, "lib/workflows");
+    const engineWriters = readdirSync(enginePath)
+      .filter((n) => n.endsWith(".ts") && !n.endsWith(".test.ts"))
+      .map((n) => ({ name: n, text: readFileSync(path.join(enginePath, n), "utf8") }))
+      // Only files that create owned rows must carry withOwner.
+      .filter((f) => /createRecords\(\s*TABLES\.(jobListings|applications|interviews|leads)/.test(f.text));
+    const engineOffenders = engineWriters.filter((f) => !/withOwner\(/.test(f.text)).map((f) => f.name);
+    expect(engineOffenders).toEqual([]);
+  });
+
+  // ── G8 — middleware fronts everything ───────────────────────────────────────
+  // The M0 block ("middleware exists and its pinned matcher exempts only the
+  // canonical set") already pins the matcher exactly. We do NOT duplicate it;
+  // instead we assert here only the G8-specific delta the M2 PRD spells out:
+  // the matcher literal contains each exemption token and none of the fronted
+  // surface tokens — a thin reference so a regression fails in BOTH blocks.
+  it("G8: matcher (pinned by M0) exempts the canonical set and fronts member surfaces", () => {
+    const text = fileText("middleware.ts");
+    const matcher = text.match(/matcher:\s*\[([\s\S]*?)\]/);
+    expect(matcher, "config.matcher literal not found").toBeTruthy();
+    const literal = matcher![1];
+    for (const exempt of [
+      "login",
+      "privacy",
+      "terms",
+      "api/auth",
+      "api/cron",
+      "api/health",
+      "_next",
+      "favicon",
+    ]) {
+      expect(literal, `matcher must exempt ${exempt}`).toContain(exempt);
+    }
+    for (const fronted of [
+      "listings",
+      "applications",
+      "interviews",
+      "outreach",
+      "targets",
+      "workflows",
+      "admin",
+      "profile",
+      "review",
+    ]) {
+      expect(literal, `matcher must NOT exempt ${fronted}`).not.toContain(fronted);
+    }
+  });
+
+  // ── G9 — mock never crosses the prod auth boundary ──────────────────────────
+  it("G9: the mock module is imported only by fetcher.ts; fetcher guards prod", () => {
+    // An IMPORT of the mock module (not a comment/string mention of the word).
+    const importsMock = (text: string) =>
+      /import[\s\S]*?from\s*["'](?:\.{1,2}\/)*(?:lib\/)?mock["']/.test(text);
+    const importers = allFiles
+      .filter((f) => importsMock(f.text))
+      .map((f) => posix(f.file));
+    expect(importers).toHaveLength(1);
+    expect(importers[0]).toMatch(/lib\/fetcher\.ts$/);
+    // No src/app/** file imports the mock module.
+    expect(importers.find((p) => /\/src\/app\//.test(p))).toBeUndefined();
+
+    // fetcher's mock-return path is guarded by a NODE_ENV !== "production" check
+    // (isProd()) so fixtures never surface inside a prod session.
+    const fetcher = fileText("lib/fetcher.ts");
+    expect(fetcher).toMatch(/NODE_ENV\s*===?\s*["']production["']/);
+    expect(fetcher).toMatch(/source:\s*"mock"/);
+    // Every `source:"mock"` return sits behind an isProd() / prod guard: the
+    // mock branch is only ever reached after the prod branch returns.
+    expect(fetcher).toMatch(/if\s*\(isProd\(\)\)[\s\S]*?source:\s*"mock"/);
+  });
+
+  // ── G10 — view-as is read-only, structurally ────────────────────────────────
+  it("G10: data writes use session.email (never effectiveEmail); mutating routes assertWritable", () => {
+    // (a) No DATA write path reads effectiveEmail to drive a write. The viewas
+    // COOKIE token is `viewas` (no hyphen); the admin "view-as" routes are the
+    // hyphenated dir name — encode the exemption on the route path precisely so
+    // the hyphenated "view-as" string never trips the cookie-token scan.
+    const WRITE_EXEMPT = [
+      "app/api/admin/", // migrate/users/view-as legitimately write admin rows
+    ];
+    const offenders: string[] = [];
+    for (const f of allRoutes) {
+      const rel = posix(f);
+      if (WRITE_EXEMPT.some((e) => rel.includes(e))) continue;
+      const text = readFileSync(f, "utf8");
+      const writes = /updateRecords\(|createRecords\(|createDraft\(/.test(text);
+      if (!writes) continue;
+      // The write must NOT be keyed off effectiveEmail.
+      if (/effectiveEmail/.test(text) && !/session\.email/.test(text)) offenders.push(rel);
+    }
+    expect(offenders).toEqual([]);
+
+    // (b) No data page/fetcher write path reads the `viewas` cookie + writes.
+    // fetcher.ts (the read layer) must contain neither a write call nor the
+    // viewas cookie token.
+    const fetcher = fileText("lib/fetcher.ts");
+    expect(fetcher).not.toMatch(/updateRecords\(|createRecords\(|createDraft\(/);
+    expect(fetcher).not.toMatch(/VIEWAS_COOKIE|verifyViewAsToken/);
+
+    // (c) Every mutating route calls assertWritable( — except the view-as EXIT
+    // path, which must always work (documented exemption: a `NO assertWritable`
+    // comment marks it). The view-as route's POST does call assertWritable.
+    const mutatingOffenders: string[] = [];
+    for (const f of allRoutes) {
+      const rel = posix(f);
+      const text = readFileSync(f, "utf8");
+      const mutates = /updateRecords\(|createRecords\(|createDraft\(/.test(text);
+      if (!mutates) continue;
+      if (!/assertWritable\(/.test(text)) mutatingOffenders.push(rel);
+    }
+    expect(mutatingOffenders).toEqual([]);
+  });
+
+  // ── G11 — engine identity is fail-closed ────────────────────────────────────
+  // The cron half (503-on-unset, timing-safe) is already pinned by the M0 block
+  // ("cron route is fail-closed…"). We do NOT duplicate it. Here we assert only
+  // the engine-core half: drive.ts/execute.ts carry the OWNER_EMAIL refusal.
+  it("G11: drive.ts/execute.ts refuse to run when OWNER_EMAIL is unset (fail-closed)", () => {
+    const drive = fileText("lib/workflows/drive.ts");
+    const execute = fileText("lib/workflows/execute.ts");
+    expect(execute).toMatch(/OWNER_EMAIL_UNSET/);
+    expect(execute).toMatch(/process\.env\.OWNER_EMAIL/);
+    // execute returns a failed/empty result on unset, never proceeds to work.
+    expect(execute).toMatch(/OWNER_EMAIL_UNSET[\s\S]*?return\s*\{[\s\S]*?ok:\s*false/);
+    // drive surfaces the same refusal and returns early before driving chunks.
+    expect(drive).toMatch(/OWNER_EMAIL_UNSET/);
+    // The refusal returns a failed result (no chunk work) when the owner is unset.
+    expect(drive).toMatch(/OWNER_EMAIL_UNSET[\s\S]{0,120}?return\s*\{[\s\S]*?ok:\s*false/);
+    // Discount the import line; the refusal must precede the in-body chunk run.
+    const refusal = drive.indexOf("OWNER_EMAIL_UNSET", drive.indexOf("import") + 1);
+    const bodyExec = drive.indexOf("await executeChunk(");
+    expect(refusal).toBeGreaterThan(-1);
+    if (bodyExec > -1) expect(refusal).toBeLessThan(bodyExec);
+  });
+
+  // ── G12 — admin surface is gated, escape hatch loud ─────────────────────────
+  it("G12: every admin route calls requireAdminApi; *AllAdmin call sites co-occur with requireAdmin", () => {
+    const adminRoutes = routeFilesUnder("app/api/admin");
+    expect(adminRoutes.length).toBeGreaterThan(0);
+    const offenders = adminRoutes
+      .filter((f) => !/requireAdminApi\(/.test(readFileSync(f, "utf8")))
+      .map(posix);
+    expect(offenders).toEqual([]);
+
+    // Any file that CALLS a list*AllAdmin( function must also gate with
+    // requireAdmin/requireAdminApi in-file (the cross-user reader is loud).
+    const adminCallOffenders = allFiles
+      .filter(
+        (f) =>
+          // call site, not the definition file (airtable.ts defines them).
+          /\blist\w*AllAdmin\(/.test(f.text) && !posix(f.file).endsWith("lib/airtable.ts"),
+      )
+      .filter((f) => !/require(Admin|AdminApi)\(|requireAdmin\b/.test(f.text))
+      .map((f) => posix(f.file));
+    expect(adminCallOffenders).toEqual([]);
+
+    // createDraft call sites are admin-gated (CR-S17): the only writer is the
+    // review/draft route, which gates with requireAdminApi.
+    const draftCallers = allFiles
+      .filter((f) => /\bcreateDraft\(/.test(f.text) && !posix(f.file).endsWith("workflows/gmail.ts"))
+      .map((f) => posix(f.file));
+    for (const caller of draftCallers) {
+      const text = readFileSync(caller, "utf8");
+      expect(text, `${caller} calls createDraft without requireAdminApi`).toMatch(/requireAdminApi\(/);
+    }
+  });
+
+  // ── G13 — no formula injection / record oracle ──────────────────────────────
+  it("G13: every filterByFormula in airtable.ts flows through an escaped/validated builder", () => {
+    const air = fileText("lib/airtable.ts");
+    // Find every `filterByFormula:` assignment site and ensure the value is one
+    // of the safe builders (ownerFilter / recordIdFilter / escapeFormulaString /
+    // blankOwnerFormula) — never a raw `${...}` interpolation of an email/id.
+    const SAFE = /ownerFilter\(|recordIdFilter\(|escapeFormulaString\(|blankOwnerFormula\(/;
+    const lines = air.split("\n");
+    const offenders: string[] = [];
+    lines.forEach((line, i) => {
+      if (!/filterByFormula:/.test(line)) return;
+      // Inline value, or a `formula` variable assembled just above. Gather a
+      // small window so AND(...)-wrapped multi-builder formulas are covered.
+      const window = lines.slice(Math.max(0, i - 4), i + 2).join("\n");
+      const raw = /filterByFormula:\s*`[^`]*\$\{(?:email|id|userEmail|recordId)/.test(window);
+      if (raw || !SAFE.test(window)) offenders.push(`L${i + 1}: ${line.trim()}`);
+    });
+    expect(offenders).toEqual([]);
+
+    // The builders themselves are injection-safe: ownerFilter validates email
+    // shape + escapes; recordIdFilter shape-validates each id; escapeFormulaString
+    // does backslash-then-quote and throws on control chars / empty.
+    expect(air).toMatch(/function escapeFormulaString\(/);
+    expect(air).toMatch(/RECORD_ID_RE|recordIdFilter/);
+    expect(air).toMatch(/EMAIL_RE\.test/);
+  });
+});

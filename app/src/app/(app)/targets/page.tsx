@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
 import { getTargets } from "@/lib/fetcher";
+import { getViewContext } from "@/lib/session";
 import type { StatusColor, TargetCompany } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,9 @@ function dedupeByEmployer(rows: TargetCompany[]): TargetCompany[] {
 }
 
 export default async function TargetsPage() {
+  // Session-scope the page (PRD §5.2). getTargets() reads the shared H1B
+  // master list — unowned by design (§6.3), so no email is threaded here.
+  await getViewContext();
   const { data, source } = await getTargets();
   const companies = dedupeByEmployer(data);
 

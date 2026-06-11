@@ -46,3 +46,23 @@ SUBJECT LINE: 6-10 words, credential + company interest, no sales triggers.
 // Location targeting lives canonically in filters.ts (checkLocation). This is a
 // human-readable summary of the same rule for prompt context.
 export const LOCATION = `Target: SF Bay Area (San Francisco, San Jose, Santa Clara, Sunnyvale, Mountain View, Palo Alto, Oakland, Berkeley, Redwood City and nearby) or US/California remote. Disqualifying: roles only in Seattle, New York, Austin, or offshore (India, etc.). CA in-office preferred, then CA/US remote.`;
+
+// ── Owner knowledge loader (multi-user C2 / D11) ─────────────────────────────
+// The engine is owner-only by construction (it executes as OWNER_EMAIL), so
+// this loader makes the owner's /profile voice/about edits real: prefer the
+// owner's Users-row prefs, fall back to the vendored constants on any miss or
+// error (members never reach this path). `@/lib/prefs` is imported lazily to
+// keep this module's constants dependency-free for prompt-context consumers.
+export async function loadOwnerKnowledge(): Promise<{ voice: string; about: string }> {
+  try {
+    const { getUserPrefs } = await import("@/lib/prefs");
+    const prefs = await getUserPrefs(process.env.OWNER_EMAIL ?? "");
+    return {
+      voice: typeof prefs.voice === "string" && prefs.voice.trim() ? prefs.voice : VOICE,
+      about: typeof prefs.about === "string" && prefs.about.trim() ? prefs.about : ABOUT,
+    };
+  } catch (e) {
+    console.error("knowledge: owner prefs load failed — using vendored constants", e);
+    return { voice: VOICE, about: ABOUT };
+  }
+}

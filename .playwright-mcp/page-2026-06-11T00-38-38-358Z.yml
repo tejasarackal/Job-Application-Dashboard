@@ -1,0 +1,40 @@
+- generic [ref=e4]:
+  - link "Skip to main content" [ref=e5] [cursor=pointer]:
+    - /url: ""
+  - banner [ref=e8]:
+    - generic [ref=e10]:
+      - link "search for jobs" [ref=e13] [cursor=pointer]:
+        - /url: /en-US/External_Career_Site
+        - img "search for jobs" [ref=e14]
+      - generic [ref=e15]:
+        - heading [level=1]
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - button "English" [ref=e20] [cursor=pointer]:
+            - generic [ref=e24]: English
+          - button "Sign In" [ref=e26] [cursor=pointer]:
+            - generic [ref=e31]: Sign In
+        - navigation [ref=e32]:
+          - button "Search for Jobs" [ref=e33] [cursor=pointer]
+  - generic [ref=e38]:
+    - img [ref=e41]
+    - generic [ref=e42]: The page you are looking for doesn't exist.
+    - button "Search for Jobs" [ref=e45] [cursor=pointer]
+  - generic [ref=e46]:
+    - heading "Follow Us" [level=4] [ref=e47]
+    - list [ref=e48]:
+      - listitem [ref=e49] [cursor=pointer]:
+        - link "Glassdoor" [ref=e50]:
+          - /url: https://www.glassdoor.com/Overview/Working-at-Salesforce-EI_IE11159.11,21.htm
+      - listitem [ref=e55] [cursor=pointer]:
+        - link "Facebook" [ref=e56]:
+          - /url: https://www.facebook.com/salesforce
+      - listitem [ref=e60] [cursor=pointer]:
+        - link "X" [ref=e61]:
+          - /url: https://twitter.com/salesforcejobs
+      - listitem [ref=e65] [cursor=pointer]:
+        - link "LinkedIn" [ref=e66]:
+          - /url: https://www.linkedin.com/company/salesforce
+    - generic [ref=e70]:
+      - img [ref=e74]
+      - generic [ref=e94]: © 2026 Workday, Inc. All rights reserved.

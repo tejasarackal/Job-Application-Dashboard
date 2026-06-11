@@ -10,8 +10,12 @@ import {
   matchScore,
   isFresh,
   normalizeCompany,
+  OWNER_PREFS,
+  BAY_AREA_CITIES,
+  type ScoringPrefs,
 } from "./filters";
 import { DE_KEYWORDS } from "./boards/keywords";
+import { tejasDefaults, neutralDefaults, prefsOrNeutral } from "@/lib/prefs";
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString();
 
@@ -245,5 +249,67 @@ describe("normalizeCompany", () => {
     expect(normalizeCompany("Stripe Inc.")).toBe("stripe");
     expect(normalizeCompany("Block, Inc.")).toBe("block");
     expect(normalizeCompany("Acme Corporation")).toBe("acme");
+  });
+});
+
+// ── Multi-user prefs path (PRD-multi-user §6.2 / D10) — additive only ────────
+// The existing cases above pin the default (OWNER_PREFS) path; these pin the
+// new prefs-parameterized behavior for members.
+describe("prefs-aware scoring (multi-user)", () => {
+  const neutral: ScoringPrefs = {
+    titleKeywords: [],
+    locations: [],
+    disqualifiedMetros: [],
+    remotePref: "no_preference",
+  };
+  const custom = (over: Partial<ScoringPrefs>): ScoringPrefs => ({ ...neutral, ...over });
+
+  it("explicit OWNER_PREFS equals the no-arg default path", () => {
+    const it1 = { title: "Senior Data Engineer", location: "San Francisco, CA", postedAt: daysAgo(1) };
+    const it2 = { title: "Software Engineer", location: "Seattle, WA" };
+    expect(matchScore(it1, OWNER_PREFS)).toBe(matchScore(it1));
+    expect(matchScore(it2, OWNER_PREFS)).toBe(matchScore(it2));
+    expect(checkLocation("Remote - Brazil", OWNER_PREFS)).toEqual(checkLocation("Remote - Brazil"));
+  });
+
+  it("custom keywords match (flat 45 title tier, owner lists never applied)", () => {
+    const prefs = custom({ titleKeywords: ["reliability engineer"], locations: ["austin"] });
+    // austin is in the OWNER disqualified-metro list — a member targeting it must pass.
+    expect(checkLocation("Austin, TX", prefs)).toEqual({ pass: true, reason: "acceptable" });
+    // title 45 + seniority 12 + location 20 + recency 6 (undated) = 83
+    expect(matchScore({ title: "Platform Reliability Engineer", location: "Austin, TX" }, prefs)).toBe(83);
+    // non-matching title scores 0 on the title component: 0 + 12 + 20 + 6 = 38
+    expect(matchScore({ title: "Account Executive", location: "Austin, TX" }, prefs)).toBe(38);
+  });
+
+  it("neutral prefs: location-neutral vague tier (12), title component 0", () => {
+    expect(checkLocation("Bangalore, India", neutral)).toEqual({ pass: true, reason: "location_neutral" });
+    expect(checkLocation(undefined, neutral).pass).toBe(true); // no list ⇒ nothing to fail on
+    // title 0 (no keywords) + seniority 20 (senior) + location 12 + recency 6 = 38
+    expect(matchScore({ title: "Senior Data Engineer", location: "Bangalore, India" }, neutral)).toBe(38);
+    // never the 16/20 "acceptable" tier, even for a named Bay-Area city
+    expect(matchScore({ title: "X", location: "San Francisco, CA" }, neutral)).toBe(
+      matchScore({ title: "X", location: "Anywhere At All" }, neutral),
+    );
+  });
+
+  it("regex-escapes hostile keywords (never compiles raw user input)", () => {
+    const prefs = custom({ titleKeywords: ["c++ (data)"] });
+    // would throw at RegExp-compile time if unescaped
+    expect(matchScore({ title: "C++ (Data) Engineer" }, prefs)).toBe(45 + 12 + 12 + 6);
+    expect(matchScore({ title: "C Data Engineer" }, prefs)).toBe(0 + 12 + 12 + 6); // literal, not pattern, match
+  });
+
+  it("tejasDefaults stays in lockstep with OWNER_PREFS / BAY_AREA_CITIES", () => {
+    const t = tejasDefaults();
+    expect(t.jobPrefs.titleKeywords).toEqual(OWNER_PREFS.titleKeywords);
+    expect(t.jobPrefs.locations).toEqual(BAY_AREA_CITIES);
+    expect(t.jobPrefs.remotePref).toBe(OWNER_PREFS.remotePref);
+  });
+
+  it("prefsOrNeutral never resolves arbitrary input to the owner's prefs", () => {
+    expect(prefsOrNeutral(undefined)).toEqual(neutralDefaults());
+    expect(prefsOrNeutral("not json {{{")).toEqual(neutralDefaults());
+    expect(prefsOrNeutral(JSON.stringify({ v: 2, anything: true }))).toEqual(neutralDefaults());
   });
 });

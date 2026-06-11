@@ -1,0 +1,394 @@
+- generic [ref=e7]:
+  - link "Skip to main content" [ref=e8] [cursor=pointer]:
+    - /url: ""
+  - generic "Welcome to our new career portal! Create your new profile today to ensure your information is current and you're ready to explore opportunities that match your skills and ambitions. Get started now—your next career move awaits! Visa’s career pages are provided by Workday. Workday will only use non-essential cookies at Visa’s instruction and with your permission. To view more information on Workday's cookie practices, click here. To review additional information about Visa's privacy practices, visit the Visa Candidate Privacy Notice. (Translated Notice)" [ref=e12]:
+    - generic [ref=e13]:
+      - paragraph [ref=e14]: Welcome to our new career portal!
+      - paragraph [ref=e15]: Create your new profile today to ensure your information is current and you're ready to explore opportunities that match your skills and ambitions. Get started now—your next career move awaits!
+      - paragraph [ref=e16]
+      - paragraph [ref=e17]:
+        - text: Visa’s career pages are provided by Workday. Workday will only use non-essential cookies at Visa’s instruction and with your permission. To view more information on Workday's cookie practices, click
+        - link "here" [ref=e18] [cursor=pointer]:
+          - /url: https://community-content.workday.com/content/workday-community/en-us/public/learn/resources/workday-cookie-details.html?lang=en-us
+          - generic [ref=e19]: here
+        - text: . To review additional information about Visa's privacy practices, visit the
+        - link "Visa Candidate Privacy Notice." [ref=e20] [cursor=pointer]:
+          - /url: https://visa.com/candidateprivacy
+          - generic [ref=e21]: Visa Candidate Privacy Notice.
+        - text: (
+        - link "Translated Notice" [ref=e22] [cursor=pointer]:
+          - /url: https://visa.wd5.myworkdayjobs.com/Visa/page/d48eccdc23121000bb4da1e2b8f30000
+          - generic [ref=e23]: Translated Notice
+        - text: )
+      - paragraph [ref=e24]
+    - button "Read Full Privacy Message" [ref=e25]:
+      - generic [ref=e29]: Read Full Privacy Message
+    - generic [ref=e30]:
+      - button "Decline" [ref=e33] [cursor=pointer]
+      - button "Accept Cookies" [ref=e37] [cursor=pointer]
+  - banner [ref=e40]:
+    - generic [ref=e42]:
+      - link "careers home" [ref=e45] [cursor=pointer]:
+        - /url: https://corporate.visa.com/en/careers.html
+        - img "careers home" [ref=e46]
+      - generic [ref=e47]:
+        - heading [level=1]
+      - generic [ref=e49]:
+        - button "Sign In" [ref=e51] [cursor=pointer]:
+          - generic [ref=e56]: Sign In
+        - navigation [ref=e57]:
+          - button "Careers at Visa" [ref=e58] [cursor=pointer]
+          - button "Search for Jobs" [ref=e59] [cursor=pointer]
+          - button "Join our Talent Community" [ref=e60] [cursor=pointer]
+  - generic [ref=e65]:
+    - generic [ref=e66]:
+      - search [ref=e67]:
+        - generic [ref=e68]:
+          - textbox "Search" [ref=e74]:
+            - /placeholder: Search for jobs or keywords
+          - status [ref=e75]
+        - button "Search" [ref=e78] [cursor=pointer]
+      - group "Filters" [ref=e79]:
+        - generic [ref=e80]: Filters
+        - button "Location" [ref=e82] [cursor=pointer]: Location
+        - button "Time Type" [ref=e87] [cursor=pointer]: Time Type
+        - button "Remote Type" [ref=e92] [cursor=pointer]: Remote Type
+        - button "More" [ref=e97] [cursor=pointer]: More
+    - generic [ref=e101]:
+      - alert [ref=e102]: Search for Jobs page is loaded
+      - region "Search Results" [ref=e103]:
+        - paragraph [ref=e104]: 1063 JOBS FOUND
+        - list "Page 1 of 54" [ref=e105]:
+          - listitem [ref=e106]:
+            - heading "Sr Legal Assistant" [level=3] [ref=e110]:
+              - link "Sr Legal Assistant" [ref=e111] [cursor=pointer]:
+                - /url: /en-US/Visa/job/SG---Singapore/Sr-Legal-Assistant_REF076697W
+            - generic [ref=e112]:
+              - generic [ref=e119]:
+                - term [ref=e120]: remote type
+                - definition [ref=e121]: Hybrid
+              - generic [ref=e129]:
+                - term [ref=e130]: locations
+                - definition [ref=e131]: SG - Singapore
+            - generic [ref=e141]:
+              - term [ref=e142]: posted on
+              - definition [ref=e143]: Posted Today
+            - list [ref=e144]:
+              - listitem [ref=e145]: REF076697W
+          - listitem [ref=e146]:
+            - 'heading "Senior Director: Head of Acquirer Advisory Practice, VCA, Asia Pacific" [level=3] [ref=e150]':
+              - 'link "Senior Director: Head of Acquirer Advisory Practice, VCA, Asia Pacific" [ref=e151] [cursor=pointer]':
+                - /url: /en-US/Visa/job/SG---Singapore/Senior-Director--Head-of-Acquirer-Advisory-Practice--VCA--Asia-Pacific_REF083027W
+            - generic [ref=e160]:
+              - term [ref=e161]: locations
+              - definition [ref=e162]: SG - Singapore
+            - generic [ref=e172]:
+              - term [ref=e173]: posted on
+              - definition [ref=e174]: Posted Today
+            - list [ref=e175]:
+              - listitem [ref=e176]: REF083027W
+          - listitem [ref=e177]:
+            - heading "Senior Manager, Agent Risk and Data Security" [level=3] [ref=e181]:
+              - link "Senior Manager, Agent Risk and Data Security" [ref=e182] [cursor=pointer]:
+                - /url: /en-US/Visa/job/SG---Singapore/Senior-Manager--Agent-Risk-and-Data-Security_REF082549W-1
+            - generic [ref=e191]:
+              - term [ref=e192]: locations
+              - definition [ref=e193]: SG - Singapore
+            - generic [ref=e203]:
+              - term [ref=e204]: posted on
+              - definition [ref=e205]: Posted Today
+            - list [ref=e206]:
+              - listitem [ref=e207]: REF082549W
+          - listitem [ref=e208]:
+            - heading "Director, Client Consulting, Commercial Money Movements (CMS), Stablecoin, AI & Fintech Innovation (Hong Kong)" [level=3] [ref=e212]:
+              - link "Director, Client Consulting, Commercial Money Movements (CMS), Stablecoin, AI & Fintech Innovation (Hong Kong)" [ref=e213] [cursor=pointer]:
+                - /url: /en-US/Visa/job/HK---Hong-Kong-China/Director--Client-Consulting_REF083051W
+            - generic [ref=e222]:
+              - term [ref=e223]: locations
+              - definition [ref=e224]: HK - Hong Kong, China
+            - generic [ref=e234]:
+              - term [ref=e235]: posted on
+              - definition [ref=e236]: Posted Today
+            - list [ref=e237]:
+              - listitem [ref=e238]: REF083051W
+          - listitem [ref=e239]:
+            - heading "Manager, Graphics Design" [level=3] [ref=e243]:
+              - link "Manager, Graphics Design" [ref=e244] [cursor=pointer]:
+                - /url: /en-US/Visa/job/US---San-Francisco-CA/Manager--Graphics-Design_REF082968W
+            - generic [ref=e245]:
+              - generic [ref=e252]:
+                - term [ref=e253]: remote type
+                - definition [ref=e254]: Hybrid
+              - generic [ref=e262]:
+                - term [ref=e263]: locations
+                - definition [ref=e264]: US - San Francisco, CA
+            - generic [ref=e274]:
+              - term [ref=e275]: posted on
+              - definition [ref=e276]: Posted Today
+            - list [ref=e277]:
+              - listitem [ref=e278]: REF082968W
+          - listitem [ref=e279]:
+            - heading "Associate Counsel" [level=3] [ref=e283]:
+              - link "Associate Counsel" [ref=e284] [cursor=pointer]:
+                - /url: /en-US/Visa/job/US---Atlanta-GA/Associate-Counsel_REF082499W
+            - generic [ref=e293]:
+              - term [ref=e294]: locations
+              - definition [ref=e295]: US - Atlanta, GA
+            - generic [ref=e305]:
+              - term [ref=e306]: posted on
+              - definition [ref=e307]: Posted Today
+            - list [ref=e308]:
+              - listitem [ref=e309]: REF082499W
+          - listitem [ref=e310]:
+            - heading "Vice President, People Business Partner - People Strategy, Operations & Chief of Staff to the Global Chief People Officer" [level=3] [ref=e314]:
+              - link "Vice President, People Business Partner - People Strategy, Operations & Chief of Staff to the Global Chief People Officer" [ref=e315] [cursor=pointer]:
+                - /url: /en-US/Visa/job/US---San-Francisco-CA/Vice-President--People-Strategy--Operations---Chief-of-Staff-to-the-CPO_REF082210W
+            - generic [ref=e324]:
+              - term [ref=e325]: locations
+              - definition [ref=e326]: US - San Francisco, CA
+            - generic [ref=e336]:
+              - term [ref=e337]: posted on
+              - definition [ref=e338]: Posted Today
+            - list [ref=e339]:
+              - listitem [ref=e340]: REF082210W
+          - listitem [ref=e341]:
+            - heading "Manager, Visa Consulting and Analytics (VCA) — Senior AI Engineer, Tech Practice" [level=3] [ref=e345]:
+              - link "Manager, Visa Consulting and Analytics (VCA) — Senior AI Engineer, Tech Practice" [ref=e346] [cursor=pointer]:
+                - /url: /en-US/Visa/job/CO---Bogota-Colombia/Manager--Visa-Consulting-and-Analytics--VCA----Senior-AI-Engineer--Tech-Practice_REF083064W
+            - generic [ref=e355]:
+              - term [ref=e356]: locations
+              - definition [ref=e357]: CO - Bogota, Colombia
+            - generic [ref=e367]:
+              - term [ref=e368]: posted on
+              - definition [ref=e369]: Posted Today
+            - list [ref=e370]:
+              - listitem [ref=e371]: REF083064W
+          - listitem [ref=e372]:
+            - heading "Sr Technical Program Manager, Treasury Digital Assets" [level=3] [ref=e376]:
+              - link "Sr Technical Program Manager, Treasury Digital Assets" [ref=e377] [cursor=pointer]:
+                - /url: /en-US/Visa/job/US---Foster-City-CA/Sr-Technical-Program-Manager--Treasury-Digital-Assets_REF082972W
+            - generic [ref=e386]:
+              - term [ref=e387]: locations
+              - definition [ref=e388]: US - Foster City, CA
+            - generic [ref=e398]:
+              - term [ref=e399]: posted on
+              - definition [ref=e400]: Posted Today
+            - list [ref=e401]:
+              - listitem [ref=e402]: REF082972W
+          - listitem [ref=e403]:
+            - heading "Senior Manager, Account Executive – Growth & Strategic Partnerships" [level=3] [ref=e407]:
+              - link "Senior Manager, Account Executive – Growth & Strategic Partnerships" [ref=e408] [cursor=pointer]:
+                - /url: /en-US/Visa/job/US---San-Francisco-CA/Senior-Manager--Account-Executive---Growth---Strategic-Partnerships_REF083016W
+            - generic [ref=e417]:
+              - term [ref=e418]: locations
+              - definition [ref=e419]: US - San Francisco, CA
+            - generic [ref=e429]:
+              - term [ref=e430]: posted on
+              - definition [ref=e431]: Posted Today
+            - list [ref=e432]:
+              - listitem [ref=e433]: REF083016W
+          - listitem [ref=e434]:
+            - heading "Sr. Engineering Manager, PCI ISO" [level=3] [ref=e438]:
+              - link "Sr. Engineering Manager, PCI ISO" [ref=e439] [cursor=pointer]:
+                - /url: /en-US/Visa/job/BR---Remote---Brazil/Sr-Engineering--Manager--PCI-ISO_REF082846W
+            - generic [ref=e448]:
+              - term [ref=e449]: locations
+              - definition [ref=e450]: BR - Remote - Brazil
+            - generic [ref=e460]:
+              - term [ref=e461]: posted on
+              - definition [ref=e462]: Posted Today
+            - list [ref=e463]:
+              - listitem [ref=e464]: REF082846W
+          - listitem [ref=e465]:
+            - heading "Sr. Engineering Manager, Cards" [level=3] [ref=e469]:
+              - link "Sr. Engineering Manager, Cards" [ref=e470] [cursor=pointer]:
+                - /url: /en-US/Visa/job/BR---Remote---Brazil/Sr-Manager--Software-Engineering_REF082853W-1
+            - generic [ref=e479]:
+              - term [ref=e480]: locations
+              - definition [ref=e481]: BR - Remote - Brazil
+            - generic [ref=e491]:
+              - term [ref=e492]: posted on
+              - definition [ref=e493]: Posted Today
+            - list [ref=e494]:
+              - listitem [ref=e495]: REF082853W
+          - listitem [ref=e496]:
+            - heading "Staff Data Scientist" [level=3] [ref=e500]:
+              - link "Staff Data Scientist" [ref=e501] [cursor=pointer]:
+                - /url: /en-US/Visa/job/US---Bellevue-WA/Staff-Data-Scientist_REF082941W
+            - generic [ref=e510]:
+              - term [ref=e511]: locations
+              - definition [ref=e512]: US - Bellevue, WA
+            - generic [ref=e522]:
+              - term [ref=e523]: posted on
+              - definition [ref=e524]: Posted Today
+            - list [ref=e525]:
+              - listitem [ref=e526]: REF082941W
+          - listitem [ref=e527]:
+            - heading "Analyst, Spend Management" [level=3] [ref=e531]:
+              - link "Analyst, Spend Management" [ref=e532] [cursor=pointer]:
+                - /url: /en-US/Visa/job/US---Austin-TX/Analyst--Spend-Management_REF083057W
+            - generic [ref=e541]:
+              - term [ref=e542]: locations
+              - definition [ref=e543]: US - Austin, TX
+            - generic [ref=e553]:
+              - term [ref=e554]: posted on
+              - definition [ref=e555]: Posted Today
+            - list [ref=e556]:
+              - listitem [ref=e557]: REF083057W
+          - listitem [ref=e558]:
+            - heading "US Benefits Analyst" [level=3] [ref=e562]:
+              - link "US Benefits Analyst" [ref=e563] [cursor=pointer]:
+                - /url: /en-US/Visa/job/US---Atlanta-GA/US-Benefits-Analyst_REF081896W-1
+            - generic [ref=e572]:
+              - term [ref=e573]: locations
+              - definition [ref=e574]: 2 Locations
+            - generic [ref=e584]:
+              - term [ref=e585]: posted on
+              - definition [ref=e586]: Posted Today
+            - list [ref=e587]:
+              - listitem [ref=e588]: REF081896W
+          - listitem [ref=e589]:
+            - heading "Software Engineering Manager - Java, Cloud, GenAI(9-13 Yrs))" [level=3] [ref=e593]:
+              - link "Software Engineering Manager - Java, Cloud, GenAI(9-13 Yrs))" [ref=e594] [cursor=pointer]:
+                - /url: /en-US/Visa/job/IN---Bengaluru-India/Manager--Software-Engineering_REF082268W
+            - generic [ref=e603]:
+              - term [ref=e604]: locations
+              - definition [ref=e605]: IN - Bengaluru, India
+            - generic [ref=e615]:
+              - term [ref=e616]: posted on
+              - definition [ref=e617]: Posted Today
+            - list [ref=e618]:
+              - listitem [ref=e619]: REF082268W
+          - listitem [ref=e620]:
+            - heading "Vice President, Digital Enablement Solutions (DES)" [level=3] [ref=e624]:
+              - link "Vice President, Digital Enablement Solutions (DES)" [ref=e625] [cursor=pointer]:
+                - /url: /en-US/Visa/job/US---Austin-TX/Vice-President--Digital-Enablement-Solutions--DES-_REF083013W
+            - generic [ref=e626]:
+              - generic [ref=e633]:
+                - term [ref=e634]: remote type
+                - definition [ref=e635]: Hybrid
+              - generic [ref=e643]:
+                - term [ref=e644]: locations
+                - definition [ref=e645]: US - Austin, TX
+            - generic [ref=e655]:
+              - term [ref=e656]: posted on
+              - definition [ref=e657]: Posted Today
+            - list [ref=e658]:
+              - listitem [ref=e659]: REF083013W
+          - listitem [ref=e660]:
+            - heading "Head of Strategy and Planning" [level=3] [ref=e664]:
+              - link "Head of Strategy and Planning" [ref=e665] [cursor=pointer]:
+                - /url: /en-US/Visa/job/SE---Stockholm-Sweden/Head-of-Strategy-and-Planning_REF082918W-1
+            - generic [ref=e666]:
+              - generic [ref=e673]:
+                - term [ref=e674]: remote type
+                - definition [ref=e675]: Hybrid
+              - generic [ref=e683]:
+                - term [ref=e684]: locations
+                - definition [ref=e685]: SE - Stockholm, Sweden
+            - generic [ref=e695]:
+              - term [ref=e696]: posted on
+              - definition [ref=e697]: Posted Today
+            - list [ref=e698]:
+              - listitem [ref=e699]: REF082918W
+          - listitem [ref=e700]:
+            - heading "Marketing Analyst, Visa Direct EU Marketing" [level=3] [ref=e704]:
+              - link "Marketing Analyst, Visa Direct EU Marketing" [ref=e705] [cursor=pointer]:
+                - /url: /en-US/Visa/job/GB---London-United-Kingdom/Marketing-Analyst--Visa-Direct-EU-Marketing_REF082849W
+            - generic [ref=e706]:
+              - generic [ref=e713]:
+                - term [ref=e714]: remote type
+                - definition [ref=e715]: Hybrid
+              - generic [ref=e723]:
+                - term [ref=e724]: locations
+                - definition [ref=e725]: GB - London, United Kingdom
+            - generic [ref=e735]:
+              - term [ref=e736]: posted on
+              - definition [ref=e737]: Posted Today
+            - list [ref=e738]:
+              - listitem [ref=e739]: REF082849W
+          - listitem [ref=e740]:
+            - heading "Director, Visa Consulting & Analytics" [level=3] [ref=e744]:
+              - link "Director, Visa Consulting & Analytics" [ref=e745] [cursor=pointer]:
+                - /url: /en-US/Visa/job/US---Atlanta-GA/Director--Visa-Consulting---Analytics_REF079580W
+            - generic [ref=e746]:
+              - generic [ref=e753]:
+                - term [ref=e754]: remote type
+                - definition [ref=e755]: Hybrid
+              - generic [ref=e763]:
+                - term [ref=e764]: locations
+                - definition [ref=e765]: 4 Locations
+            - generic [ref=e775]:
+              - term [ref=e776]: posted on
+              - definition [ref=e777]: Posted Today
+            - list [ref=e778]:
+              - listitem [ref=e779]: REF079580W
+        - generic [ref=e780]:
+          - navigation "pagination" [ref=e781]:
+            - generic [ref=e782]:
+              - list [ref=e784]:
+                - listitem [ref=e785]:
+                  - button "page 1" [ref=e786] [cursor=pointer]: "1"
+                - listitem [ref=e787]:
+                  - button "page 2" [ref=e788] [cursor=pointer]: "2"
+                - listitem [ref=e789]:
+                  - button "page 3" [ref=e790] [cursor=pointer]: "3"
+                - listitem [ref=e791]:
+                  - button "page 4" [ref=e792] [cursor=pointer]: "4"
+                - listitem [ref=e793]:
+                  - button "page 5" [ref=e794] [cursor=pointer]: "5"
+              - button "next" [ref=e795] [cursor=pointer]
+          - paragraph [ref=e799]: 1 - 20 of 1063 jobs
+      - generic [ref=e803]:
+        - generic [ref=e804]:
+          - heading "Why work here?" [level=3] [ref=e805]
+          - img "Why work here" [ref=e806]
+          - generic [ref=e808]:
+            - generic [ref=e810]:
+              - paragraph [ref=e811]: If you thrive on rapid growth and enjoy working alongside positive, driven teammates, you’ll feel right at home here.
+              - paragraph [ref=e812]
+              - paragraph [ref=e813]: Help us to uplift everyone, everywhere. Whether you’re starting your career, pushing your capabilities or are a seasoned professional, learn how we can partner to reimagine the world.
+            - button "Read More" [ref=e816] [cursor=pointer]:
+              - generic [ref=e817]: Read More
+        - generic [ref=e822]:
+          - heading "Get in Touch" [level=3] [ref=e823]
+          - paragraph [ref=e826]: Introduce yourself to our recruiters and we'll get in touch if there's a role that seems like a good match.
+          - button "Get Started" [ref=e829] [cursor=pointer]
+        - generic [ref=e831]:
+          - heading "About Us" [level=3] [ref=e832]
+          - generic [ref=e834]:
+            - paragraph [ref=e837]: At Visa, we are driven by a common purpose – to uplift everyone, everywhere by being the best way to pay and be paid. Our evolving technology keeps us at the heart of the digital economy, connecting people to 80+ million businesses worldwide. Backed by a resilient, proven model, our expanding network fuels growth—for Visa and for your career.
+            - button "Read More" [ref=e840] [cursor=pointer]:
+              - generic [ref=e841]: Read More
+        - generic [ref=e846]:
+          - heading "Learn our recruiting process" [level=3] [ref=e847]
+          - img "LifeatVisa" [ref=e848]
+          - generic [ref=e850]:
+            - generic [ref=e852]:
+              - paragraph [ref=e853]: Your journey starts here — discover how we hire
+              - paragraph [ref=e854]
+              - paragraph [ref=e855]: Ready to take the next step? Learn more about life at Visa, explore our hiring process and get first-hand insights by hearing directly from our recruiters about what to expect. Apply with confidence today!
+              - paragraph [ref=e856]
+              - paragraph [ref=e857]:
+                - link [ref=e858] [cursor=pointer]:
+                  - /url: https://visa.wd5.myworkdayjobs.com/Visa/page/537e919487d51000bec274841f190000
+                  - generic [ref=e860]: Learn our recruiting process
+            - button "Read More" [ref=e863] [cursor=pointer]:
+              - generic [ref=e864]: Read More
+  - generic [ref=e868]:
+    - heading "Follow Us" [level=4] [ref=e869]
+    - list [ref=e870]:
+      - listitem [ref=e871] [cursor=pointer]:
+        - link "LinkedIn" [ref=e872]:
+          - /url: https://www.linkedin.com/company/visa
+      - listitem [ref=e876] [cursor=pointer]:
+        - link "X" [ref=e877]:
+          - /url: https://twitter.com/VisaNews
+      - listitem [ref=e881] [cursor=pointer]:
+        - link "Facebook" [ref=e882]:
+          - /url: https://www.facebook.com/Visa
+    - link "Visa Candidate Privacy Notice" [ref=e887] [cursor=pointer]:
+      - /url: https://visa.com/candidateprivacy
+    - generic [ref=e888]:
+      - img [ref=e892]
+      - generic [ref=e912]: © 2026 Workday, Inc. All rights reserved.

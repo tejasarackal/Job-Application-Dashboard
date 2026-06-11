@@ -27,6 +27,7 @@ import {
   getSummary,
 } from "@/lib/fetcher";
 import { formatRelative, pct, statusColor } from "@/lib/utils";
+import { getViewContext } from "@/lib/session";
 import type { ApolloSequence, Application, OutreachContact } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -43,10 +44,12 @@ const FUNNEL_ROUTES: Record<string, string> = {
 };
 
 export default async function OverviewPage() {
+  // Owned reads are scoped to the viewing identity (PRD §5.2/§7.8).
+  const ctx = await getViewContext();
   const [summary, apps, outreach, sequences, runs] = await Promise.all([
-    getSummary(),
-    getApplications(),
-    getOutreach(),
+    getSummary(ctx.effectiveEmail),
+    getApplications(ctx.effectiveEmail),
+    getOutreach(ctx.effectiveEmail),
     getSequences(),
     getApifyRuns(),
   ]);

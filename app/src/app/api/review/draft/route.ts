@@ -1,5 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listLeads, updateRecords, TABLES, FIELDS, leadsBase } from "@/lib/airtable";
+import {
+  assertOwnership,
+  listLeads,
+  updateRecords,
+  OwnershipError,
+  TABLES,
+  FIELDS,
+  leadsBase,
+} from "@/lib/airtable";
+import {
+  requireAdminApi,
+  getViewContext,
+  assertWritable,
+  assertSameOrigin,
+  handleAuthError,
+  AuthError,
+} from "@/lib/session";
 import { createDraft, ensureLabel, labelMessage } from "@/lib/workflows/gmail";
 
 export const dynamic = "force-dynamic";
@@ -8,25 +24,34 @@ const LABEL = "Job Outreach";
 
 // Human gate B3 — draft review. This is the ONLY place a Gmail draft is created,
 // and only on explicit approval. There is no send path anywhere.
+// Gate (PRD §5.3): admin + same-origin + not-view-as (CR-S17: draft approval
+// writes into the owner's mailbox) + ownership proof on the lead.
 // POST body: { id, action: "approve" | "reject" | "edit", subject?, body? }
 export async function POST(req: NextRequest) {
-  const req2 = (await req.json().catch(() => ({}))) as {
-    id?: string;
-    action?: "approve" | "reject" | "edit";
-    subject?: string;
-    body?: string;
-  };
-  if (!req2.id || !req2.action) {
-    return NextResponse.json({ ok: false, error: "id and action are required" }, { status: 400 });
-  }
-
-  const lead = (await listLeads({ fresh: true })).find((l) => l.id === req2.id);
-  if (!lead) return NextResponse.json({ ok: false, error: "lead not found" }, { status: 404 });
-
-  const subject = (req2.subject ?? lead.emailSubject ?? "").trim();
-  const bodyText = (req2.body ?? lead.emailBody ?? "").trim();
-
   try {
+    const session = await requireAdminApi();
+    assertSameOrigin(req);
+    assertWritable(await getViewContext()); // never under view-as (D7/CR-S17)
+
+    const req2 = (await req.json().catch(() => ({}))) as {
+      id?: string;
+      action?: "approve" | "reject" | "edit";
+      subject?: string;
+      body?: string;
+    };
+    if (!req2.id || !req2.action) {
+      return NextResponse.json({ ok: false, error: "id and action are required" }, { status: 400 });
+    }
+
+    // Ownership proof before any write (PRD D5) — session email, never effectiveEmail.
+    await assertOwnership(TABLES.leads, leadsBase(), session.email, [req2.id]);
+
+    const lead = (await listLeads(session.email, { fresh: true })).find((l) => l.id === req2.id);
+    if (!lead) return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
+
+    const subject = (req2.subject ?? lead.emailSubject ?? "").trim();
+    const bodyText = (req2.body ?? lead.emailBody ?? "").trim();
+
     if (req2.action === "reject") {
       await updateRecords(TABLES.leads, leadsBase(), [{ id: lead.id, fields: { [FIELDS.leads.status]: "rejected" } }]);
       return NextResponse.json({ ok: true, action: "reject", id: lead.id });
@@ -77,6 +102,11 @@ export async function POST(req: NextRequest) {
       note: lead.email ? "Gmail draft created + labeled (not sent)" : "no email — LinkedIn outreach is manual; status set to draft",
     });
   } catch (e) {
-    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+    if (e instanceof OwnershipError) {
+      return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
+    }
+    if (e instanceof AuthError) return handleAuthError(e);
+    console.error("api/review/draft:", e);
+    return NextResponse.json({ ok: false, error: "internal error" }, { status: 500 });
   }
 }

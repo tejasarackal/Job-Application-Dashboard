@@ -118,6 +118,7 @@ export type WorkflowName =
   | "scrape_jobs"
   | "refresh_scrape_targets"
   | "detect_boards"
+  | "revalidate_listings"
   | "sync_applications"
   | "sync_interviews"
   | "research"

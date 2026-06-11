@@ -15,6 +15,7 @@ import {
   updateRecords,
   createWorkflowRun,
   updateWorkflowRun,
+  withOwner,
   TABLES,
   FIELDS,
   primaryBase,
@@ -32,11 +33,11 @@ const LI_COUNT = 75; // broader OR keyword query returns more candidates/company
 // Cap simultaneous Workday boards: each now paginates per keyword (many POSTs), so
 // uncapped parallelism across ~30+ tenants could exhaust the ~48s budget. Cheap
 // single-GET boards (Greenhouse/Lever/Ashby) stay fully parallel.
-const WORKDAY_CONCURRENCY = 8;
+export const WORKDAY_CONCURRENCY = 8;
 
 const NATIVE_ATS = new Set(["greenhouse", "lever", "ashby", "workday"]);
 // A target is natively scrapable iff it has a verified ATS + board token.
-function nativeOk(t: ScrapeTarget): boolean {
+export function nativeOk(t: ScrapeTarget): boolean {
   return Boolean(t.boardToken && t.ats && NATIVE_ATS.has(t.ats));
 }
 
@@ -58,7 +59,7 @@ function linkedinSearchUrl(ids: string[], keywords: string = linkedinKeywordQuer
 }
 
 // Bounded-concurrency map — runs at most `limit` of `fn` at once, preserving order.
-async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {
+export async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {
   const out: R[] = new Array(items.length);
   let next = 0;
   const workers = Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, async () => {
@@ -297,16 +298,18 @@ export function buildExpiries(
 }
 
 export async function scrapeJobs(opts: {
+  ownerEmail: string; // engine identity — all listing rows + the run row are owner-stamped
   dryRun?: boolean;
   windowDays?: number;
   trigger?: WorkflowTrigger;
   deadlineMs?: number;
-} = {}): Promise<RunResult> {
+}): Promise<RunResult> {
+  const ownerEmail = opts.ownerEmail;
   const dryRun = Boolean(opts.dryRun);
   const windowDays = opts.windowDays ?? SCRAPE_WINDOW_DAYS;
   const deadline = Date.now() + (opts.deadlineMs ?? 48_000);
   const totals: Record<string, number> = {};
-  const logRunId = await createWorkflowRun({ workflow: "scrape_jobs", trigger: opts.trigger ?? "manual" });
+  const logRunId = await createWorkflowRun({ workflow: "scrape_jobs", trigger: opts.trigger ?? "manual", ownerEmail });
 
   try {
     const targets = await listScrapeTargets({ fresh: true });
@@ -329,7 +332,7 @@ export async function scrapeJobs(opts: {
     const [fastResults, wdResults, liItems] = await Promise.all([fastPromise, wdPromise, liPromise]);
     const nativeResults = [...fastResults, ...wdResults];
 
-    const existing = await listJobListings({ fresh: true });
+    const existing = await listJobListings(ownerEmail, { fresh: true });
     const ctx: CollectCtx = {
       totals,
       keys: new Set(existing.map((l) => canonicalJobKey(l.url).key).filter(Boolean)),
@@ -387,7 +390,14 @@ export async function scrapeJobs(opts: {
     const listingUpdates = buildExpiries(existing, nativeResults);
     bump(totals, "expired", listingUpdates.length);
 
-    if (!dryRun && ctx.toCreate.length) await createRecords(TABLES.jobListings, primaryBase(), ctx.toCreate);
+    // Every engine create is owner-stamped server-side (PRD §5.6 / G7).
+    if (!dryRun && ctx.toCreate.length) {
+      await createRecords(
+        TABLES.jobListings,
+        primaryBase(),
+        ctx.toCreate.map((row) => withOwner("jobListings", row, ownerEmail)),
+      );
+    }
     if (!dryRun && listingUpdates.length) await updateRecords(TABLES.jobListings, primaryBase(), listingUpdates);
     if (!dryRun && targetUpdates.length) await updateRecords(TABLES.scrapeTargets, primaryBase(), targetUpdates);
 

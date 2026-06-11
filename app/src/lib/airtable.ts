@@ -18,6 +18,7 @@ import type {
   WorkflowTrigger,
 } from "./types";
 import { lookupCompany } from "./company-registry";
+import { normalizeEmail } from "./auth-shared";
 
 const API = "https://api.airtable.com/v0";
 
@@ -36,7 +37,17 @@ export const TABLES = {
   // Second base: Automation Dev Outreach (appkusCXgR7KcEmLO).
   // Used as a secondary outreach tracker (sourced/automated leads).
   leads: "tblI5KPof3PmTjDmY",
+  // Multi-user tables (PRD-multi-user §6, created in M1 — IDs in
+  // IMPLEMENTATION-multi-user.md "Key IDs & constants").
+  users: "tblj8NSWLfAfRY4uP",
+  userTargets: "tbl6SchfGe6Ifw4Zy",
+  adminAudit: "tbluzpqt0ehm9y7bK",
 };
+
+/** Users table id, overridable via the (already-staged) env var. */
+export function usersTable(): string {
+  return process.env.AIRTABLE_USERS_TABLE || TABLES.users;
+}
 
 // Default base IDs — overridable via env vars in case the user clones the
 // bases. Same token works for both since they're in the same workspace.
@@ -65,6 +76,7 @@ export const FIELDS = {
     h1bVerified: "fldcWxBMhtdj2QCEQ",
     postedAt: "fldAUEjwZF38JOTEI",
     matchPct: "fldjxMa1Ry45H2vgm",
+    userEmail: "fldeKB0L7KlyEZ3bA",
   },
   scrapeTargets: {
     company: "fldVWXI1xMOP5oQRT",
@@ -92,6 +104,7 @@ export const FIELDS = {
     lastCommunication: "fldQUnlrQGhHDO6A1",
     interviewStage: "fldLO8aZe2lhQguw2",
     threadId: "fldx48ACJTAYWF1mC",
+    userEmail: "fldXZMLWyrhRcHBg7",
   },
   applications: {
     applicationId: "fldgK9aUJTpceHmzo",
@@ -104,6 +117,7 @@ export const FIELDS = {
     board: "fld91p2wi5KB04mS7",
     followUpDate: "fldnOlba6BczFffQh",
     followUpDone: "fldDYCiJQn5HcJTik",
+    userEmail: "fldKi8vQKjTS00OkG",
   },
   interviews: {
     label: "fld5AM8iDJ1LKF0jY",
@@ -119,6 +133,7 @@ export const FIELDS = {
     lastUpdated: "fldC48XdyMbhMjByp",
     jobPostingUrl: "flduC8s3Ink1zJ9bP",
     notes: "fldRlSIOj743LXvH4",
+    userEmail: "flddzqw6PUKWMsP1T",
   },
   h1bCompanies: {
     employer: "fldTjkVdbOR0VJgKA",
@@ -141,6 +156,7 @@ export const FIELDS = {
     finishedAt: "fldEq3KyUNSjd0OWO",
     counts: "fldaFhY5ELtrvr7aC",
     notes: "fldb65eJR5x30c5W6",
+    userEmail: "fldFtoIA9qvmx2VgJ",
   },
   leads: {
     firstName: "fldL8cWbBDzwCHdqd",
@@ -165,8 +181,121 @@ export const FIELDS = {
     industry: "fldk8VUmDK4VDVCWD",
     emailSubject: "fldkrnqZpvaQDaFkR",
     emailBody: "fldIJnW51eO6GvPHw",
+    userEmail: "fldsyrzFmBkZIW5sZ",
+  },
+  users: {
+    email: "fld9asG1fbAyneSq2",
+    name: "fldibJorYEjCjBnPj",
+    authSub: "fldMr3QyKiuYlnCSu",
+    accountStatus: "fldenOeaTeA4DnQf4",
+    onboardingStatus: "fldvALhGN3NdBZEj9",
+    defaultTargets: "fldnelGtFjsniXSIS",
+    preferences: "fldh0X3lcG0fraV0w",
+    lastLogin: "flddvShgUem4rqEwH",
+  },
+  userTargets: {
+    userEmail: "fldglKur3FlymvhBe",
+    companyKey: "fldkWhCXnR1o9JqkC",
+    status: "fldkln3E5Qx9euozZ",
+    companyName: "fldbxjMljBL6dAvuo",
+    careersUrl: "fldRFNHh6xCkiW28n",
+    h1bVerified: "fldwV7zPDidWEizJo",
+  },
+  adminAudit: {
+    actorEmail: "fldEjr2nP5kqSl7V7",
+    action: "fldhmBYZPTdeOCh4f",
+    targetEmail: "fldpxFdIBhpyW8pTI",
+    at: "flddQSIV33AKeNavl",
+    note: "fldZA61SPHM3k6SC2",
   },
 };
+
+// ── Tenancy & formula safety (PRD-multi-user §5.4, D5/D6) ────────────────────
+
+// The ONLY field names ever referenced inside a filterByFormula. These columns
+// are FROZEN in Airtable — never rename them. A rename fails closed (formula
+// matches nothing → empty reads), and the gated health detail probes them so a
+// rename surfaces as a named failure, not a silent outage.
+export const FIELD_NAMES = { ownerField: "User Email", usersEmail: "Email" } as const;
+
+// Owned tables: every read MUST be tenant-filtered (runtime guard below) and
+// every list* requires a positional userEmail. h1bCompanies/scrapeTargets/users/
+// userTargets/adminAudit are unowned or keyed reads (PRD §5.4).
+export type OwnedTableKey =
+  | "jobListings"
+  | "applications"
+  | "interviews"
+  | "outreach"
+  | "workflowRuns"
+  | "leads";
+
+const OWNED_TABLES = new Set<string>([
+  TABLES.jobListings,
+  TABLES.applications,
+  TABLES.interviews,
+  TABLES.outreach,
+  TABLES.workflowRuns,
+  TABLES.leads,
+]);
+
+/** Base id an owned table lives in (leads is in the secondary base). */
+export function ownedBase(tableKey: OwnedTableKey): string {
+  return tableKey === "leads" ? leadsBase() : primaryBase();
+}
+
+// filterByFormula is this architecture's injection surface (PRD D6).
+// Backslash FIRST, then quotes; empty string throws because `{User Email}=''`
+// matches every blank-owner row (CR-S5). Moved here from lib/users.ts (M2) —
+// users.ts re-imports it.
+export function escapeFormulaString(v: string): string {
+  if (v === "" || /[\r\n\0]/.test(v)) throw new Error("invalid formula value");
+  return v.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+// RFC-lite shape check before any email is interpolated into a formula.
+const EMAIL_RE = /^[A-Za-z0-9._%+'-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+/** Owner predicate for filterByFormula: LOWER({User Email}) = '<escaped email>'. */
+export function ownerFilter(email: string): string {
+  const normalized = normalizeEmail(email);
+  if (!normalized) throw new Error("ownerFilter: empty email");
+  if (!EMAIL_RE.test(normalized)) throw new Error("ownerFilter: invalid email shape");
+  return `LOWER({${FIELD_NAMES.ownerField}}) = '${escapeFormulaString(normalized)}'`;
+}
+
+// Record ids are client-supplied in the mutation paths (CR-S3) — shape-validate
+// before interpolating into a formula.
+const RECORD_ID_RE = /^rec[A-Za-z0-9]{14,17}$/;
+
+export function recordIdFilter(ids: string[]): string {
+  if (!ids.length) throw new Error("recordIdFilter: no record ids");
+  for (const id of ids) {
+    if (!RECORD_ID_RE.test(id)) throw new Error("recordIdFilter: invalid record id");
+  }
+  return `OR(${ids.map((id) => `RECORD_ID()='${id}'`).join(",")})`;
+}
+
+// Defense-in-depth second check (PRD D5): after the server-side formula filter,
+// re-verify each returned row's owner by FIELD ID in code. A mismatch is a
+// security anomaly — alarm and drop the row, never render it.
+function postFilterOwned(
+  records: AirtableRecord[],
+  ownerFieldId: string,
+  userEmail: string,
+  tableLabel: string,
+): AirtableRecord[] {
+  const expected = normalizeEmail(userEmail);
+  return records.filter((r) => {
+    const actual = normalizeEmail(String(r.fields[ownerFieldId] ?? ""));
+    if (actual !== expected) {
+      console.error(
+        `SECURITY: owner post-filter mismatch — table=${tableLabel} record=${r.id}; row dropped`,
+      );
+      return false;
+    }
+    return true;
+  });
+}
 
 interface AirtableRecord {
   id: string;
@@ -187,11 +316,19 @@ export function isConfigured(): boolean {
 async function fetchAllRecords(
   table: string,
   baseId?: string,
-  opts?: { fresh?: boolean },
+  opts?: { fresh?: boolean; filterByFormula?: string },
 ): Promise<AirtableRecord[]> {
   const token = process.env.AIRTABLE_TOKEN;
   const base = baseId ?? primaryBase();
   if (!token) throw new Error("Airtable not configured");
+
+  // Runtime tenancy guard (PRD D5): a "forgot the filter" read of an owned table
+  // must be a crash, not a leak. Server-side filtering is mandatory — this
+  // function caps at 10 pages, so read-then-post-filter silently truncates and
+  // can never be the primary isolation mechanism (PRD §6.3).
+  if (OWNED_TABLES.has(table) && !opts?.filterByFormula) {
+    throw new Error(`owned table read without owner filter: ${table}`);
+  }
 
   const records: AirtableRecord[] = [];
   let offset: string | undefined;
@@ -201,6 +338,9 @@ async function fetchAllRecords(
     url.searchParams.set("pageSize", "100");
     // Return field IDs as keys (not names) — all our FIELDS maps use stable IDs.
     url.searchParams.set("returnFieldsByFieldId", "true");
+    // The formula rides in the fetch URL, so Next's 30s data cache is keyed
+    // per-user automatically (PRD §4) — caching semantics are unchanged.
+    if (opts?.filterByFormula) url.searchParams.set("filterByFormula", opts.filterByFormula);
     if (offset) url.searchParams.set("offset", offset);
     const res = await fetch(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
@@ -225,8 +365,19 @@ function selectName(v: unknown): string | undefined {
   return undefined;
 }
 
-export async function listJobListings(opts?: { fresh?: boolean }): Promise<JobListing[]> {
-  const records = await fetchAllRecords(TABLES.jobListings, primaryBase(), opts);
+export async function listJobListings(
+  userEmail: string,
+  opts?: { fresh?: boolean },
+): Promise<JobListing[]> {
+  const records = postFilterOwned(
+    await fetchAllRecords(TABLES.jobListings, primaryBase(), {
+      ...opts,
+      filterByFormula: ownerFilter(userEmail),
+    }),
+    FIELDS.jobListings.userEmail,
+    userEmail,
+    "jobListings",
+  );
   const f = FIELDS.jobListings;
   const rawPct = (v: unknown) =>
     typeof v === "number" ? Math.round(v * 100) : undefined; // Airtable percent → 0-100
@@ -279,8 +430,15 @@ export async function listScrapeTargets(opts?: { fresh?: boolean }): Promise<Scr
   }));
 }
 
-export async function listOutreach(): Promise<OutreachContact[]> {
-  const records = await fetchAllRecords(TABLES.outreach, primaryBase());
+export async function listOutreach(userEmail: string): Promise<OutreachContact[]> {
+  const records = postFilterOwned(
+    await fetchAllRecords(TABLES.outreach, primaryBase(), {
+      filterByFormula: ownerFilter(userEmail),
+    }),
+    FIELDS.outreach.userEmail,
+    userEmail,
+    "outreach",
+  );
   return records.map((r) => ({
     id: r.id,
     source: "outreach" as const,
@@ -322,8 +480,19 @@ function cleanSignal(v: unknown): string | undefined {
 // Leads = the second outreach tracker (Automation Dev Outreach base).
 // We normalize Leads rows into the same OutreachContact shape so the UI
 // can treat both the same way, with a `source` discriminator.
-export async function listLeads(opts?: { fresh?: boolean }): Promise<OutreachContact[]> {
-  const records = await fetchAllRecords(TABLES.leads, leadsBase(), opts);
+export async function listLeads(
+  userEmail: string,
+  opts?: { fresh?: boolean },
+): Promise<OutreachContact[]> {
+  const records = postFilterOwned(
+    await fetchAllRecords(TABLES.leads, leadsBase(), {
+      ...opts,
+      filterByFormula: ownerFilter(userEmail),
+    }),
+    FIELDS.leads.userEmail,
+    userEmail,
+    "leads",
+  );
   return records.map((r) => {
     const fn = r.fields[FIELDS.leads.firstName] as string | undefined;
     const ln = r.fields[FIELDS.leads.lastName] as string | undefined;
@@ -359,13 +528,20 @@ export async function listH1bLinkedinIds(): Promise<string[]> {
 }
 
 // Convenience: both sources merged, sorted newest-first.
-export async function listAllOutreach(): Promise<OutreachContact[]> {
-  const [a, b] = await Promise.all([listOutreach(), listLeads()]);
+export async function listAllOutreach(userEmail: string): Promise<OutreachContact[]> {
+  const [a, b] = await Promise.all([listOutreach(userEmail), listLeads(userEmail)]);
   return [...a, ...b].sort((x, y) => (y.date ?? "").localeCompare(x.date ?? ""));
 }
 
-export async function listApplications(): Promise<Application[]> {
-  const records = await fetchAllRecords(TABLES.applications, primaryBase());
+export async function listApplications(userEmail: string): Promise<Application[]> {
+  const records = postFilterOwned(
+    await fetchAllRecords(TABLES.applications, primaryBase(), {
+      filterByFormula: ownerFilter(userEmail),
+    }),
+    FIELDS.applications.userEmail,
+    userEmail,
+    "applications",
+  );
   return records.map((r) => ({
     id: r.id,
     applicationId: (r.fields[FIELDS.applications.applicationId] as string) ?? r.id,
@@ -381,8 +557,15 @@ export async function listApplications(): Promise<Application[]> {
   }));
 }
 
-export async function listInterviews(): Promise<Interview[]> {
-  const records = await fetchAllRecords(TABLES.interviews, primaryBase());
+export async function listInterviews(userEmail: string): Promise<Interview[]> {
+  const records = postFilterOwned(
+    await fetchAllRecords(TABLES.interviews, primaryBase(), {
+      filterByFormula: ownerFilter(userEmail),
+    }),
+    FIELDS.interviews.userEmail,
+    userEmail,
+    "interviews",
+  );
   return records.map((r) => ({
     id: r.id,
     label: r.fields[FIELDS.interviews.label] as string | undefined,
@@ -478,11 +661,198 @@ export function updateRecords(
   return writeRecords("PATCH", table, baseId, rows);
 }
 
+/** Batched (≤10/req) hard delete. MVP use is ONLY the server-side targets diff —
+ *  member pipeline rows are never hard-deleted (status-archive instead). */
+export async function deleteRecords(table: string, baseId: string, ids: string[]): Promise<void> {
+  const token = process.env.AIRTABLE_TOKEN;
+  if (!token) throw new Error("Airtable not configured");
+  for (let i = 0; i < ids.length; i += 10) {
+    const batch = ids.slice(i, i + 10);
+    const url = new URL(`${API}/${baseId}/${table}`);
+    for (const id of batch) url.searchParams.append("records[]", id);
+    const res = await fetch(url.toString(), {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Airtable DELETE ${res.status} ${await res.text()}`);
+  }
+}
+
+// ── Ownership enforcement (PRD §5.4) ─────────────────────────────────────────
+
+/** Server-side owner stamp for every owned-table create. Client-supplied owner
+ *  values are ignored — the stamp always wins (spread order). */
+export function withOwner(
+  tableKey: OwnedTableKey,
+  fields: Record<string, unknown>,
+  userEmail: string,
+): Record<string, unknown> {
+  const normalized = normalizeEmail(userEmail);
+  if (!normalized) throw new Error("withOwner: empty owner email");
+  return { ...fields, [FIELDS[tableKey].userEmail]: normalized };
+}
+
+/** Thrown by assertOwnership. 404 by design: a missing record and another
+ *  user's record are indistinguishable to the caller (no existence oracle). */
+export class OwnershipError extends Error {
+  readonly status = 404;
+  constructor(message = "not found") {
+    super(message);
+    this.name = "OwnershipError";
+  }
+}
+
+/** Proof-before-mutation (PRD D5): fresh no-store read filtered
+ *  AND(recordIdFilter, ownerFilter); throws OwnershipError unless EVERY id
+ *  comes back owned. Always called with the SESSION email, never effectiveEmail. */
+export async function assertOwnership(
+  table: string,
+  baseId: string,
+  userEmail: string,
+  recordIds: string[],
+): Promise<void> {
+  if (!recordIds.length) throw new OwnershipError();
+  const formula = `AND(${recordIdFilter(recordIds)}, ${ownerFilter(userEmail)})`;
+  const records = await fetchAllRecords(table, baseId, { fresh: true, filterByFormula: formula });
+  const owned = new Set(records.map((r) => r.id));
+  for (const id of recordIds) {
+    if (!owned.has(id)) throw new OwnershipError();
+  }
+}
+
+// ── Admin / migration surface (loud by design — PRD D5, G12) ─────────────────
+
+export type AdminAuditAction =
+  | "view_as_enter"
+  | "view_as_exit"
+  | "migrate_run"
+  | "user_disable"
+  | "user_enable";
+
+/** Append-only Admin_Audit row (PRD §6.5). */
+export async function logAdminAudit(
+  action: AdminAuditAction,
+  actorEmail: string,
+  targetEmail: string,
+  note?: string,
+): Promise<void> {
+  const f = FIELDS.adminAudit;
+  await createRecords(TABLES.adminAudit, primaryBase(), [
+    {
+      [f.action]: action,
+      [f.actorEmail]: normalizeEmail(actorEmail),
+      [f.targetEmail]: normalizeEmail(targetEmail),
+      [f.at]: new Date().toISOString(),
+      ...(note ? { [f.note]: note } : {}),
+    },
+  ]);
+}
+
+export interface AdminUserRow {
+  id: string;
+  email: string;
+  name?: string;
+  accountStatus?: string;
+  onboardingStatus?: string;
+  defaultTargets?: string;
+  lastLogin?: string;
+}
+
+/** ALL Users rows — cross-user by definition. Call sites must co-occur with
+ *  requireAdmin/requireAdminApi (G12 scan). */
+export async function listUsersAllAdmin(): Promise<AdminUserRow[]> {
+  const f = FIELDS.users;
+  const records = await fetchAllRecords(usersTable(), primaryBase(), { fresh: true });
+  return records.map((r) => ({
+    id: r.id,
+    email: normalizeEmail(String(r.fields[f.email] ?? "")),
+    name: r.fields[f.name] as string | undefined,
+    accountStatus: selectName(r.fields[f.accountStatus]),
+    onboardingStatus: selectName(r.fields[f.onboardingStatus]),
+    defaultTargets: selectName(r.fields[f.defaultTargets]),
+    lastLogin: r.fields[f.lastLogin] as string | undefined,
+  }));
+}
+
+export interface UserTargetRow {
+  id: string;
+  userEmail: string;
+  companyKey: string;
+  status?: string; // "excluded" | "added"
+  companyName?: string;
+  careersUrl?: string;
+  h1bVerified: boolean;
+}
+
+/** Sparse per-user target deviations (PRD D8). UserTargets is user-scoped:
+ *  always owner-filtered on its own "User Email" column (same frozen name). */
+export async function listUserTargets(userEmail: string): Promise<UserTargetRow[]> {
+  const f = FIELDS.userTargets;
+  const records = postFilterOwned(
+    await fetchAllRecords(TABLES.userTargets, primaryBase(), {
+      fresh: true,
+      filterByFormula: ownerFilter(userEmail),
+    }),
+    f.userEmail,
+    userEmail,
+    "userTargets",
+  );
+  return records.map((r) => ({
+    id: r.id,
+    userEmail: normalizeEmail(String(r.fields[f.userEmail] ?? "")),
+    companyKey: (r.fields[f.companyKey] as string) ?? "",
+    status: selectName(r.fields[f.status]),
+    companyName: r.fields[f.companyName] as string | undefined,
+    careersUrl: r.fields[f.careersUrl] as string | undefined,
+    h1bVerified: Boolean(r.fields[f.h1bVerified]),
+  }));
+}
+
+// Blank-owner predicate: a DELIBERATE, internal-only exception to the
+// "ownerFilter on every owned read" rule (PRD §6.6 step 3). Used ONLY by the
+// migration backfill and the gated health detail to find rows not yet stamped.
+// Never expose this through any user-facing read path.
+/* tenancy-exception: blank-owner scan — migration/health internal use only */
+function blankOwnerFormula(): string {
+  return `{${FIELD_NAMES.ownerField}} = ''`;
+}
+
+/** Record ids of rows with a BLANK owner (migration backfill cursor page).
+ *  Fresh read; capped at `limit`. Internal-only — see blankOwnerFormula note. */
+export async function listUnstampedRecordIds(
+  tableKey: OwnedTableKey,
+  baseId: string,
+  limit = 100,
+): Promise<string[]> {
+  const records = await fetchAllRecords(TABLES[tableKey], baseId, {
+    fresh: true,
+    filterByFormula: blankOwnerFormula(),
+  });
+  return records.slice(0, Math.max(0, limit)).map((r) => r.id);
+}
+
+/** Count of blank-owner rows (gated health detail block; 0 = backfill done).
+ *  Capped by fetchAllRecords' 10-page scan — fine as a "is it zero" probe. */
+export async function countUnstamped(tableKey: OwnedTableKey): Promise<number> {
+  const records = await fetchAllRecords(TABLES[tableKey], ownedBase(tableKey), {
+    fresh: true,
+    filterByFormula: blankOwnerFormula(),
+  });
+  return records.length;
+}
+
 // ── Workflow_Runs (run log) ──────────────────────────────────────────────────
 
-export async function listWorkflowRuns(limit = 50): Promise<WorkflowRun[]> {
+export async function listWorkflowRuns(userEmail: string, limit = 50): Promise<WorkflowRun[]> {
   const f = FIELDS.workflowRuns;
-  const records = await fetchAllRecords(TABLES.workflowRuns, primaryBase());
+  const records = postFilterOwned(
+    await fetchAllRecords(TABLES.workflowRuns, primaryBase(), {
+      filterByFormula: ownerFilter(userEmail),
+    }),
+    f.userEmail,
+    userEmail,
+    "workflowRuns",
+  );
   const runs: WorkflowRun[] = records.map((r) => ({
     id: r.id,
     label: (r.fields[f.run] as string) ?? "—",
@@ -502,6 +872,7 @@ export async function listWorkflowRuns(limit = 50): Promise<WorkflowRun[]> {
 export async function createWorkflowRun(input: {
   workflow: WorkflowName;
   trigger: WorkflowTrigger;
+  ownerEmail: string; // engine identity — every run row is owner-stamped (PRD §5.6)
   label?: string;
 }): Promise<string> {
   const f = FIELDS.workflowRuns;
@@ -509,13 +880,17 @@ export async function createWorkflowRun(input: {
   const label =
     input.label ?? `${startedAt.slice(0, 16).replace("T", " ")} — ${input.workflow}`;
   const [rec] = await createRecords(TABLES.workflowRuns, primaryBase(), [
-    {
-      [f.run]: label,
-      [f.workflow]: input.workflow,
-      [f.trigger]: input.trigger,
-      [f.status]: "running",
-      [f.startedAt]: startedAt,
-    },
+    withOwner(
+      "workflowRuns",
+      {
+        [f.run]: label,
+        [f.workflow]: input.workflow,
+        [f.trigger]: input.trigger,
+        [f.status]: "running",
+        [f.startedAt]: startedAt,
+      },
+      input.ownerEmail,
+    ),
   ]);
   return rec.id;
 }

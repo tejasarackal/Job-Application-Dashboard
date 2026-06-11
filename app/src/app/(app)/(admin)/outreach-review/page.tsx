@@ -2,24 +2,26 @@ import { Header } from "@/components/layout/Header";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { listLeads, isConfigured } from "@/lib/airtable";
+import { getViewContext } from "@/lib/session";
 import type { OutreachContact } from "@/lib/types";
 import { LeadActions, DraftActions } from "./ReviewActions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Outreach Review" };
 
-async function loadLeads(): Promise<OutreachContact[]> {
+async function loadLeads(userEmail: string): Promise<OutreachContact[]> {
   if (!isConfigured()) return [];
   try {
     // Live read — this is an interactive gate; an action must show immediately.
-    return await listLeads({ fresh: true });
+    return await listLeads(userEmail, { fresh: true });
   } catch {
     return [];
   }
 }
 
 export default async function ReviewPage() {
-  const leads = await loadLeads();
+  const ctx = await getViewContext();
+  const leads = await loadLeads(ctx.effectiveEmail);
   const toApprove = leads.filter((l) => l.status === "research");
   const toReview = leads.filter((l) => l.status === "draft_pending");
 

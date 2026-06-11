@@ -100,6 +100,60 @@ async function checkGmail(signal: AbortSignal) {
   return { ok: true, detail: p.emailAddress ?? "ok" };
 }
 
+// ── Response shaping (PRD D13 — public/detail split) ─────────────────────────
+//
+// Public: booleans ONLY. No email addresses, no upstream error strings, no env
+// names beyond the five fixed keys. Anything sensitive lives exclusively in the
+// detail shape, which the route gates behind admin session OR Bearer CRON_SECRET.
+
+export interface PublicHealth {
+  ok: boolean;
+  checks: {
+    airtable: boolean;
+    gmail: boolean;
+    anthropic: boolean;
+    apify: boolean;
+    auth: boolean;
+  };
+}
+
+// `auth` = all five auth-stack env vars present (lazy read — never at module load).
+const AUTH_ENV_KEYS = [
+  "AUTH_SECRET",
+  "AUTH_GOOGLE_ID",
+  "AUTH_GOOGLE_SECRET",
+  "OWNER_EMAIL",
+  "CRON_SECRET",
+] as const;
+
+function authEnvPresent(): boolean {
+  return AUTH_ENV_KEYS.every((k) => Boolean(process.env[k]));
+}
+
+/** Public shaper — booleans only. MUST never touch CredCheck beyond `.service`/`.ok`. */
+export function shapePublicHealth(results: CredCheck[]): PublicHealth {
+  const okFor = (service: string) => results.some((c) => c.service === service && c.ok);
+  const checks = {
+    airtable: okFor("Airtable"),
+    gmail: okFor("Gmail"),
+    anthropic: okFor("Anthropic"),
+    apify: okFor("Apify"),
+    auth: authEnvPresent(),
+  };
+  return { ok: Object.values(checks).every(Boolean), checks };
+}
+
+export interface DetailHealth {
+  ok: boolean;
+  checks: CredCheck[];
+}
+
+/** Detail shaper — full per-service ok/detail/error payload. Gated by the route. */
+export function shapeDetailHealth(results: CredCheck[]): DetailHealth {
+  // M2: multiuser block (blank-owner counts, formula-name probes) lands here
+  return { ok: results.every((c) => c.ok), checks: results };
+}
+
 export async function checkCredentials(): Promise<CredCheck[]> {
   return Promise.all([
     ping("Airtable", ["AIRTABLE_TOKEN"], checkAirtable),

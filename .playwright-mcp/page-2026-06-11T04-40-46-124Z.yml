@@ -1,0 +1,319 @@
+- generic [ref=e4]:
+  - link "Skip to main content" [ref=e5] [cursor=pointer]:
+    - /url: ""
+  - banner [ref=e8]:
+    - generic [ref=e10]:
+      - link "search for jobs" [ref=e13] [cursor=pointer]:
+        - /url: /en-US/External_Career_Site
+        - img "search for jobs" [ref=e14]
+      - generic [ref=e15]:
+        - heading [level=1]
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - button "English" [ref=e20] [cursor=pointer]:
+            - generic [ref=e24]: English
+          - button "Sign In" [ref=e26] [cursor=pointer]:
+            - generic [ref=e31]: Sign In
+        - navigation [ref=e32]:
+          - button "Search for Jobs" [ref=e33] [cursor=pointer]
+  - generic [ref=e38]:
+    - generic [ref=e39]:
+      - search [ref=e40]:
+        - generic [ref=e41]:
+          - textbox "Search" [ref=e47]:
+            - /placeholder: Search for jobs or keywords
+          - status [ref=e48]
+        - button "Search" [ref=e51] [cursor=pointer]
+      - group "Filters" [ref=e52]:
+        - generic [ref=e53]: Filters
+        - button "Location" [ref=e55] [cursor=pointer]: Location
+        - button "Time Type" [ref=e60] [cursor=pointer]: Time Type
+        - button "Country" [ref=e65] [cursor=pointer]: Country
+        - button "More" [ref=e70] [cursor=pointer]: More
+    - generic [ref=e74]:
+      - alert [ref=e75]: Search for Jobs page is loaded
+      - region "Search Results" [ref=e76]:
+        - paragraph [ref=e77]: 1433 JOBS FOUND
+        - list "Page 1 of 72" [ref=e78]:
+          - listitem [ref=e79]:
+            - heading "Space Planning Associate Manager" [level=3] [ref=e83]:
+              - link "Space Planning Associate Manager" [ref=e84] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/India---Bangalore/Space-Planning-Associate-Manager_JR341833
+            - generic [ref=e93]:
+              - term [ref=e94]: locations
+              - definition [ref=e95]: 2 Locations
+            - generic [ref=e105]:
+              - term [ref=e106]: posted on
+              - definition [ref=e107]: Posted Today
+            - list [ref=e108]:
+              - listitem [ref=e109]: JR341833
+          - listitem [ref=e110]:
+            - heading "Account Executive, Regional Mid Market Sales (Nagoya)" [level=3] [ref=e114]:
+              - link "Account Executive, Regional Mid Market Sales (Nagoya)" [ref=e115] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/Japan---Nagoya/Account-Executive--Regional-Mid-Market-Sales--Nagoya-_JR335888
+            - generic [ref=e124]:
+              - term [ref=e125]: locations
+              - definition [ref=e126]: Japan - Nagoya
+            - generic [ref=e136]:
+              - term [ref=e137]: posted on
+              - definition [ref=e138]: Posted Today
+            - list [ref=e139]:
+              - listitem [ref=e140]: JR335888
+          - listitem [ref=e141]:
+            - heading "Technical Support Engineer" [level=3] [ref=e145]:
+              - link "Technical Support Engineer" [ref=e146] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/India---Hyderabad/Success-Engineer_JR333705
+            - generic [ref=e155]:
+              - term [ref=e156]: locations
+              - definition [ref=e157]: 2 Locations
+            - generic [ref=e167]:
+              - term [ref=e168]: posted on
+              - definition [ref=e169]: Posted Today
+            - list [ref=e170]:
+              - listitem [ref=e171]: JR333705
+          - listitem [ref=e172]:
+            - heading "Senior Manager/Director, Solutions CoE" [level=3] [ref=e176]:
+              - link "Senior Manager/Director, Solutions CoE" [ref=e177] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/Illinois---Chicago/Senior-Manager-Manager--Specialization-CoE_JR344488
+            - generic [ref=e186]:
+              - term [ref=e187]: locations
+              - definition [ref=e188]: 2 Locations
+            - generic [ref=e198]:
+              - term [ref=e199]: posted on
+              - definition [ref=e200]: Posted Today
+            - list [ref=e201]:
+              - listitem [ref=e202]: JR344488
+          - listitem [ref=e203]:
+            - heading "Senior Associate Account Partner" [level=3] [ref=e207]:
+              - link "Senior Associate Account Partner" [ref=e208] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/Japan---Tokyo/Senior-Associate-Account-Partner_JR345399
+            - generic [ref=e217]:
+              - term [ref=e218]: locations
+              - definition [ref=e219]: Japan - Tokyo
+            - generic [ref=e229]:
+              - term [ref=e230]: posted on
+              - definition [ref=e231]: Posted Today
+            - list [ref=e232]:
+              - listitem [ref=e233]: JR345399
+          - listitem [ref=e234]:
+            - heading "Success Engineer" [level=3] [ref=e238]:
+              - link "Success Engineer" [ref=e239] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/Mexico---Mexico-City/Customer-Success-Engineer_JR334817
+            - generic [ref=e248]:
+              - term [ref=e249]: locations
+              - definition [ref=e250]: Mexico - Mexico City
+            - generic [ref=e260]:
+              - term [ref=e261]: posted on
+              - definition [ref=e262]: Posted Today
+            - list [ref=e263]:
+              - listitem [ref=e264]: JR334817
+          - listitem [ref=e265]:
+            - heading "Product Manager, Commerce Cloud" [level=3] [ref=e269]:
+              - link "Product Manager, Commerce Cloud" [ref=e270] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/California---San-Francisco/Product-Manager--Commerce-Cloud_JR345844
+            - generic [ref=e279]:
+              - term [ref=e280]: locations
+              - definition [ref=e281]: California - San Francisco
+            - generic [ref=e291]:
+              - term [ref=e292]: posted on
+              - definition [ref=e293]: Posted Today
+            - list [ref=e294]:
+              - listitem [ref=e295]: JR345844
+          - listitem [ref=e296]:
+            - heading "Senior Product Manager, Financial Services Cloud" [level=3] [ref=e300]:
+              - link "Senior Product Manager, Financial Services Cloud" [ref=e301] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/California---San-Francisco/Senior-Product-Manager--Financial-Services-Cloud_JR345909
+            - generic [ref=e310]:
+              - term [ref=e311]: locations
+              - definition [ref=e312]: California - San Francisco
+            - generic [ref=e322]:
+              - term [ref=e323]: posted on
+              - definition [ref=e324]: Posted Today
+            - list [ref=e325]:
+              - listitem [ref=e326]: JR345909
+          - listitem [ref=e327]:
+            - heading "Senior Technical Recruiter" [level=3] [ref=e331]:
+              - link "Senior Technical Recruiter" [ref=e332] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/Illinois---Chicago/Senior-Technical-Recruiter_JR345905
+            - generic [ref=e341]:
+              - term [ref=e342]: locations
+              - definition [ref=e343]: 6 Locations
+            - generic [ref=e353]:
+              - term [ref=e354]: posted on
+              - definition [ref=e355]: Posted Today
+            - list [ref=e356]:
+              - listitem [ref=e357]: JR345905
+          - listitem [ref=e358]:
+            - heading "Software Engineering SMTS" [level=3] [ref=e362]:
+              - link "Software Engineering SMTS" [ref=e363] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/California---San-Francisco/Software-Engineering-SMTS_JR344278
+            - generic [ref=e372]:
+              - term [ref=e373]: locations
+              - definition [ref=e374]: 2 Locations
+            - generic [ref=e384]:
+              - term [ref=e385]: posted on
+              - definition [ref=e386]: Posted Today
+            - list [ref=e387]:
+              - listitem [ref=e388]: JR344278
+          - listitem [ref=e389]:
+            - heading "Informatica Community Practice Leader" [level=3] [ref=e393]:
+              - link "Informatica Community Practice Leader" [ref=e394] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/Illinois---Chicago/Community-Practice-Leader--Industry-Advisor-_JR333986
+            - generic [ref=e403]:
+              - term [ref=e404]: locations
+              - definition [ref=e405]: 7 Locations
+            - generic [ref=e415]:
+              - term [ref=e416]: posted on
+              - definition [ref=e417]: Posted Today
+            - list [ref=e418]:
+              - listitem [ref=e419]: JR333986
+          - listitem [ref=e420]:
+            - heading "LATAM Internship Program | Sales Intern [Argentina]" [level=3] [ref=e424]:
+              - link "LATAM Internship Program | Sales Intern [Argentina]" [ref=e425] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/Argentina---Buenos-Aires/XMLNAME-2024-Intern---Sales-Development_JR236329-1
+            - generic [ref=e434]:
+              - term [ref=e435]: locations
+              - definition [ref=e436]: Argentina - Buenos Aires
+            - generic [ref=e446]:
+              - term [ref=e447]: posted on
+              - definition [ref=e448]: Posted Today
+            - list [ref=e449]:
+              - listitem [ref=e450]: JR236329
+          - listitem [ref=e451]:
+            - heading "Senior Product Manager, Financial Services Cloud" [level=3] [ref=e455]:
+              - link "Senior Product Manager, Financial Services Cloud" [ref=e456] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/California---San-Francisco/Product-Manager--Pricing---Product-Operations_JR336914-1
+            - generic [ref=e465]:
+              - term [ref=e466]: locations
+              - definition [ref=e467]: California - San Francisco
+            - generic [ref=e477]:
+              - term [ref=e478]: posted on
+              - definition [ref=e479]: Posted Today
+            - list [ref=e480]:
+              - listitem [ref=e481]: JR336914
+          - listitem [ref=e482]:
+            - heading "Manager, Solution Engineering Informatica Data Foundations - FINS" [level=3] [ref=e486]:
+              - link "Manager, Solution Engineering Informatica Data Foundations - FINS" [ref=e487] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/Illinois---Chicago/Manager--Solution-Engineering-Informatica-Data-Foundations---FINS_JR332694
+            - generic [ref=e496]:
+              - term [ref=e497]: locations
+              - definition [ref=e498]: 3 Locations
+            - generic [ref=e508]:
+              - term [ref=e509]: posted on
+              - definition [ref=e510]: Posted Today
+            - list [ref=e511]:
+              - listitem [ref=e512]: JR332694
+          - listitem [ref=e513]:
+            - heading "Senior Manager, Technology Risk and Controls" [level=3] [ref=e517]:
+              - link "Senior Manager, Technology Risk and Controls" [ref=e518] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/California---San-Francisco/Senior-Manager--Technology-Risk-and-Controls_JR343255
+            - generic [ref=e527]:
+              - term [ref=e528]: locations
+              - definition [ref=e529]: 2 Locations
+            - generic [ref=e539]:
+              - term [ref=e540]: posted on
+              - definition [ref=e541]: Posted Today
+            - list [ref=e542]:
+              - listitem [ref=e543]: JR343255
+          - listitem [ref=e544]:
+            - heading "Named Account Executive, Higher Education" [level=3] [ref=e548]:
+              - link "Named Account Executive, Higher Education" [ref=e549] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/Washington---Seattle/Named-Account-Executive--Higher-Education_JR345305
+            - generic [ref=e558]:
+              - term [ref=e559]: locations
+              - definition [ref=e560]: 3 Locations
+            - generic [ref=e570]:
+              - term [ref=e571]: posted on
+              - definition [ref=e572]: Posted Today
+            - list [ref=e573]:
+              - listitem [ref=e574]: JR345305
+          - listitem [ref=e575]:
+            - heading "Senior Systems Analyst" [level=3] [ref=e579]:
+              - link "Senior Systems Analyst" [ref=e580] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/Texas---Dallas/Senior-Systems-Analyst_JR343405
+            - generic [ref=e589]:
+              - term [ref=e590]: locations
+              - definition [ref=e591]: Texas - Dallas
+            - generic [ref=e601]:
+              - term [ref=e602]: posted on
+              - definition [ref=e603]: Posted Today
+            - list [ref=e604]:
+              - listitem [ref=e605]: JR343405
+          - listitem [ref=e606]:
+            - heading "Software Engineering LMTS" [level=3] [ref=e610]:
+              - link "Software Engineering LMTS" [ref=e611] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/California---Palo-Alto/Software-Engineering-LMTS_JR345624
+            - generic [ref=e620]:
+              - term [ref=e621]: locations
+              - definition [ref=e622]: California - Palo Alto
+            - generic [ref=e632]:
+              - term [ref=e633]: posted on
+              - definition [ref=e634]: Posted Today
+            - list [ref=e635]:
+              - listitem [ref=e636]: JR345624
+          - listitem [ref=e637]:
+            - heading "Specialist Solution Engineer" [level=3] [ref=e641]:
+              - link "Specialist Solution Engineer" [ref=e642] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/Illinois---Chicago/Specialist-Solution-Engineer_JR343793
+            - generic [ref=e651]:
+              - term [ref=e652]: locations
+              - definition [ref=e653]: 3 Locations
+            - generic [ref=e663]:
+              - term [ref=e664]: posted on
+              - definition [ref=e665]: Posted Today
+            - list [ref=e666]:
+              - listitem [ref=e667]: JR343793
+          - listitem [ref=e668]:
+            - heading "Product Security Engineer, Senior & Lead (Enterprise Security - Security AI)" [level=3] [ref=e672]:
+              - link "Product Security Engineer, Senior & Lead (Enterprise Security - Security AI)" [ref=e673] [cursor=pointer]:
+                - /url: /en-US/External_Career_Site/job/California---San-Francisco/Product-Security-Engineer--Senior---Lead--Enterprise-Security---Security-AI-_JR345894
+            - generic [ref=e682]:
+              - term [ref=e683]: locations
+              - definition [ref=e684]: 2 Locations
+            - generic [ref=e694]:
+              - term [ref=e695]: posted on
+              - definition [ref=e696]: Posted Today
+            - list [ref=e697]:
+              - listitem [ref=e698]: JR345894
+        - generic [ref=e699]:
+          - navigation "pagination" [ref=e700]:
+            - generic [ref=e701]:
+              - list [ref=e703]:
+                - listitem [ref=e704]:
+                  - button "page 1" [ref=e705] [cursor=pointer]: "1"
+                - listitem [ref=e706]:
+                  - button "page 2" [ref=e707] [cursor=pointer]: "2"
+                - listitem [ref=e708]:
+                  - button "page 3" [ref=e709] [cursor=pointer]: "3"
+                - listitem [ref=e710]:
+                  - button "page 4" [ref=e711] [cursor=pointer]: "4"
+                - listitem [ref=e712]:
+                  - button "page 5" [ref=e713] [cursor=pointer]: "5"
+              - button "next" [ref=e714] [cursor=pointer]
+          - paragraph [ref=e718]: 1 - 20 of 1433 jobs
+      - generic [ref=e723]:
+        - heading "About Us" [level=3] [ref=e724]
+        - img "Logo" [ref=e725]
+        - generic [ref=e727]:
+          - paragraph [ref=e730]:
+            - generic [ref=e731]: We're Salesforce, the Customer Company, inspiring the future of business with AI + Data + CRM. Leading with our core values, we help companies across every industry blaze new trails and connect with customers in a whole new way. And, we empower you to be a Trailblazer, too — driving your performance and career growth, charting new paths, and improving the state of the world. If you believe in business as the greatest platform for change and in companies doing well and doing good – you've come to the right place.
+          - button "Read More" [ref=e734] [cursor=pointer]:
+            - generic [ref=e735]: Read More
+  - generic [ref=e739]:
+    - heading "Follow Us" [level=4] [ref=e740]
+    - list [ref=e741]:
+      - listitem [ref=e742] [cursor=pointer]:
+        - link "Glassdoor" [ref=e743]:
+          - /url: https://www.glassdoor.com/Overview/Working-at-Salesforce-EI_IE11159.11,21.htm
+      - listitem [ref=e748] [cursor=pointer]:
+        - link "Facebook" [ref=e749]:
+          - /url: https://www.facebook.com/salesforce
+      - listitem [ref=e753] [cursor=pointer]:
+        - link "X" [ref=e754]:
+          - /url: https://twitter.com/salesforcejobs
+      - listitem [ref=e758] [cursor=pointer]:
+        - link "LinkedIn" [ref=e759]:
+          - /url: https://www.linkedin.com/company/salesforce
+    - generic [ref=e763]:
+      - img [ref=e767]
+      - generic [ref=e787]: © 2026 Workday, Inc. All rights reserved.

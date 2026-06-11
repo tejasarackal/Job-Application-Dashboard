@@ -1,0 +1,323 @@
+- generic [ref=e4]:
+  - link "Skip to main content" [ref=e5] [cursor=pointer]:
+    - /url: ""
+  - banner [ref=e8]:
+    - generic [ref=e10]:
+      - link "careers home" [ref=e13] [cursor=pointer]:
+        - /url: https://www.nvidia.com/en-us/about-nvidia/careers/
+        - img "careers home" [ref=e14]
+      - heading "CAREERS AT NVIDIA" [level=1] [ref=e16]
+      - generic [ref=e18]:
+        - button "Sign In" [ref=e20] [cursor=pointer]:
+          - generic [ref=e25]: Sign In
+        - navigation [ref=e26]:
+          - button "Home" [ref=e27] [cursor=pointer]
+          - button "Search for Jobs" [ref=e28] [cursor=pointer]
+  - generic [ref=e33]:
+    - generic [ref=e34]:
+      - search [ref=e35]:
+        - generic [ref=e36]:
+          - textbox "Search" [ref=e42]:
+            - /placeholder: Search for jobs or keywords
+          - status [ref=e43]
+        - button "Search" [ref=e46] [cursor=pointer]
+      - group "Filters" [ref=e47]:
+        - generic [ref=e48]: Filters
+        - button "Location" [ref=e50] [cursor=pointer]: Location
+        - button "Time Type" [ref=e55] [cursor=pointer]: Time Type
+        - button "Job Category" [ref=e60] [cursor=pointer]: Job Category
+        - button "More" [ref=e65] [cursor=pointer]: More
+    - generic [ref=e69]:
+      - alert [ref=e70]: Search for Jobs page is loaded
+      - region "Search Results" [ref=e71]:
+        - paragraph [ref=e72]: 2000 JOBS FOUND
+        - list "Page 1 of 100" [ref=e73]:
+          - listitem [ref=e74]:
+            - heading "AI Computing Software Development Engineer, TensorRT" [level=3] [ref=e78]:
+              - link "AI Computing Software Development Engineer, TensorRT" [ref=e79] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/China-Shanghai/AI-Computing-Software-Development-Engineer--TensorRT_JR2019701
+            - generic [ref=e88]:
+              - term [ref=e89]: locations
+              - definition [ref=e90]: China, Shanghai
+            - generic [ref=e100]:
+              - term [ref=e101]: posted on
+              - definition [ref=e102]: Posted Today
+            - list [ref=e103]:
+              - listitem [ref=e104]: JR2019701
+          - listitem [ref=e105]:
+            - heading "Senior Power Integrity Engineer - LPU Packaging" [level=3] [ref=e109]:
+              - link "Senior Power Integrity Engineer - LPU Packaging" [ref=e110] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/Taiwan-Hsinchu/Senior-Power-Integrity-Engineer---LPU-Packaging_JR2019674
+            - generic [ref=e119]:
+              - term [ref=e120]: locations
+              - definition [ref=e121]: 2 Locations
+            - generic [ref=e131]:
+              - term [ref=e132]: posted on
+              - definition [ref=e133]: Posted Today
+            - list [ref=e134]:
+              - listitem [ref=e135]: JR2019674
+          - listitem [ref=e136]:
+            - heading "Senior Debugger Software Engineer" [level=3] [ref=e140]:
+              - link "Senior Debugger Software Engineer" [ref=e141] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Senior-Debugger-Software-Engineer_JR2019238-1
+            - generic [ref=e150]:
+              - term [ref=e151]: locations
+              - definition [ref=e152]: 3 Locations
+            - generic [ref=e162]:
+              - term [ref=e163]: posted on
+              - definition [ref=e164]: Posted Today
+            - list [ref=e165]:
+              - listitem [ref=e166]: JR2019238
+          - listitem [ref=e167]:
+            - heading "Solution Architect - ISV for AI Infra" [level=3] [ref=e171]:
+              - link "Solution Architect - ISV for AI Infra" [ref=e172] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/China-Beijing/Solution-Architect---ISV-for-AI-Infra_JR2019425-1
+            - generic [ref=e181]:
+              - term [ref=e182]: locations
+              - definition [ref=e183]: 3 Locations
+            - generic [ref=e193]:
+              - term [ref=e194]: posted on
+              - definition [ref=e195]: Posted Today
+            - list [ref=e196]:
+              - listitem [ref=e197]: JR2019425
+          - listitem [ref=e198]:
+            - heading "Senior Build Engineer - CUDA Driver and Libraries" [level=3] [ref=e202]:
+              - link "Senior Build Engineer - CUDA Driver and Libraries" [ref=e203] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Senior-Build-Engineer---CUDA-Driver-and-Libraries_JR2018423
+            - generic [ref=e212]:
+              - term [ref=e213]: locations
+              - definition [ref=e214]: 2 Locations
+            - generic [ref=e224]:
+              - term [ref=e225]: posted on
+              - definition [ref=e226]: Posted Today
+            - list [ref=e227]:
+              - listitem [ref=e228]: JR2018423
+          - listitem [ref=e229]:
+            - heading "Senior Developer Marketing Manager, Consumer AI" [level=3] [ref=e233]:
+              - link "Senior Developer Marketing Manager, Consumer AI" [ref=e234] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Senior-Developer-Marketing-Manager--Consumer-AI_JR2017342
+            - generic [ref=e243]:
+              - term [ref=e244]: locations
+              - definition [ref=e245]: US, CA, Santa Clara
+            - generic [ref=e255]:
+              - term [ref=e256]: posted on
+              - definition [ref=e257]: Posted Today
+            - list [ref=e258]:
+              - listitem [ref=e259]: JR2017342
+          - listitem [ref=e260]:
+            - heading "Senior Systems Software Engineer, Kubernetes Scale - DGX Cloud" [level=3] [ref=e264]:
+              - link "Senior Systems Software Engineer, Kubernetes Scale - DGX Cloud" [ref=e265] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Senior-Systems-Software-Engineer--Kubernetes-Scale---DGX-Cloud_JR2019385
+            - generic [ref=e274]:
+              - term [ref=e275]: locations
+              - definition [ref=e276]: 2 Locations
+            - generic [ref=e286]:
+              - term [ref=e287]: posted on
+              - definition [ref=e288]: Posted Today
+            - list [ref=e289]:
+              - listitem [ref=e290]: JR2019385
+          - listitem [ref=e291]:
+            - heading "Software QA Test Developer" [level=3] [ref=e295]:
+              - link "Software QA Test Developer" [ref=e296] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/India-Bengaluru/Software-QA-Test-Developer_JR2019646
+            - generic [ref=e305]:
+              - term [ref=e306]: locations
+              - definition [ref=e307]: India, Bengaluru
+            - generic [ref=e317]:
+              - term [ref=e318]: posted on
+              - definition [ref=e319]: Posted Today
+            - list [ref=e320]:
+              - listitem [ref=e321]: JR2019646
+          - listitem [ref=e322]:
+            - heading "Senior Software Development Engineer in Test - SDET" [level=3] [ref=e326]:
+              - link "Senior Software Development Engineer in Test - SDET" [ref=e327] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Senior-Software-Development-Engineer-in-Test---SDET_JR2019589
+            - generic [ref=e336]:
+              - term [ref=e337]: locations
+              - definition [ref=e338]: US, CA, Santa Clara
+            - generic [ref=e348]:
+              - term [ref=e349]: posted on
+              - definition [ref=e350]: Posted Today
+            - list [ref=e351]:
+              - listitem [ref=e352]: JR2019589
+          - listitem [ref=e353]:
+            - heading "GPU Development Tools System Software Engineer" [level=3] [ref=e357]:
+              - link "GPU Development Tools System Software Engineer" [ref=e358] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/GPU-Development-Tools-System-Software-Engineer_JR2015871-1
+            - generic [ref=e367]:
+              - term [ref=e368]: locations
+              - definition [ref=e369]: US, CA, Santa Clara
+            - generic [ref=e379]:
+              - term [ref=e380]: posted on
+              - definition [ref=e381]: Posted Today
+            - list [ref=e382]:
+              - listitem [ref=e383]: JR2015871
+          - listitem [ref=e384]:
+            - heading "SoC Verification Lead" [level=3] [ref=e388]:
+              - link "SoC Verification Lead" [ref=e389] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/SoC-Verification-Lead_JR2019675-1
+            - generic [ref=e398]:
+              - term [ref=e399]: locations
+              - definition [ref=e400]: US, CA, Santa Clara
+            - generic [ref=e410]:
+              - term [ref=e411]: posted on
+              - definition [ref=e412]: Posted Today
+            - list [ref=e413]:
+              - listitem [ref=e414]: JR2019675
+          - listitem [ref=e415]:
+            - heading "ASIC Design Engineer" [level=3] [ref=e419]:
+              - link "ASIC Design Engineer" [ref=e420] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/India-Bengaluru/ASIC-Design-Engineer_JR2019598
+            - generic [ref=e429]:
+              - term [ref=e430]: locations
+              - definition [ref=e431]: India, Bengaluru
+            - generic [ref=e441]:
+              - term [ref=e442]: posted on
+              - definition [ref=e443]: Posted Today
+            - list [ref=e444]:
+              - listitem [ref=e445]: JR2019598
+          - listitem [ref=e446]:
+            - heading "NPI Material Manager" [level=3] [ref=e450]:
+              - link "NPI Material Manager" [ref=e451] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/NPI-Material-Manager_JR2018763
+            - generic [ref=e460]:
+              - term [ref=e461]: locations
+              - definition [ref=e462]: US, CA, Santa Clara
+            - generic [ref=e472]:
+              - term [ref=e473]: posted on
+              - definition [ref=e474]: Posted Today
+            - list [ref=e475]:
+              - listitem [ref=e476]: JR2018763
+          - listitem [ref=e477]:
+            - heading "Foundry Development Engineer" [level=3] [ref=e481]:
+              - link "Foundry Development Engineer" [ref=e482] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Foundry-Development-Engineer_JR2019321
+            - generic [ref=e491]:
+              - term [ref=e492]: locations
+              - definition [ref=e493]: US, CA, Santa Clara
+            - generic [ref=e503]:
+              - term [ref=e504]: posted on
+              - definition [ref=e505]: Posted Today
+            - list [ref=e506]:
+              - listitem [ref=e507]: JR2019321
+          - listitem [ref=e508]:
+            - heading "Senior Reliability Engineer" [level=3] [ref=e512]:
+              - link "Senior Reliability Engineer" [ref=e513] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Senior-Reliability-Engineer_JR2019406
+            - generic [ref=e522]:
+              - term [ref=e523]: locations
+              - definition [ref=e524]: US, CA, Santa Clara
+            - generic [ref=e534]:
+              - term [ref=e535]: posted on
+              - definition [ref=e536]: Posted Today
+            - list [ref=e537]:
+              - listitem [ref=e538]: JR2019406
+          - listitem [ref=e539]:
+            - heading "ESD and Latch-up Test Engineer" [level=3] [ref=e543]:
+              - link "ESD and Latch-up Test Engineer" [ref=e544] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/ESD-and-Latch-up-Test-Engineer_JR2019315
+            - generic [ref=e553]:
+              - term [ref=e554]: locations
+              - definition [ref=e555]: US, CA, Santa Clara
+            - generic [ref=e565]:
+              - term [ref=e566]: posted on
+              - definition [ref=e567]: Posted Today
+            - list [ref=e568]:
+              - listitem [ref=e569]: JR2019315
+          - listitem [ref=e570]:
+            - heading "Solutions Architect - MedTech" [level=3] [ref=e574]:
+              - link "Solutions Architect - MedTech" [ref=e575] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Solutions-Architect---MedTech_JR2019314
+            - generic [ref=e584]:
+              - term [ref=e585]: locations
+              - definition [ref=e586]: 2 Locations
+            - generic [ref=e596]:
+              - term [ref=e597]: posted on
+              - definition [ref=e598]: Posted Today
+            - list [ref=e599]:
+              - listitem [ref=e600]: JR2019314
+          - listitem [ref=e601]:
+            - heading "Cloud Platform Software Engineer – Platform APIs" [level=3] [ref=e605]:
+              - link "Cloud Platform Software Engineer – Platform APIs" [ref=e606] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Cloud-Platform-Software-Engineer---Platform-APIs_JR2019184
+            - generic [ref=e615]:
+              - term [ref=e616]: locations
+              - definition [ref=e617]: 3 Locations
+            - generic [ref=e627]:
+              - term [ref=e628]: posted on
+              - definition [ref=e629]: Posted Today
+            - list [ref=e630]:
+              - listitem [ref=e631]: JR2019184
+          - listitem [ref=e632]:
+            - heading "Senior Systems Software Engineer, Kubernetes Node Lifecycle - DGX Cloud" [level=3] [ref=e636]:
+              - link "Senior Systems Software Engineer, Kubernetes Node Lifecycle - DGX Cloud" [ref=e637] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Senior-Systems-Software-Engineer--Kubernetes-Node-Lifecycle---DGX-Cloud_JR2019395
+            - generic [ref=e646]:
+              - term [ref=e647]: locations
+              - definition [ref=e648]: 2 Locations
+            - generic [ref=e658]:
+              - term [ref=e659]: posted on
+              - definition [ref=e660]: Posted Today
+            - list [ref=e661]:
+              - listitem [ref=e662]: JR2019395
+          - listitem [ref=e663]:
+            - heading "Senior Firmware Engineer - GPU Verification" [level=3] [ref=e667]:
+              - link "Senior Firmware Engineer - GPU Verification" [ref=e668] [cursor=pointer]:
+                - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Senior-Software-Engineer---GPU-Networking_JR2016780
+            - generic [ref=e677]:
+              - term [ref=e678]: locations
+              - definition [ref=e679]: US, CA, Santa Clara
+            - generic [ref=e689]:
+              - term [ref=e690]: posted on
+              - definition [ref=e691]: Posted Today
+            - list [ref=e692]:
+              - listitem [ref=e693]: JR2016780
+        - generic [ref=e694]:
+          - navigation "pagination" [ref=e695]:
+            - generic [ref=e696]:
+              - list [ref=e698]:
+                - listitem [ref=e699]:
+                  - button "page 1" [ref=e700] [cursor=pointer]: "1"
+                - listitem [ref=e701]:
+                  - button "page 2" [ref=e702] [cursor=pointer]: "2"
+                - listitem [ref=e703]:
+                  - button "page 3" [ref=e704] [cursor=pointer]: "3"
+                - listitem [ref=e705]:
+                  - button "page 4" [ref=e706] [cursor=pointer]: "4"
+                - listitem [ref=e707]:
+                  - button "page 5" [ref=e708] [cursor=pointer]: "5"
+              - button "next" [ref=e709] [cursor=pointer]
+          - paragraph [ref=e713]: 1 - 20 of 2000 jobs
+      - generic [ref=e718]:
+        - img "NV-rgb-blk-apr2026" [ref=e719]
+        - generic [ref=e723]:
+          - paragraph [ref=e724]: NVIDIA pioneered accelerated computing. Today, our AI infrastructure powers global intelligence, transforming every industry.
+          - paragraph [ref=e725]
+          - paragraph [ref=e726]:
+            - text: Learn more about
+            - link "NVIDIA" [ref=e727] [cursor=pointer]:
+              - /url: https://nam11.safelinks.protection.outlook.com/?url=http%3A%2F%2Fwww.nvidia.com%2Fobject%2Fabout-nvidia.html%23sthash.qlXKW56Q.dpuf&data=05%7C01%7Chozkan%40nvidia.com%7Cf442a08620ed4ab9afb108db18e6d308%7C43083d15727340c1b7db39efd9ccc17a%7C0%7C0%7C638131151878484303%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C3000%7C%7C%7C&sdata=DjpWGYWzl3J2uwSP6woYwjdRi52yvWRVeAijKer9u%2Fk%3D&reserved=0
+            - text: .
+  - generic [ref=e728]:
+    - heading "Follow Us" [level=4] [ref=e729]
+    - list [ref=e730]:
+      - listitem [ref=e731] [cursor=pointer]:
+        - link "X" [ref=e732]:
+          - /url: https://twitter.com/nvidia?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor
+      - listitem [ref=e736] [cursor=pointer]:
+        - link "Facebook" [ref=e737]:
+          - /url: https://www.facebook.com/NVIDIA
+      - listitem [ref=e741] [cursor=pointer]:
+        - link "Glassdoor" [ref=e742]:
+          - /url: https://www.glassdoor.com/Overview/Working-at-NVIDIA-EI_IE7633.11,17.htm
+      - listitem [ref=e747] [cursor=pointer]:
+        - link "LinkedIn" [ref=e748]:
+          - /url: https://www.linkedin.com/company/nvidia
+      - listitem [ref=e752] [cursor=pointer]:
+        - link "YouTube" [ref=e753]:
+          - /url: https://www.youtube.com/nvidia
+    - link "Applicant Privacy Policy" [ref=e760] [cursor=pointer]:
+      - /url: https://www.nvidia.com/en-us/about-nvidia/careers/applicant-privacy-policy/
+    - generic [ref=e761]:
+      - img [ref=e765]
+      - generic [ref=e785]: © 2026 Workday, Inc. All rights reserved.

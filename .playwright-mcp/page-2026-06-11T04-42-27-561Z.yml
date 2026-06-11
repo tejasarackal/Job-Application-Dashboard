@@ -1,0 +1,362 @@
+- generic [ref=e4]:
+  - link "Skip to main content" [ref=e5] [cursor=pointer]:
+    - /url: ""
+  - banner [ref=e8]:
+    - generic [ref=e10]:
+      - link "careers home" [ref=e13] [cursor=pointer]:
+        - /url: http://careers.adobe.com
+        - img "careers home" [ref=e14]
+      - generic [ref=e15]:
+        - heading [level=1]
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - button "English" [ref=e20] [cursor=pointer]:
+            - generic [ref=e24]: English
+          - button "Sign In" [ref=e26] [cursor=pointer]:
+            - generic [ref=e31]: Sign In
+        - navigation [ref=e32]:
+          - button "Search for Jobs" [ref=e33] [cursor=pointer]
+  - generic [ref=e38]:
+    - generic [ref=e39]:
+      - search [ref=e40]:
+        - generic [ref=e41]:
+          - textbox "Search" [ref=e47]:
+            - /placeholder: Search for jobs or keywords
+          - status [ref=e48]
+        - button "Search" [ref=e51] [cursor=pointer]
+      - group "Filters" [ref=e52]:
+        - generic [ref=e53]: Filters
+        - button "Location" [ref=e55] [cursor=pointer]: Location
+        - button "Time Type" [ref=e60] [cursor=pointer]: Time Type
+        - button "Job Category" [ref=e65] [cursor=pointer]: Job Category
+        - button "More" [ref=e70] [cursor=pointer]: More
+    - generic [ref=e74]:
+      - alert [ref=e75]: Search for Jobs page is loaded
+      - region "Search Results" [ref=e76]:
+        - paragraph [ref=e77]: 1166 JOBS FOUND
+        - list "Page 1 of 59" [ref=e78]:
+          - listitem [ref=e79]:
+            - heading "Creator Evangelist" [level=3] [ref=e83]:
+              - link "Creator Evangelist" [ref=e84] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/Remote-California/Creator-Evangelist_R169146
+            - generic [ref=e93]:
+              - term [ref=e94]: locations
+              - definition [ref=e95]: 3 Locations
+            - generic [ref=e105]:
+              - term [ref=e106]: posted on
+              - definition [ref=e107]: Posted Today
+            - list [ref=e108]:
+              - listitem [ref=e109]: R169146
+          - listitem [ref=e110]:
+            - heading "Procurement Senior Manager - Technology Software" [level=3] [ref=e114]:
+              - link "Procurement Senior Manager - Technology Software" [ref=e115] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/San-Jose/Procurement-Senior-Manager---Technology-Software_R169157
+            - generic [ref=e124]:
+              - term [ref=e125]: locations
+              - definition [ref=e126]: 2 Locations
+            - generic [ref=e136]:
+              - term [ref=e137]: posted on
+              - definition [ref=e138]: Posted Today
+            - list [ref=e139]:
+              - listitem [ref=e140]: R169157
+          - listitem [ref=e141]:
+            - heading "Senior Software Development Engineer - Developer Productivity" [level=3] [ref=e145]:
+              - link "Senior Software Development Engineer - Developer Productivity" [ref=e146] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/San-Jose/Senior-Software-Development-Engineer---Photoshop-CI-CD-Infrastructure_R169236
+            - generic [ref=e155]:
+              - term [ref=e156]: locations
+              - definition [ref=e157]: 3 Locations
+            - generic [ref=e167]:
+              - term [ref=e168]: posted on
+              - definition [ref=e169]: Posted Today
+            - list [ref=e170]:
+              - listitem [ref=e171]: R169236
+          - listitem [ref=e172]:
+            - heading "Senior Manager, Advanced People Analytics & Reporting" [level=3] [ref=e176]:
+              - link "Senior Manager, Advanced People Analytics & Reporting" [ref=e177] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/Bangalore/Senior-Manager--Advanced-People-Analytics---Reporting_R169338
+            - generic [ref=e186]:
+              - term [ref=e187]: locations
+              - definition [ref=e188]: 2 Locations
+            - generic [ref=e198]:
+              - term [ref=e199]: posted on
+              - definition [ref=e200]: Posted Today
+            - list [ref=e201]:
+              - listitem [ref=e202]: R169338
+          - listitem [ref=e203]:
+            - heading "Director, ML Engineering" [level=3] [ref=e207]:
+              - link "Director, ML Engineering" [ref=e208] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/San-Jose/Director--ML-Engineering_R169097
+            - generic [ref=e217]:
+              - term [ref=e218]: locations
+              - definition [ref=e219]: San Jose
+            - generic [ref=e229]:
+              - term [ref=e230]: posted on
+              - definition [ref=e231]: Posted Yesterday
+            - list [ref=e232]:
+              - listitem [ref=e233]: R169097
+          - listitem [ref=e234]:
+            - heading "Sales Operations Manager" [level=3] [ref=e238]:
+              - link "Sales Operations Manager" [ref=e239] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/Bangalore/Sales-Operations-Manager_R168888-1
+            - generic [ref=e248]:
+              - term [ref=e249]: locations
+              - definition [ref=e250]: Bangalore
+            - generic [ref=e260]:
+              - term [ref=e261]: posted on
+              - definition [ref=e262]: Posted Yesterday
+            - generic [ref=e271]:
+              - term [ref=e272]: end date and time left to apply
+              - definition [ref=e273]: "End Date: June 16, 2026 (4 days left to apply)"
+            - list [ref=e274]:
+              - listitem [ref=e275]: R168888
+          - listitem [ref=e276]:
+            - heading "Senior Budget & Planning Manager" [level=3] [ref=e280]:
+              - link "Senior Budget & Planning Manager" [ref=e281] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/London/Senior-Budget---Planning-Manager_R169639
+            - generic [ref=e290]:
+              - term [ref=e291]: locations
+              - definition [ref=e292]: London
+            - generic [ref=e302]:
+              - term [ref=e303]: posted on
+              - definition [ref=e304]: Posted Yesterday
+            - list [ref=e305]:
+              - listitem [ref=e306]: R169639
+          - listitem [ref=e307]:
+            - heading "Senior Software Engineer - Backend" [level=3] [ref=e311]:
+              - link "Senior Software Engineer - Backend" [ref=e312] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/San-Jose/Senior-Software-Engineer---Backend_R169450
+            - generic [ref=e321]:
+              - term [ref=e322]: locations
+              - definition [ref=e323]: San Jose
+            - generic [ref=e333]:
+              - term [ref=e334]: posted on
+              - definition [ref=e335]: Posted 2 Days Ago
+            - list [ref=e336]:
+              - listitem [ref=e337]: R169450
+          - listitem [ref=e338]:
+            - heading "Sr. Software Engineer - 3D Workflows" [level=3] [ref=e342]:
+              - link "Sr. Software Engineer - 3D Workflows" [ref=e343] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/San-Francisco/Sr-Software-Engineer_R169112
+            - generic [ref=e352]:
+              - term [ref=e353]: locations
+              - definition [ref=e354]: 3 Locations
+            - generic [ref=e364]:
+              - term [ref=e365]: posted on
+              - definition [ref=e366]: Posted 2 Days Ago
+            - list [ref=e367]:
+              - listitem [ref=e368]: R169112
+          - listitem [ref=e369]:
+            - heading "Sr. Analyst Quota Review and Planning Analytics" [level=3] [ref=e373]:
+              - link "Sr. Analyst Quota Review and Planning Analytics" [ref=e374] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/San-Jose/Sr-Analyst-Quata-Review-and-Planning-Analytics_R169467
+            - generic [ref=e383]:
+              - term [ref=e384]: locations
+              - definition [ref=e385]: 3 Locations
+            - generic [ref=e395]:
+              - term [ref=e396]: posted on
+              - definition [ref=e397]: Posted 2 Days Ago
+            - list [ref=e398]:
+              - listitem [ref=e399]: R169467
+          - listitem [ref=e400]:
+            - heading "Forward-Deployed AI Engineer - Marketing Analytics & Data Science" [level=3] [ref=e404]:
+              - link "Forward-Deployed AI Engineer - Marketing Analytics & Data Science" [ref=e405] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/San-Jose/Forward-Deployed-AI-Engineer---Marketing-Analytics---Data-Science_R169366-1
+            - generic [ref=e414]:
+              - term [ref=e415]: locations
+              - definition [ref=e416]: San Jose
+            - generic [ref=e426]:
+              - term [ref=e427]: posted on
+              - definition [ref=e428]: Posted 5 Days Ago
+            - list [ref=e429]:
+              - listitem [ref=e430]: R169366
+          - listitem [ref=e431]:
+            - heading "Senior Product Manager (Enterprise Platform)" [level=3] [ref=e435]:
+              - link "Senior Product Manager (Enterprise Platform)" [ref=e436] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/Bangalore/Senior-Product-Manager_R169376
+            - generic [ref=e445]:
+              - term [ref=e446]: locations
+              - definition [ref=e447]: Bangalore
+            - generic [ref=e457]:
+              - term [ref=e458]: posted on
+              - definition [ref=e459]: Posted 4 Days Ago
+            - list [ref=e460]:
+              - listitem [ref=e461]: R169376
+          - listitem [ref=e462]:
+            - heading "Machine Learning Engineer 4" [level=3] [ref=e466]:
+              - link "Machine Learning Engineer 4" [ref=e467] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/Bangalore/Machine-Learning-Engineer-4_R168142-1
+            - generic [ref=e476]:
+              - term [ref=e477]: locations
+              - definition [ref=e478]: 2 Locations
+            - generic [ref=e488]:
+              - term [ref=e489]: posted on
+              - definition [ref=e490]: Posted 5 Days Ago
+            - list [ref=e491]:
+              - listitem [ref=e492]: R168142
+          - listitem [ref=e493]:
+            - heading "Forward Deployed AI Engineer — Lifecycle Marketing" [level=3] [ref=e497]:
+              - link "Forward Deployed AI Engineer — Lifecycle Marketing" [ref=e498] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/San-Jose/Forward-Deployed-AI-Engineer---Lifecycle-Marketing_R169308
+            - generic [ref=e507]:
+              - term [ref=e508]: locations
+              - definition [ref=e509]: 2 Locations
+            - generic [ref=e519]:
+              - term [ref=e520]: posted on
+              - definition [ref=e521]: Posted 5 Days Ago
+            - list [ref=e522]:
+              - listitem [ref=e523]: R169308
+          - listitem [ref=e524]:
+            - heading "Forward-Deployed AI Engineer" [level=3] [ref=e528]:
+              - link "Forward-Deployed AI Engineer" [ref=e529] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/San-Jose/Forward-Deployed-AI-Engineer_R168316-1
+            - generic [ref=e538]:
+              - term [ref=e539]: locations
+              - definition [ref=e540]: 2 Locations
+            - generic [ref=e550]:
+              - term [ref=e551]: posted on
+              - definition [ref=e552]: Posted 5 Days Ago
+            - list [ref=e553]:
+              - listitem [ref=e554]: R168316
+          - listitem [ref=e555]:
+            - heading "Sr. Manager, Buy Desk" [level=3] [ref=e559]:
+              - link "Sr. Manager, Buy Desk" [ref=e560] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/Bangalore/Sr-Manager--Buy-Desk_R169489-1
+            - generic [ref=e569]:
+              - term [ref=e570]: locations
+              - definition [ref=e571]: Bangalore
+            - generic [ref=e581]:
+              - term [ref=e582]: posted on
+              - definition [ref=e583]: Posted 6 Days Ago
+            - list [ref=e584]:
+              - listitem [ref=e585]: R169489
+          - listitem [ref=e586]:
+            - heading "Regional Manager - Licensing Management" [level=3] [ref=e590]:
+              - link "Regional Manager - Licensing Management" [ref=e591] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/Mumbai/Regional-Manager---Licensing-Management_R169542-1
+            - generic [ref=e600]:
+              - term [ref=e601]: locations
+              - definition [ref=e602]: 2 Locations
+            - generic [ref=e612]:
+              - term [ref=e613]: posted on
+              - definition [ref=e614]: Posted 6 Days Ago
+            - list [ref=e615]:
+              - listitem [ref=e616]: R169542
+          - listitem [ref=e617]:
+            - heading "Sr Solutions Consultant" [level=3] [ref=e621]:
+              - link "Sr Solutions Consultant" [ref=e622] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/Mumbai/Sr-Solutions-Consultant_R168844
+            - generic [ref=e631]:
+              - term [ref=e632]: locations
+              - definition [ref=e633]: 3 Locations
+            - generic [ref=e643]:
+              - term [ref=e644]: posted on
+              - definition [ref=e645]: Posted 6 Days Ago
+            - list [ref=e646]:
+              - listitem [ref=e647]: R168844
+          - listitem [ref=e648]:
+            - heading "Applied Scientist 5.5" [level=3] [ref=e652]:
+              - link "Applied Scientist 5.5" [ref=e653] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/Bangalore/Applied-Scientist-55_R169437
+            - generic [ref=e662]:
+              - term [ref=e663]: locations
+              - definition [ref=e664]: 2 Locations
+            - generic [ref=e674]:
+              - term [ref=e675]: posted on
+              - definition [ref=e676]: Posted 6 Days Ago
+            - list [ref=e677]:
+              - listitem [ref=e678]: R169437
+          - listitem [ref=e679]:
+            - heading "Director, Strategy & Business Operations" [level=3] [ref=e683]:
+              - link "Director, Strategy & Business Operations" [ref=e684] [cursor=pointer]:
+                - /url: /en-US/external_experienced/job/San-Jose/Director--Strategy---Business-Operations_R169107
+            - generic [ref=e693]:
+              - term [ref=e694]: locations
+              - definition [ref=e695]: 2 Locations
+            - generic [ref=e705]:
+              - term [ref=e706]: posted on
+              - definition [ref=e707]: Posted 6 Days Ago
+            - list [ref=e708]:
+              - listitem [ref=e709]: R169107
+        - generic [ref=e710]:
+          - navigation "pagination" [ref=e711]:
+            - generic [ref=e712]:
+              - list [ref=e714]:
+                - listitem [ref=e715]:
+                  - button "page 1" [ref=e716] [cursor=pointer]: "1"
+                - listitem [ref=e717]:
+                  - button "page 2" [ref=e718] [cursor=pointer]: "2"
+                - listitem [ref=e719]:
+                  - button "page 3" [ref=e720] [cursor=pointer]: "3"
+                - listitem [ref=e721]:
+                  - button "page 4" [ref=e722] [cursor=pointer]: "4"
+                - listitem [ref=e723]:
+                  - button "page 5" [ref=e724] [cursor=pointer]: "5"
+              - button "next" [ref=e725] [cursor=pointer]
+          - paragraph [ref=e729]: 1 - 20 of 1166 jobs
+      - generic [ref=e734]:
+        - heading "About Us" [level=3] [ref=e735]
+        - img "Logo" [ref=e736]
+        - generic [ref=e738]:
+          - generic [ref=e740]:
+            - paragraph [ref=e741]:
+              - text: At Adobe, you will be immersed in an exceptional work environment that is
+              - link [ref=e742] [cursor=pointer]:
+                - /url: https://www.adobe.com/careers/awards.html
+                - text: recognized around the world
+              - text: . You will also be surrounded by colleagues who are committed to helping each other grow through our unique
+              - link [ref=e743] [cursor=pointer]:
+                - /url: http://www.youtube.com/watch?v=hmL6uQZhYhw&list=UUlDSu3-Y4-BfI08784K-P4g&feature=share&index=1
+                - text: Check-In
+              - text: approach where ongoing feedback flows freely. If you’re looking to make an impact, Adobe's the place for you. Discover what our employees are saying about their career experiences on the
+              - link [ref=e744] [cursor=pointer]:
+                - /url: https://blog.adobe.com/en/topics/adobe-life
+                - text: Adobe Life blog
+              - text: and explore the meaningful
+              - link [ref=e745] [cursor=pointer]:
+                - /url: https://rewards.adobe.com
+                - text: benefits
+              - text: we offer.
+            - paragraph [ref=e746]
+            - paragraph [ref=e747]:
+              - text: There's more than meets the eye when it comes to Adobe.
+              - link [ref=e748] [cursor=pointer]:
+                - /url: https://form.typeform.com/to/muiTIg55?typeform-source=adobecareers.typeform.com
+                - text: Take the quiz and see how well you know us!
+            - paragraph [ref=e749]
+            - paragraph [ref=e750]:
+              - generic [ref=e751]: Adobe is proud to be an
+              - link [ref=e754] [cursor=pointer]:
+                - /url: https://www.eeoc.gov/sites/default/files/2023-06/22-088_EEOC_KnowYourRights6.12ScreenRdr.pdf
+                - text: Equal Employment Opportunity
+              - generic [ref=e755]: employer. We do not discriminate based on gender, race or color, ethnicity or national origin, age, disability, religion, sexual orientation, gender identity or expression, veteran status, or any other applicable characteristics protected by law.
+              - link [ref=e758] [cursor=pointer]:
+                - /url: https://www.adobe.com/content/dam/cc/en/careers/pdfs/executed-eeo.pdf
+                - text: Learn more.
+            - paragraph [ref=e759]
+            - paragraph [ref=e760]:
+              - generic [ref=e761]: Adobe aims to make Adobe.com accessible to any and all users. If you have a disability or special need that requires accommodation to navigate our website or complete the application process, email
+              - link [ref=e764] [cursor=pointer]:
+                - /url: mailto:%20accommodations@adobe.com
+                - text: accommodations@adobe.com
+              - text: or call (408) 536-3015.
+          - button "Read More" [ref=e767] [cursor=pointer]:
+            - generic [ref=e768]: Read More
+  - generic [ref=e772]:
+    - heading "Follow Us" [level=4] [ref=e773]
+    - list [ref=e774]:
+      - listitem [ref=e775] [cursor=pointer]:
+        - link "YouTube" [ref=e776]:
+          - /url: http://www.youtube.com/adobecareers
+      - listitem [ref=e782] [cursor=pointer]:
+        - link "X" [ref=e783]:
+          - /url: https://twitter.com/AdobeCareers
+      - listitem [ref=e787] [cursor=pointer]:
+        - link "Glassdoor" [ref=e788]:
+          - /url: https://www.glassdoor.com/Overview/Working-at-Adobe-EI_IE1090.11,16.htm
+      - listitem [ref=e793] [cursor=pointer]:
+        - link "LinkedIn" [ref=e794]:
+          - /url: https://www.linkedin.com/company/adobe
+    - generic [ref=e798]:
+      - img [ref=e802]
+      - generic [ref=e822]: © 2026 Workday, Inc. All rights reserved.

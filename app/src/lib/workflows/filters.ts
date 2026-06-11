@@ -27,7 +27,9 @@ export function isDeTitle(title: string | undefined): boolean {
 }
 
 // ── Location gate (vendored from _location_preferences.md) ────────────────────
-const ACCEPTABLE = [
+// Exported as the owner's Bay-Area city list — `lib/prefs.ts#tejasDefaults`
+// seeds the owner's UserPrefs.locations from it (PRD-multi-user §6.2).
+export const BAY_AREA_CITIES = [
   // South Bay / Silicon Valley
   "san jose", "santa clara", "sunnyvale", "mountain view", "cupertino", "los altos",
   "los gatos", "campbell", "saratoga", "milpitas", "fremont", "newark", "union city", "hayward",
@@ -54,14 +56,74 @@ const DISQUALIFYING = [
 const FOREIGN_RE =
   /\b(india|brazil|canada|ireland|united kingdom|uk|emea|apac|latam|europe|mexico|colombia|argentina|chile|peru|philippines|poland|romania|ukraine|germany|france|spain|portugal|italy|netherlands|israel|egypt|nigeria|south africa|australia|new zealand|japan|korea|china|taiwan|hong kong|vietnam|indonesia|malaysia|thailand)\b/i;
 
+// ── Scoring preferences (multi-user — PRD-multi-user §6.2 / D10) ─────────────
+// The owner's literals above are now data: `checkLocation`/`matchScore` take an
+// optional ScoringPrefs whose DEFAULT (`OWNER_PREFS`) reproduces the legacy
+// behavior byte-for-byte — every engine call site passes nothing and is
+// unchanged; the existing tests pin that default path. Members score against
+// prefs built from their own UserPrefs (never the owner's lists).
+export interface ScoringPrefs {
+  /** Plain title substrings (regex-escaped before compilation — user input
+   *  NEVER compiles into a raw regex). Empty ⇒ title component scores 0. */
+  titleKeywords: string[];
+  /** Acceptable location substrings (compared lowercased). Empty ⇒ neutral
+   *  "anywhere": location passes at the vague 12/20 tier and neither the
+   *  Bay-Area nor disqualifying-metro lists are applied. */
+  locations: string[];
+  /** Metro substrings that hard-fail a location. Only consulted when
+   *  `locations` is non-empty (a neutral user has no metro blocklist). */
+  disqualifiedMetros: string[];
+  /** "onsite_ok" reproduces the owner's onsite-over-remote dampening
+   *  (acceptable + remote scores 16, not 20); other values skip it. */
+  remotePref: "remote_only" | "onsite_ok" | "no_preference";
+  /** OWNER_PREFS only: enables the legacy tiered DE-title scoring (45/34/28
+   *  via DE_TITLE_RE). User-built prefs use the flat keyword path instead. */
+  ownerTitleTiers?: boolean;
+}
+
+// Owner literals, extracted (PRD-multi-user D10). `tejasDefaults()` in
+// lib/prefs.ts mirrors titleKeywords/locations — keep them in sync (a test
+// asserts this). titleKeywords is the plain-substring rendering of
+// DE_TITLE_RE ("data infra" covers "data infrastructure"; the
+// "(software|backend) engineer …data" tail is regex-only and stays in the
+// ownerTitleTiers path).
+export const OWNER_PREFS: ScoringPrefs = {
+  titleKeywords: [
+    "data engineer", "analytics engineer", "data platform", "data infra",
+    "data pipeline", "data warehouse", "data warehousing", "database engineer",
+    "big data engineer", "etl", "data architect", "dataops", "data ops",
+  ],
+  locations: BAY_AREA_CITIES,
+  disqualifiedMetros: DISQUALIFYING,
+  remotePref: "onsite_ok",
+  ownerTitleTiers: true,
+};
+
+// Escape a user-supplied substring so it can join a regex alternation safely.
+export function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Case-insensitive alternation over escaped keywords; null when empty.
+function keywordsRe(keywords: string[]): RegExp | null {
+  const parts = keywords.map((k) => escapeRegExp(k.trim().toLowerCase())).filter(Boolean);
+  return parts.length ? new RegExp(parts.join("|"), "i") : null;
+}
+
 export interface LocationVerdict {
   pass: boolean;
   reason: string;
 }
 
-// Accept if the listing names a CA Bay-Area location or a CA/US-remote option;
+// Accept if the listing names an acceptable location or a CA/US-remote option;
 // reject if it names ONLY a disqualifying location; fail closed when unknown.
-export function checkLocation(location: string | undefined): LocationVerdict {
+// With prefs whose `locations` is empty (neutral member), everything passes at
+// the vague tier — the lists are the owner's preference, not an integrity gate.
+export function checkLocation(location: string | undefined, prefs: ScoringPrefs = OWNER_PREFS): LocationVerdict {
+  // Neutral "anywhere" (empty locations): no city list, no metro blocklist —
+  // pass at the vague tier so matchScore's location component yields 12/20.
+  if (prefs.locations.length === 0) return { pass: true, reason: "location_neutral" };
+
   if (!location || !location.trim()) return { pass: false, reason: "no_location" };
   const s = location.toLowerCase();
 
@@ -69,7 +131,9 @@ export function checkLocation(location: string | undefined): LocationVerdict {
   const foreign = FOREIGN_RE.test(s);
   // "dublin" is ambiguous (Dublin, CA vs Dublin, Ireland) — only treat it as a
   // Bay-Area signal when no foreign country is named alongside it.
-  const acceptable = ACCEPTABLE.some((c) => (c === "dublin" ? !foreign : true) && s.includes(c));
+  const acceptable = prefs.locations.some(
+    (c) => (c === "dublin" ? !foreign : true) && s.includes(c.toLowerCase()),
+  );
   if (acceptable || remoteCa) return { pass: true, reason: "acceptable" };
 
   // A US/Bay token present anywhere means the role is US-available (so a
@@ -79,7 +143,7 @@ export function checkLocation(location: string | undefined): LocationVerdict {
   if (foreign && !usToken) return { pass: false, reason: "foreign_location" };
 
   // Reject disqualifying US-non-Bay metros (Seattle/Bellevue/NYC…) too.
-  if (DISQUALIFYING.some((c) => s.includes(c))) return { pass: false, reason: "disqualifying_location" };
+  if (prefs.disqualifiedMetros.some((c) => s.includes(c.toLowerCase()))) return { pass: false, reason: "disqualifying_location" };
 
   // Sources are H1B + US/Bay-Area scoped, so accept the ambiguous values the
   // boards emit (bare "Remote", "United States", "Multiple Locations"). These
@@ -216,27 +280,39 @@ export interface MatchInput {
   actorScore?: number; // 0-1, if the source provides one
 }
 
-export function matchScore(it: MatchInput): number {
+export function matchScore(it: MatchInput, prefs: ScoringPrefs = OWNER_PREFS): number {
   const title = (it.title ?? "").toLowerCase();
 
-  // Title relevance (max 45) — exact "data engineer" beats adjacent specialties.
+  // Title relevance (max 45) — owner path: exact "data engineer" beats adjacent
+  // specialties (legacy tiers, byte-for-byte). User-prefs path: flat 45 on any
+  // escaped-keyword hit; empty keywords score 0 (neutral member, UI nudges).
   let titleScore = 0;
-  if (/\bdata engineer(ing)?\b/.test(title)) titleScore = 45;
-  else if (/analytics engineer|data platform|data infra|data warehous|data pipeline|database engineer/.test(title)) titleScore = 34;
-  else if (DE_TITLE_RE.test(title)) titleScore = 28;
+  if (prefs.ownerTitleTiers) {
+    if (/\bdata engineer(ing)?\b/.test(title)) titleScore = 45;
+    else if (/analytics engineer|data platform|data infra|data warehous|data pipeline|database engineer/.test(title)) titleScore = 34;
+    else if (DE_TITLE_RE.test(title)) titleScore = 28;
+  } else {
+    const re = keywordsRe(prefs.titleKeywords);
+    if (re && re.test(title)) titleScore = 45;
+  }
 
   // Seniority fit (max 20) — mid/senior preferred; penalize lead/exec + junior.
+  // Global, not a preference: it scores the LISTING title (PRD-multi-user §6.2).
   let seniority = 12;
   if (/\b(senior|sr\.?|staff|principal|lead)\b/.test(title)) seniority = 20;
   if (/\b(director|head|vp|vice president|manager)\b/.test(title)) seniority = 6;
   if (/\b(junior|jr\.?|associate|i{1,2}\b|entry)\b/.test(title)) seniority = 8;
 
-  // Location quality (max 20) — Bay Area in-office best, then CA/US remote.
-  const loc = checkLocation(it.location);
+  // Location quality (max 20) — named acceptable city best, then CA/US remote.
+  const loc = checkLocation(it.location, prefs);
   let location = 0;
-  // A named Bay-Area city ("acceptable") ranks highest; the permissive US/remote/
-  // multi-location passes rank lower since they're geographically vaguer.
-  if (loc.pass) location = loc.reason === "acceptable" ? (it.remote ? 16 : 20) : 12;
+  // A named acceptable city ranks highest; the permissive US/remote/multi-
+  // location (and the neutral "anywhere") passes rank lower since they're
+  // geographically vaguer. Onsite-over-remote dampening is an "onsite_ok" pref.
+  if (loc.pass) {
+    location =
+      loc.reason === "acceptable" ? (it.remote && prefs.remotePref === "onsite_ok" ? 16 : 20) : 12;
+  }
 
   // Recency (max 15) — last 2d / week / month.
   let recency = 6;

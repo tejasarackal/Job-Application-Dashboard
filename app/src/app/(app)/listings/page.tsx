@@ -4,6 +4,7 @@ import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
 import { ListingsTable } from "./ListingsTable";
 import { getListings } from "@/lib/fetcher";
+import { getViewContext } from "@/lib/session";
 import type { JobListing } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +27,8 @@ const titleCase = (s: string) =>
   s.replace(/(^|[_\s])(\w)/g, (_, sep, ch) => (sep ? " " : "") + ch.toUpperCase()).trim();
 
 export default async function ListingsPage() {
-  const { data, source } = await getListings();
+  const ctx = await getViewContext();
+  const { data, source } = await getListings(ctx.effectiveEmail);
 
   // Group by status (lower-cased so "New"/"new" land together).
   const groups = new Map<string, JobListing[]>();

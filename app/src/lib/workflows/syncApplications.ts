@@ -14,6 +14,7 @@ import {
   listJobListings,
   createRecords,
   updateRecords,
+  withOwner,
   TABLES,
   FIELDS,
   primaryBase,
@@ -117,8 +118,9 @@ async function markListingApplied(
 }
 
 export async function syncApplications(
-  opts: { maxItems?: number; dryRun?: boolean; offset?: number; cursor?: { offset?: number } } = {},
+  opts: { ownerEmail: string; maxItems?: number; dryRun?: boolean; offset?: number; cursor?: { offset?: number } },
 ): Promise<RunResult> {
+  const ownerEmail = opts.ownerEmail; // engine identity (PRD §5.6)
   const max = opts.maxItems ?? 3; // Hobby ~10s cap → small batch; chunk-loop covers the rest
   const offset = opts.cursor?.offset ?? opts.offset ?? 0;
   const dryRun = Boolean(opts.dryRun);
@@ -140,10 +142,10 @@ export async function syncApplications(
   // 2. Build pipeline-scope set (allowlist OR already-referenced company).
   //    Listings read fresh so the "applied" propagation sees current statuses.
   const [apps, interviews, leads, listings] = await Promise.all([
-    listApplications(),
-    listInterviews(),
-    listLeads(),
-    listJobListings({ fresh: true }),
+    listApplications(ownerEmail),
+    listInterviews(ownerEmail),
+    listLeads(ownerEmail),
+    listJobListings(ownerEmail, { fresh: true }),
   ]);
   const pipeline = new Set<string>();
   for (const a of apps) pipeline.add(normalizeCompany(a.company));
@@ -215,7 +217,10 @@ export async function syncApplications(
         fields[FIELDS.applications.interviewStage] = cls.interview_stage;
       }
       if (!dryRun) {
-        const [rec] = await createRecords(TABLES.applications, primaryBase(), [fields]);
+        // Owner-stamped create (PRD §5.6 / G7).
+        const [rec] = await createRecords(TABLES.applications, primaryBase(), [
+          withOwner("applications", fields, ownerEmail),
+        ]);
         // Track within this run so a later email for the same company updates, not duplicates.
         const tracked = { id: rec.id, applicationId: "", company: cls.company, jobTitle: cls.role || "", status: cls.status } as (typeof apps)[number];
         byKey.set(key, tracked);

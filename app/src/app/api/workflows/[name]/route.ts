@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { describeInputs } from "@/lib/workflows/scrapeJobs";
 import { executeChunk } from "@/lib/workflows/execute";
+import { requireAdminApi, assertSameOrigin, handleAuthError, AuthError } from "@/lib/session";
 import type { WorkflowTrigger } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -18,8 +19,17 @@ interface Body {
 }
 
 // POST /api/workflows/{name} — trigger one bounded step.
+// Gate (PRD §5.3): admin-only + same-origin; the engine executes as OWNER_EMAIL.
 // Body (optional): { trigger, maxItems, dryRun, windowDays, cursor, check }.
 export async function POST(req: NextRequest, { params }: { params: { name: string } }) {
+  try {
+    await requireAdminApi();
+    assertSameOrigin(req);
+  } catch (e) {
+    if (e instanceof AuthError) return handleAuthError(e);
+    throw e;
+  }
+
   const name = params.name;
   const body = (await req.json().catch(() => ({}))) as Body;
   const trigger: WorkflowTrigger = body.trigger === "scheduled" ? "scheduled" : "manual";

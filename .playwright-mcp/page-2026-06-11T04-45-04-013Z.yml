@@ -1,0 +1,317 @@
+- generic [ref=e4]:
+  - link "Skip to main content" [ref=e5] [cursor=pointer]:
+    - /url: ""
+  - banner [ref=e8]:
+    - generic [ref=e10]:
+      - link "search for jobs" [ref=e13] [cursor=pointer]:
+        - /url: /en-US/gileadcareers
+        - img "search for jobs" [ref=e14]
+      - generic [ref=e15]:
+        - heading [level=1]
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - button "English" [ref=e20] [cursor=pointer]:
+            - generic [ref=e24]: English
+          - button "Sign In" [ref=e26] [cursor=pointer]:
+            - generic [ref=e31]: Sign In
+        - navigation [ref=e32]:
+          - button "Search for Jobs" [ref=e33] [cursor=pointer]
+  - generic [ref=e38]:
+    - generic [ref=e39]:
+      - search [ref=e40]:
+        - generic [ref=e41]:
+          - textbox "Search" [ref=e47]:
+            - /placeholder: Search for jobs or keywords
+          - status [ref=e48]
+        - button "Search" [ref=e51] [cursor=pointer]
+      - group "Filters" [ref=e52]:
+        - generic [ref=e53]: Filters
+        - button "Location" [ref=e55] [cursor=pointer]: Location
+        - button "Time Type" [ref=e60] [cursor=pointer]: Time Type
+        - button "Job Category" [ref=e65] [cursor=pointer]: Job Category
+        - button "More" [ref=e70] [cursor=pointer]: More
+    - generic [ref=e74]:
+      - alert [ref=e75]: Search for Jobs page is loaded
+      - region "Search Results" [ref=e76]:
+        - paragraph [ref=e77]: 307 JOBS FOUND
+        - list "Page 1 of 16" [ref=e78]:
+          - listitem [ref=e79]:
+            - heading "IT Associate Director – AI Solutions" [level=3] [ref=e83]:
+              - link "IT Associate Director – AI Solutions" [ref=e84] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/China---Shanghai/IT-Associate-Director---AI-Solutions_R0052681
+            - generic [ref=e93]:
+              - term [ref=e94]: locations
+              - definition [ref=e95]: China - Shanghai
+            - generic [ref=e105]:
+              - term [ref=e106]: posted on
+              - definition [ref=e107]: Posted Today
+            - list [ref=e108]:
+              - listitem [ref=e109]: R0052681
+          - listitem [ref=e110]:
+            - heading "IT Manager - AI Product Owner" [level=3] [ref=e114]:
+              - link "IT Manager - AI Product Owner" [ref=e115] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/China---Shanghai/IT-Manager---AI-Product-Owner_R0052680-1
+            - generic [ref=e124]:
+              - term [ref=e125]: locations
+              - definition [ref=e126]: China - Shanghai
+            - generic [ref=e136]:
+              - term [ref=e137]: posted on
+              - definition [ref=e138]: Posted Today
+            - list [ref=e139]:
+              - listitem [ref=e140]: R0052680
+          - listitem [ref=e141]:
+            - heading "Associate Director, AI & ML Ops Lead -- Kite Commercial" [level=3] [ref=e145]:
+              - link "Associate Director, AI & ML Ops Lead -- Kite Commercial" [ref=e146] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---North-Carolina---Raleigh/Associate-Director--AI---ML-Ops-Lead----Kite-Commercial_R0052928-1
+            - generic [ref=e155]:
+              - term [ref=e156]: locations
+              - definition [ref=e157]: United States - North Carolina - Raleigh
+            - generic [ref=e167]:
+              - term [ref=e168]: posted on
+              - definition [ref=e169]: Posted Today
+            - list [ref=e170]:
+              - listitem [ref=e171]: R0052928
+          - listitem [ref=e172]:
+            - heading "Associate Director- IT Commercial Field Sales Mobile Applications" [level=3] [ref=e176]:
+              - link "Associate Director- IT Commercial Field Sales Mobile Applications" [ref=e177] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---Foster-City/Associate-Director---IT-Commercial-Field-Sales-Mobile-Applications_R0052932-2
+            - generic [ref=e186]:
+              - term [ref=e187]: locations
+              - definition [ref=e188]: United States - California - Foster City
+            - generic [ref=e198]:
+              - term [ref=e199]: posted on
+              - definition [ref=e200]: Posted Today
+            - list [ref=e201]:
+              - listitem [ref=e202]: R0052932
+          - listitem [ref=e203]:
+            - heading "ACE Portfolio medical strategy lead" [level=3] [ref=e207]:
+              - link "ACE Portfolio medical strategy lead" [ref=e208] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-Kingdom---Uxbridge/ACE-Portfolio-medical-strategy-lead_R0052895-1
+            - generic [ref=e217]:
+              - term [ref=e218]: locations
+              - definition [ref=e219]: United Kingdom - Uxbridge
+            - generic [ref=e229]:
+              - term [ref=e230]: posted on
+              - definition [ref=e231]: Posted Today
+            - list [ref=e232]:
+              - listitem [ref=e233]: R0052895
+          - listitem [ref=e234]:
+            - heading "QC Chemist III" [level=3] [ref=e238]:
+              - link "QC Chemist III" [ref=e239] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---La-Verne/QC-Chemist-III_R0052763
+            - generic [ref=e248]:
+              - term [ref=e249]: locations
+              - definition [ref=e250]: United States - California - La Verne
+            - generic [ref=e260]:
+              - term [ref=e261]: posted on
+              - definition [ref=e262]: Posted Today
+            - list [ref=e263]:
+              - listitem [ref=e264]: R0052763
+          - listitem [ref=e265]:
+            - heading "Proj Mgmt Asst I" [level=3] [ref=e269]:
+              - link "Proj Mgmt Asst I" [ref=e270] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---La-Verne/Proj-Mgmt-Asst-I_R0052974-1
+            - generic [ref=e279]:
+              - term [ref=e280]: locations
+              - definition [ref=e281]: United States - California - La Verne
+            - generic [ref=e291]:
+              - term [ref=e292]: posted on
+              - definition [ref=e293]: Posted Today
+            - list [ref=e294]:
+              - listitem [ref=e295]: R0052974
+          - listitem [ref=e296]:
+            - heading "Director, Epidemiology" [level=3] [ref=e300]:
+              - link "Director, Epidemiology" [ref=e301] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---Foster-City/Director--Epidemiology_R0052750-1
+            - generic [ref=e310]:
+              - term [ref=e311]: locations
+              - definition [ref=e312]: United States - California - Foster City
+            - generic [ref=e322]:
+              - term [ref=e323]: posted on
+              - definition [ref=e324]: Posted Today
+            - list [ref=e325]:
+              - listitem [ref=e326]: R0052750
+          - listitem [ref=e327]:
+            - heading "Sr Director, Epidemiology" [level=3] [ref=e331]:
+              - link "Sr Director, Epidemiology" [ref=e332] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---Foster-City/Sr-Director--Epidemiology_R0052749-1
+            - generic [ref=e341]:
+              - term [ref=e342]: locations
+              - definition [ref=e343]: United States - California - Foster City
+            - generic [ref=e353]:
+              - term [ref=e354]: posted on
+              - definition [ref=e355]: Posted Today
+            - list [ref=e356]:
+              - listitem [ref=e357]: R0052749
+          - listitem [ref=e358]:
+            - heading "Senior Manager, Collaboration Management" [level=3] [ref=e362]:
+              - link "Senior Manager, Collaboration Management" [ref=e363] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---Foster-City/Senior-Manager--Collaboration-Management_R0052976
+            - generic [ref=e372]:
+              - term [ref=e373]: locations
+              - definition [ref=e374]: United States - California - Foster City
+            - generic [ref=e384]:
+              - term [ref=e385]: posted on
+              - definition [ref=e386]: Posted Today
+            - list [ref=e387]:
+              - listitem [ref=e388]: R0052976
+          - listitem [ref=e389]:
+            - heading "Executive Director, Procurement Center of Excellence" [level=3] [ref=e393]:
+              - link "Executive Director, Procurement Center of Excellence" [ref=e394] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---Foster-City/Exec-Director--Procurement-Center-of-Excellence_R0051713-1
+            - generic [ref=e403]:
+              - term [ref=e404]: locations
+              - definition [ref=e405]: United States - California - Foster City
+            - generic [ref=e415]:
+              - term [ref=e416]: posted on
+              - definition [ref=e417]: Posted Today
+            - list [ref=e418]:
+              - listitem [ref=e419]: R0051713
+          - listitem [ref=e420]:
+            - 'heading "Executive Director, Business Partnering & Category Management: Facilities, Research, Manufacturing Procurement" [level=3] [ref=e424]':
+              - 'link "Executive Director, Business Partnering & Category Management: Facilities, Research, Manufacturing Procurement" [ref=e425] [cursor=pointer]':
+                - /url: /en-US/gileadcareers/job/United-States---California---Foster-City/Exec-Director--Sourcing_R0051710-2
+            - generic [ref=e434]:
+              - term [ref=e435]: locations
+              - definition [ref=e436]: United States - California - Foster City
+            - generic [ref=e446]:
+              - term [ref=e447]: posted on
+              - definition [ref=e448]: Posted Today
+            - list [ref=e449]:
+              - listitem [ref=e450]: R0051710
+          - listitem [ref=e451]:
+            - heading "Director, Pathobiology" [level=3] [ref=e455]:
+              - link "Director, Pathobiology" [ref=e456] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---Foster-City/Director--Pathobiology_R0052298-1
+            - generic [ref=e465]:
+              - term [ref=e466]: locations
+              - definition [ref=e467]: United States - California - Foster City
+            - generic [ref=e477]:
+              - term [ref=e478]: posted on
+              - definition [ref=e479]: Posted Today
+            - list [ref=e480]:
+              - listitem [ref=e481]: R0052298
+          - listitem [ref=e482]:
+            - heading "Principal Scientist, Medicinal Chemistry (ADC and Bioconjugation)" [level=3] [ref=e486]:
+              - link "Principal Scientist, Medicinal Chemistry (ADC and Bioconjugation)" [ref=e487] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---Foster-City/Principal-Scientist--ADC-and-Bioconjugation_R0053002
+            - generic [ref=e496]:
+              - term [ref=e497]: locations
+              - definition [ref=e498]: United States - California - Foster City
+            - generic [ref=e508]:
+              - term [ref=e509]: posted on
+              - definition [ref=e510]: Posted Today
+            - list [ref=e511]:
+              - listitem [ref=e512]: R0053002
+          - listitem [ref=e513]:
+            - heading "Scientist, Structural Chemistry AI/ML" [level=3] [ref=e517]:
+              - link "Scientist, Structural Chemistry AI/ML" [ref=e518] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---Foster-City/Scientist--Structural-Chemistry-AI-ML_R0052989-1
+            - generic [ref=e527]:
+              - term [ref=e528]: locations
+              - definition [ref=e529]: United States - California - Foster City
+            - generic [ref=e539]:
+              - term [ref=e540]: posted on
+              - definition [ref=e541]: Posted Today
+            - list [ref=e542]:
+              - listitem [ref=e543]: R0052989
+          - listitem [ref=e544]:
+            - heading "Senior Director, - Global Procurement Business Partnering & Category Management, Commercial" [level=3] [ref=e548]:
+              - link "Senior Director, - Global Procurement Business Partnering & Category Management, Commercial" [ref=e549] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---Foster-City/Sr-Director------Global-Procurement-Business-Partnering---Category-Management--Commercial_R0051715
+            - generic [ref=e558]:
+              - term [ref=e559]: locations
+              - definition [ref=e560]: United States - California - Foster City
+            - generic [ref=e570]:
+              - term [ref=e571]: posted on
+              - definition [ref=e572]: Posted Today
+            - list [ref=e573]:
+              - listitem [ref=e574]: R0051715
+          - listitem [ref=e575]:
+            - heading "Sr Director, Global Procurement Category Strategy, Portfolio Management & Sourcing Excellence" [level=3] [ref=e579]:
+              - link "Sr Director, Global Procurement Category Strategy, Portfolio Management & Sourcing Excellence" [ref=e580] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-States---California---Foster-City/Sr-Director--Global-Procurement-Category-Strategy--Portfolio-Management---Sourcing-Excellence_R0051714
+            - generic [ref=e589]:
+              - term [ref=e590]: locations
+              - definition [ref=e591]: United States - California - Foster City
+            - generic [ref=e601]:
+              - term [ref=e602]: posted on
+              - definition [ref=e603]: Posted Today
+            - list [ref=e604]:
+              - listitem [ref=e605]: R0051714
+          - listitem [ref=e606]:
+            - heading "EDM Business Alliance and Value & Access Lead" [level=3] [ref=e610]:
+              - link "EDM Business Alliance and Value & Access Lead" [ref=e611] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/United-Kingdom---Uxbridge/Assoc-Director--Market-Access_R0052885
+            - generic [ref=e620]:
+              - term [ref=e621]: locations
+              - definition [ref=e622]: United Kingdom - Uxbridge
+            - generic [ref=e632]:
+              - term [ref=e633]: posted on
+              - definition [ref=e634]: Posted Today
+            - list [ref=e635]:
+              - listitem [ref=e636]: R0052885
+          - listitem [ref=e637]:
+            - heading "Therapeutic Specialist II" [level=3] [ref=e641]:
+              - link "Therapeutic Specialist II" [ref=e642] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/China---Wenzhou/Therapeutic-Specialist-II_R0052947
+            - generic [ref=e651]:
+              - term [ref=e652]: locations
+              - definition [ref=e653]: China - Wenzhou
+            - generic [ref=e663]:
+              - term [ref=e664]: posted on
+              - definition [ref=e665]: Posted Today
+            - list [ref=e666]:
+              - listitem [ref=e667]: R0052947
+          - listitem [ref=e668]:
+            - heading "Therapeutic Specialist I" [level=3] [ref=e672]:
+              - link "Therapeutic Specialist I" [ref=e673] [cursor=pointer]:
+                - /url: /en-US/gileadcareers/job/China---Xinxiang/Therapeutic-Specialist-I_R0052806-1
+            - generic [ref=e682]:
+              - term [ref=e683]: locations
+              - definition [ref=e684]: China - Xinxiang
+            - generic [ref=e694]:
+              - term [ref=e695]: posted on
+              - definition [ref=e696]: Posted Today
+            - list [ref=e697]:
+              - listitem [ref=e698]: R0052806
+        - generic [ref=e699]:
+          - navigation "pagination" [ref=e700]:
+            - generic [ref=e701]:
+              - list [ref=e703]:
+                - listitem [ref=e704]:
+                  - button "page 1" [ref=e705] [cursor=pointer]: "1"
+                - listitem [ref=e706]:
+                  - button "page 2" [ref=e707] [cursor=pointer]: "2"
+                - listitem [ref=e708]:
+                  - button "page 3" [ref=e709] [cursor=pointer]: "3"
+                - listitem [ref=e710]:
+                  - button "page 4" [ref=e711] [cursor=pointer]: "4"
+                - listitem [ref=e712]:
+                  - button "page 5" [ref=e713] [cursor=pointer]: "5"
+              - button "next" [ref=e714] [cursor=pointer]
+          - paragraph [ref=e718]: 1 - 20 of 307 jobs
+      - generic [ref=e723]:
+        - heading "About Us" [level=3] [ref=e724]
+        - img "Logo" [ref=e725]
+        - generic [ref=e727]:
+          - paragraph [ref=e730]: Gilead Sciences, Inc. is a biopharmaceutical company that has pursued and achieved breakthroughs in medicine for more than three decades, with the goal of creating a healthier world for all people. The company is committed to advancing innovative medicines to prevent and treat life-threatening diseases, including HIV, viral hepatitis and cancer. Gilead operates in more than 35 countries worldwide, with headquarters in Foster City, California.
+          - button "Read More" [ref=e733] [cursor=pointer]:
+            - generic [ref=e734]: Read More
+  - generic [ref=e738]:
+    - heading "Follow Us" [level=4] [ref=e739]
+    - list [ref=e740]:
+      - listitem [ref=e741] [cursor=pointer]:
+        - link "LinkedIn" [ref=e742]:
+          - /url: https://www.linkedin.com/company/gilead-sciences
+      - listitem [ref=e746] [cursor=pointer]:
+        - link "Facebook" [ref=e747]:
+          - /url: https://www.facebook.com/pages/Gilead-Sciences/115569968463192
+      - listitem [ref=e751] [cursor=pointer]:
+        - link "X" [ref=e752]:
+          - /url: https://twitter.com/GileadSciences
+    - link "Global Applicant Privacy Statement" [ref=e757] [cursor=pointer]:
+      - /url: https://www.gilead.com/privacy-statements/global-applicant-privacy-statement
+    - generic [ref=e758]:
+      - img [ref=e762]
+      - generic [ref=e782]: © 2026 Workday, Inc. All rights reserved.

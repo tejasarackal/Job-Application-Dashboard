@@ -2,7 +2,7 @@
 
 **Spec:** `PRD-multi-user.md` (locked 2026-06-10; panel-authored, PM-approved with C1–C4 folded in). Read the PRD first; this file is the resumable build state. After any meaningful change, update the phase tracker + change log here (house rule, same as `IMPLEMENTATION-workflow-engine.md`).
 
-**Build state: NOT STARTED.** PRD locked; implementation awaits the owner's go-ahead + the M1 entry gate decision (Airtable Team payment, PRD §14 Q13).
+**Build state: M0 CODE COMPLETE (not deployed).** 95 tests + env-less `npm run build` green as of 2026-06-10. Deploy 1 (0.7) blocked on the GCP OAuth client (0.1) + env staging (0.3). M1 entry gate decision (Airtable Team payment, PRD §14 Q13) still open.
 
 ## Status legend
 `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked
@@ -11,30 +11,30 @@
 
 ### M0 — Hardening + auth shell (app goes private; data unchanged)
 - [ ] 0.1 New GCP OAuth client for sign-in (`openid email profile`; prod + preview redirect URIs); consent screen → production (needs homepage + privacy URL — submit early, review gates signup not dev)
-- [ ] 0.2 `/privacy` + `/terms` pages (template copy per PRD §7 voice rules)
+- [x] 0.2 `/privacy` + `/terms` pages (template copy per PRD §7 voice rules) — created 2026-06-10 (`app/src/app/{privacy,terms}/page.tsx`, server components, brand card layout); "live" pending the M0 deploy (0.7)
 - [ ] 0.3 Stage env: `AUTH_SECRET`, `AUTH_GOOGLE_ID/SECRET`, `OWNER_EMAIL`, `AUTH_DISABLE_SIGNUP=1`; confirm `CRON_SECRET`; re-scope Airtable PAT (2 bases, `data.records` only)
-- [ ] 0.4 `next-auth@5-beta` (exact pin) + `lib/auth.ts` (signIn callback: email_verified strict, kill-switch, cap, approval mode, create-failure deny, duplicate fail-closed) + `lib/session.ts` (`requireUser*`, `requireAdmin*` = OWNER_EMAIL env, `getViewContext`, `assertWritable`) + `middleware.ts` (pinned matcher) + `/login`
-- [ ] 0.5 **Delete** the 8 legacy open GET routes (`api/airtable/*` ×5, `api/gmail/threads`, `api/apify/runs`, `api/apollo/sequences`) — re-verify zero callers first
-- [ ] 0.6 `CRON_SECRET` fail-closed (unset → 503, timing-safe) · CSRF (origin check + JSON content-type) · callbackUrl validation · health endpoint split (public booleans / gated detail)
+- [x] 0.4 `next-auth@5-beta` (exact pin) + `lib/auth.ts` + `lib/session.ts` + `middleware.ts` (pinned matcher) + `/login` — done 2026-06-10: `next-auth@5.0.0-beta.29` exact; edge-safe split (`auth.config.ts` for middleware — never import `lib/auth` there); `lib/users.ts` Users-table access dormant until `AIRTABLE_USERS_TABLE` env is set at M1 (frozen field names per §6.1); `getViewContext`/`assertWritable`/`assertSameOrigin` stubs exported for M2; TopNav returns null on /login,/privacy,/terms until the M2 route group
+- [x] 0.5 **Delete** the 8 legacy open GET routes (`api/airtable/*` ×5, `api/gmail/threads`, `api/apify/runs`, `api/apollo/sequences`) — re-verify zero callers first — done 2026-06-10; zero callers verified by grep across `app/src`; also deleted `api/workflows/runs` (zero callers — `/workflows` reads via `lib/fetcher#getWorkflowRuns` server-side)
+- [x] 0.6 ALL DONE 2026-06-10: `CRON_SECRET` fail-closed (unset → 503, `timingSafeEqual`, auth before job lookup) · CSRF helper (`session.ts#assertSameOrigin` — M2 wires it into mutating routes) · callbackUrl validation (`auth-shared.ts#validateCallbackUrl`, loop-decode + 3-condition check) · health split (`lib/health.ts` `shapePublicHealth` booleans-only / `shapeDetailHealth` behind Bearer CRON_SECRET or `requireAdminApi`, 207 preserved in detail mode) · +5 M0 guardrail tests in `guardrails.test.ts` (matcher pinned, legacy routes dead, cron fail-closed, health leak guard, auth boundary) — **95 tests + env-less build green**
 - [ ] 0.7 Deploy 1 + verify: signed-out 401/redirect everywhere; owner-identical dashboard; cron semantics
 - **Acceptance:** PRD §13C checks 1–3 pass; only OWNER_EMAIL can sign in.
 
-### M1 — Schema (additive; owner-only audience) — `[!]` gated on Airtable Team payment (C4)
-- [ ] 1.1 Airtable Team upgrade (primary base is at the Free 1,000-record cap today)
-- [ ] 1.2 Create `Users`, `UserTargets`, `Admin_Audit` (exact single-select options per PRD §6 — pre-created, never typecast-minted); add `User Email` to jobListings/applications/interviews/outreach/workflowRuns (primary) + leads (leads base); capture all `tbl…`/`fld…` IDs
-- **Acceptance:** schema visible; deployed M0 app unaffected.
+### M1 — Schema (additive; owner-only audience)
+- [!] 1.1 Airtable Team upgrade — **owner decision still open (PRD §14 Q13).** Note: schema-only creation (1.2) consumes zero records, so it proceeded; the upgrade is required before meaningful new-row growth (Users rows beyond Tejas + test account, member CRUD) and is a hard gate before M3 open signup
+- [x] 1.2 Done 2026-06-10 via Airtable MCP — all 3 tables + 6 ownership columns created with exact PRD §6 options (pre-created, not typecast-minted); IDs in "Key IDs & constants" below
+- **Acceptance:** schema visible ✓; deployed app unaffected ✓ (current prod code ignores unknown fields/tables).
 
 ### M2 — Isolation + backfill + product surfaces (ONE atomic deploy; signup still off)
-- [ ] 2.1 `airtable.ts`: TABLES/FIELDS/FIELD_NAMES additions · `escapeFormulaString` (backslash-first; empty/control-char throw) · filterByFormula plumbing + owned-table runtime throw · required `userEmail` signatures (compiler-forced call-site migration) · `assertOwnership`/`withOwner`/`deleteRecords` · `*AllAdmin` variants
-- [ ] 2.2 `lib/prefs.ts` (UserPrefs v1, `tejasDefaults`, `prefsOrNeutral`) + `filters.ts` `OWNER_PREFS` extraction (`matchScore`/`checkLocation` prefs param; engine call sites unchanged, existing tests pin the default path)
-- [ ] 2.3 Engine: owner stamping on all writes; `drive.ts`/`execute.ts` OWNER_EMAIL fail-closed; knowledge loader prefers owner's Users-row voice/about with constant fallback (C2)
+- [x] 2.1 Done 2026-06-10 (Wave 1, Agent A): TABLES/FIELDS/FIELD_NAMES w/ real IDs · `escapeFormulaString` moved into airtable.ts · `ownerFilter`/`recordIdFilter`/`postFilterOwned` + OWNED_TABLES runtime throw · required `userEmail` on all 7 owned list* (all call sites migrated: fetcher, 8 pages, 4 routes, engine) · `assertOwnership`(404)/`withOwner`/`deleteRecords`/`logAdminAudit`/`listUsersAllAdmin`/`listUserTargets`/`listUnstampedRecordIds`+`countUnstamped` · prod mock rule in fetcher
+- [x] 2.2 Done 2026-06-10 (Wave 1, Agent B): `lib/prefs.ts` (UserPrefs v1 zod, `tejasDefaults`/`neutralDefaults`/`prefsOrNeutral`/`getUserPrefs`, 90k serialize guard) · `lib/targets.ts` (`effectiveTargets`/`diffTargets`, pure, idempotent, preserves admin H1B Verified) · `filters.ts` `OWNER_PREFS`+`ScoringPrefs` optional-param extraction (default path byte-identical; 30 existing tests unmodified, +6 prefs cases) · zod ^4.4.3 installed
+- [x] 2.3 Done 2026-06-10 (Wave 1, Agent A): OWNER_EMAIL fail-closed in execute/drive · `withOwner` stamping on all engine creates (listings/apps/interviews/leads/run rows) · owner-scoped engine reads · `draftEmails` uses `loadOwnerKnowledge()` (C2)
 - [ ] 2.4 Route-group restructure (`(app)/`, `(app)/(admin)/`) + session-aware TopNav + async Header + `UserMenu`
 - [ ] 2.5 `/onboarding` 3-step single-submit wizard (incl. outreach email — C1) + `PATCH /api/profile` (strict zod allowlist)
 - [ ] 2.6 `/profile` 5 cards (incl. voice/about — C2) + `/targets` editor + `PUT /api/targets/user` (server-side diff to deviations) + `lib/targets.ts#effectiveTargets`
 - [ ] 2.7 Member CRUD: create/edit forms + `POST /api/{listings,applications,interviews,outreach}` with compute-on-save match % (no hard delete)
 - [ ] 2.8 `/admin` (user table, disable/enable) + view-as (signed cookie, enter/exit audit, `assertWritable` in every mutating route, ViewAsBanner, pixel-faithful member view)
 - [ ] 2.9 Viz/empty states: S0 empty-card / S1 ratio suppression (<5 → "—") / member-hidden automation cards / per-page honest empty copy
-- [ ] 2.10 `fetcher.ts` prod mock rule (never `source:"mock"` in production) + identity threading via `getViewContext`
+- [x] 2.10 Done 2026-06-10 (Wave 1, Agent A): fetcher prod mock rule (prod failure → `{ok:false, data:empty, error:generic}`, real error server-logged) + all 8 pages thread `getViewContext().effectiveEmail` — **Gate 1 green: tsc clean, 101 tests, env-less build passes**
 - [ ] 2.11 Guardrail tests G5–G13 + unit suites (escaping vectors, signIn cases, prefsOrNeutral, tejasDefaults parity snapshot, effectiveTargets, view-as cookie) — write to fail-before/pass-after
 - [ ] 2.12 Deploy 2 (atomic) → run chunked `POST /api/admin/migrate` backfill → verify via gated health detail (blank-owner counts 0, owner parity, formula-name probes)
 - [ ] 2.13 Two-account protocol (hand-inserted test row): PRD §13C checks 4–15
@@ -57,7 +57,12 @@
 
 ## Key IDs & constants
 - Bases: primary `app8aBP9UPmxYaEgI` · leads `appkusCXgR7KcEmLO`
-- New table/field IDs: *(fill in at M1.2 — Users `tbl…`, UserTargets `tbl…`, Admin_Audit `tbl…`, per-table `User Email` `fld…`)*
+- New table/field IDs (created 2026-06-10):
+  - **Users `tblj8NSWLfAfRY4uP`**: Email `fld9asG1fbAyneSq2` · Name `fldibJorYEjCjBnPj` · Auth Sub `fldMr3QyKiuYlnCSu` · Account Status `fldenOeaTeA4DnQf4` (active/pending/disabled) · Onboarding Status `fldvALhGN3NdBZEj9` (pending/complete) · Default Targets `fldnelGtFjsniXSIS` (h1b_all/none) · Preferences `fldh0X3lcG0fraV0w` · Last Login `flddvShgUem4rqEwH`
+  - **UserTargets `tbl6SchfGe6Ifw4Zy`**: User Email `fldglKur3FlymvhBe` · Company Key `fldkWhCXnR1o9JqkC` · Status `fldkln3E5Qx9euozZ` (excluded/added) · Company Name `fldbxjMljBL6dAvuo` · Careers URL `fldRFNHh6xCkiW28n` · H1B Verified `fldwV7zPDidWEizJo`
+  - **Admin_Audit `tbluzpqt0ehm9y7bK`**: Actor Email `fldEjr2nP5kqSl7V7` · Action `fldhmBYZPTdeOCh4f` (5 options) · Target Email `fldpxFdIBhpyW8pTI` · At `flddQSIV33AKeNavl` · Note `fldZA61SPHM3k6SC2`
+  - **`User Email` columns**: jobListings `fldeKB0L7KlyEZ3bA` · applications `fldKi8vQKjTS00OkG` · interviews `flddzqw6PUKWMsP1T` · outreach `fldXZMLWyrhRcHBg7` · workflowRuns `fldFtoIA9qvmx2VgJ` · leads `fldsyrzFmBkZIW5sZ`
+  - Deviation from PRD §6: no `Created At`/`Updated At` columns (Airtable MCP can't create computed createdTime/lastModifiedTime types) — record metadata `createdTime` covers it; code never needed the columns
 - Frozen formula field names (`FIELD_NAMES`): `"User Email"` (6 tables), Users `"Email"` — **never rename in Airtable**
 - Env (new): `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `OWNER_EMAIL`, `AUTH_DISABLE_SIGNUP`, `AUTH_REQUIRE_APPROVAL` (optional), `USER_CAP`; `CRON_SECRET` becomes mandatory
 - Owned tables (userEmail required): jobListings, applications, interviews, outreach, leads, workflowRuns · Shared (no owner): h1bCompanies, scrapeTargets

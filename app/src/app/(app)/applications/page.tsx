@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
 import { getApplications } from "@/lib/fetcher";
+import { getViewContext } from "@/lib/session";
 import { formatDate, pct } from "@/lib/utils";
 import type { Application } from "@/lib/types";
 
@@ -12,7 +13,8 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Applications" };
 
 export default async function ApplicationsPage() {
-  const { data, source } = await getApplications();
+  const ctx = await getViewContext();
+  const { data, source } = await getApplications(ctx.effectiveEmail);
 
   const total = data.length;
   const interviewing = data.filter((a) => a.status === "interviewing").length;

@@ -1,0 +1,322 @@
+- generic [ref=e4]:
+  - link "Skip to main content" [ref=e5] [cursor=pointer]:
+    - /url: ""
+  - banner [ref=e8]:
+    - generic [ref=e10]:
+      - link "careers home" [ref=e13] [cursor=pointer]:
+        - /url: https://careers.ebayinc.com/
+        - img "careers home" [ref=e14]
+      - generic [ref=e15]:
+        - heading [level=1]
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - button "English" [ref=e20] [cursor=pointer]:
+            - generic [ref=e24]: English
+          - button "Sign In" [ref=e26] [cursor=pointer]:
+            - generic [ref=e31]: Sign In
+        - navigation [ref=e32]:
+          - button "Learn about eBay" [ref=e33] [cursor=pointer]
+          - button "Search for Jobs" [ref=e34] [cursor=pointer]
+  - generic [ref=e39]:
+    - generic [ref=e40]:
+      - search [ref=e41]:
+        - generic [ref=e42]:
+          - textbox "Search" [ref=e48]:
+            - /placeholder: Search for jobs or keywords
+          - status [ref=e49]
+        - button "Search" [ref=e52] [cursor=pointer]
+      - group "Filters" [ref=e53]:
+        - generic [ref=e54]: Filters
+        - button "Location" [ref=e56] [cursor=pointer]: Location
+        - button "Time Type" [ref=e61] [cursor=pointer]: Time Type
+        - button "Job Category" [ref=e66] [cursor=pointer]: Job Category
+        - button "More" [ref=e71] [cursor=pointer]: More
+    - generic [ref=e75]:
+      - alert [ref=e76]: Search for Jobs page is loaded
+      - region "Search Results" [ref=e77]:
+        - paragraph [ref=e78]: 596 JOBS FOUND
+        - list "Page 1 of 30" [ref=e79]:
+          - listitem [ref=e80]:
+            - heading "Senior Manager of Engineering" [level=3] [ref=e84]:
+              - link "Senior Manager of Engineering" [ref=e85] [cursor=pointer]:
+                - /url: /en-US/apply/job/Bengaluru-India/Senior-Manager-of-Engineering_R0070843
+            - generic [ref=e94]:
+              - term [ref=e95]: locations
+              - definition [ref=e96]: Bengaluru, India
+            - generic [ref=e106]:
+              - term [ref=e107]: posted on
+              - definition [ref=e108]: Posted Today
+            - list [ref=e109]:
+              - listitem [ref=e110]: R0070843
+          - listitem [ref=e111]:
+            - heading "Director North America Seller Experience" [level=3] [ref=e115]:
+              - link "Director North America Seller Experience" [ref=e116] [cursor=pointer]:
+                - /url: /en-US/apply/job/Austin/Director-North-America-Seller-Experience_R0074315
+            - generic [ref=e125]:
+              - term [ref=e126]: locations
+              - definition [ref=e127]: Austin
+            - generic [ref=e137]:
+              - term [ref=e138]: posted on
+              - definition [ref=e139]: Posted Today
+            - list [ref=e140]:
+              - listitem [ref=e141]: R0074315
+          - listitem [ref=e142]:
+            - heading "Senior iOS Software Engineer" [level=3] [ref=e146]:
+              - link "Senior iOS Software Engineer" [ref=e147] [cursor=pointer]:
+                - /url: /en-US/apply/job/Toronto/Senior-iOS-Software-Engineer_R0075196
+            - generic [ref=e156]:
+              - term [ref=e157]: locations
+              - definition [ref=e158]: Toronto
+            - generic [ref=e168]:
+              - term [ref=e169]: posted on
+              - definition [ref=e170]: Posted Today
+            - list [ref=e171]:
+              - listitem [ref=e172]: R0075196
+          - listitem [ref=e173]:
+            - heading "MTS-2 Front End Software Engineer" [level=3] [ref=e177]:
+              - link "MTS-2 Front End Software Engineer" [ref=e178] [cursor=pointer]:
+                - /url: /en-US/apply/job/Toronto/MTS-2-Front-End-Software-Engineer_R0072286
+            - generic [ref=e187]:
+              - term [ref=e188]: locations
+              - definition [ref=e189]: Toronto
+            - generic [ref=e199]:
+              - term [ref=e200]: posted on
+              - definition [ref=e201]: Posted Today
+            - list [ref=e202]:
+              - listitem [ref=e203]: R0072286
+          - listitem [ref=e204]:
+            - heading "MTS 1, Backend Software Engineer" [level=3] [ref=e208]:
+              - link "MTS 1, Backend Software Engineer" [ref=e209] [cursor=pointer]:
+                - /url: /en-US/apply/job/Toronto/Staff-Backend-Software-Engineer_R0072287
+            - generic [ref=e218]:
+              - term [ref=e219]: locations
+              - definition [ref=e220]: Toronto
+            - generic [ref=e230]:
+              - term [ref=e231]: posted on
+              - definition [ref=e232]: Posted Today
+            - list [ref=e233]:
+              - listitem [ref=e234]: R0072287
+          - listitem [ref=e235]:
+            - heading "Finance Manager, Global Cust. Experience" [level=3] [ref=e239]:
+              - link "Finance Manager, Global Cust. Experience" [ref=e240] [cursor=pointer]:
+                - /url: /en-US/apply/job/Austin/Finance-Manager--Global-Cust-Experience_R0075043
+            - generic [ref=e249]:
+              - term [ref=e250]: locations
+              - definition [ref=e251]: Austin
+            - generic [ref=e261]:
+              - term [ref=e262]: posted on
+              - definition [ref=e263]: Posted Today
+            - list [ref=e264]:
+              - listitem [ref=e265]: R0075043
+          - listitem [ref=e266]:
+            - heading "AI Adoption & Capability Lead" [level=3] [ref=e270]:
+              - link "AI Adoption & Capability Lead" [ref=e271] [cursor=pointer]:
+                - /url: /en-US/apply/job/Salt-Lake-City/AI-Adoption---Capability-Lead_R0074686
+            - generic [ref=e280]:
+              - term [ref=e281]: locations
+              - definition [ref=e282]: Salt Lake City
+            - generic [ref=e292]:
+              - term [ref=e293]: posted on
+              - definition [ref=e294]: Posted Today
+            - list [ref=e295]:
+              - listitem [ref=e296]: R0074686
+          - listitem [ref=e297]:
+            - heading "Lead Full Stack Engineer" [level=3] [ref=e301]:
+              - link "Lead Full Stack Engineer" [ref=e302] [cursor=pointer]:
+                - /url: /en-US/apply/job/Toronto/Staff-Full-Stack-Engineer---MTS-2_R0073949
+            - generic [ref=e311]:
+              - term [ref=e312]: locations
+              - definition [ref=e313]: Toronto
+            - generic [ref=e323]:
+              - term [ref=e324]: posted on
+              - definition [ref=e325]: Posted Today
+            - list [ref=e326]:
+              - listitem [ref=e327]: R0073949
+          - listitem [ref=e328]:
+            - heading "KYC Data Analyst" [level=3] [ref=e332]:
+              - link "KYC Data Analyst" [ref=e333] [cursor=pointer]:
+                - /url: /en-US/apply/job/Austin/KYC-Data-Analyst_R0072560
+            - generic [ref=e342]:
+              - term [ref=e343]: locations
+              - definition [ref=e344]: Austin
+            - generic [ref=e354]:
+              - term [ref=e355]: posted on
+              - definition [ref=e356]: Posted Today
+            - list [ref=e357]:
+              - listitem [ref=e358]: R0072560
+          - listitem [ref=e359]:
+            - heading "French Pro Exporter" [level=3] [ref=e363]:
+              - link "French Pro Exporter" [ref=e364] [cursor=pointer]:
+                - /url: /en-US/apply/job/Remote-Ireland/French-Pro-Exporter_R0075145-1
+            - generic [ref=e373]:
+              - term [ref=e374]: locations
+              - definition [ref=e375]: Remote Ireland
+            - generic [ref=e385]:
+              - term [ref=e386]: posted on
+              - definition [ref=e387]: Posted Today
+            - list [ref=e388]:
+              - listitem [ref=e389]: R0075145
+          - listitem [ref=e390]:
+            - heading "eBay Advertising Managed Service Agent" [level=3] [ref=e394]:
+              - link "eBay Advertising Managed Service Agent" [ref=e395] [cursor=pointer]:
+                - /url: /en-US/apply/job/Remote-Ireland/eBay-Advertising-Managed-Service-Agent_R0075099
+            - generic [ref=e404]:
+              - term [ref=e405]: locations
+              - definition [ref=e406]: Remote Ireland
+            - generic [ref=e416]:
+              - term [ref=e417]: posted on
+              - definition [ref=e418]: Posted Today
+            - list [ref=e419]:
+              - listitem [ref=e420]: R0075099
+          - listitem [ref=e421]:
+            - heading "B2C Seller Success Manager France" [level=3] [ref=e425]:
+              - link "B2C Seller Success Manager France" [ref=e426] [cursor=pointer]:
+                - /url: /en-US/apply/job/Paris/B2C-Seller-Success-Manager-France_R0075249
+            - generic [ref=e435]:
+              - term [ref=e436]: locations
+              - definition [ref=e437]: Paris
+            - generic [ref=e447]:
+              - term [ref=e448]: posted on
+              - definition [ref=e449]: Posted Today
+            - list [ref=e450]:
+              - listitem [ref=e451]: R0075249
+          - listitem [ref=e452]:
+            - heading "Director Product eBay Live Seller & Host" [level=3] [ref=e456]:
+              - link "Director Product eBay Live Seller & Host" [ref=e457] [cursor=pointer]:
+                - /url: /en-US/apply/job/San-Jose/Director-Product-eBay-Live-Seller---Host_R0075086
+            - generic [ref=e466]:
+              - term [ref=e467]: locations
+              - definition [ref=e468]: San Jose
+            - generic [ref=e478]:
+              - term [ref=e479]: posted on
+              - definition [ref=e480]: Posted Today
+            - list [ref=e481]:
+              - listitem [ref=e482]: R0075086
+          - listitem [ref=e483]:
+            - heading "Category Planner Manager Italy & France" [level=3] [ref=e487]:
+              - link "Category Planner Manager Italy & France" [ref=e488] [cursor=pointer]:
+                - /url: /en-US/apply/job/Milano/Category-Planner-Manager-Italy---France_R0074969-1
+            - generic [ref=e497]:
+              - term [ref=e498]: locations
+              - definition [ref=e499]: Milano
+            - generic [ref=e509]:
+              - term [ref=e510]: posted on
+              - definition [ref=e511]: Posted Today
+            - list [ref=e512]:
+              - listitem [ref=e513]: R0074969
+          - listitem [ref=e514]:
+            - heading "Fashion Category Lead - France / Italy" [level=3] [ref=e518]:
+              - link "Fashion Category Lead - France / Italy" [ref=e519] [cursor=pointer]:
+                - /url: /en-US/apply/job/Bern/Fashion-Category-Lead---France---Italy_R0074953
+            - generic [ref=e528]:
+              - term [ref=e529]: locations
+              - definition [ref=e530]: Bern
+            - generic [ref=e540]:
+              - term [ref=e541]: posted on
+              - definition [ref=e542]: Posted Today
+            - list [ref=e543]:
+              - listitem [ref=e544]: R0074953
+          - listitem [ref=e545]:
+            - heading "FP&A Business Analyst" [level=3] [ref=e549]:
+              - link "FP&A Business Analyst" [ref=e550] [cursor=pointer]:
+                - /url: /en-US/apply/job/Kleinmachnow/FP-A-Business-Analyst_R0074245-1
+            - generic [ref=e559]:
+              - term [ref=e560]: locations
+              - definition [ref=e561]: Kleinmachnow
+            - generic [ref=e571]:
+              - term [ref=e572]: posted on
+              - definition [ref=e573]: Posted Today
+            - list [ref=e574]:
+              - listitem [ref=e575]: R0074245
+          - listitem [ref=e576]:
+            - heading "Hadoop Software Engineer" [level=3] [ref=e580]:
+              - link "Hadoop Software Engineer" [ref=e581] [cursor=pointer]:
+                - /url: /en-US/apply/job/Dublin/Hadoop-Software-Engineer_R0075039
+            - generic [ref=e590]:
+              - term [ref=e591]: locations
+              - definition [ref=e592]: Dublin
+            - generic [ref=e602]:
+              - term [ref=e603]: posted on
+              - definition [ref=e604]: Posted Today
+            - list [ref=e605]:
+              - listitem [ref=e606]: R0075039
+          - listitem [ref=e607]:
+            - heading "Full Stack Platform Engineer" [level=3] [ref=e611]:
+              - link "Full Stack Platform Engineer" [ref=e612] [cursor=pointer]:
+                - /url: /en-US/apply/job/Bengaluru-India/Full-Stack-Platform-Engineer_R0072831-1
+            - generic [ref=e621]:
+              - term [ref=e622]: locations
+              - definition [ref=e623]: Bengaluru, India
+            - generic [ref=e633]:
+              - term [ref=e634]: posted on
+              - definition [ref=e635]: Posted Today
+            - list [ref=e636]:
+              - listitem [ref=e637]: R0072831
+          - listitem [ref=e638]:
+            - heading "Full Stack Platform Engineer" [level=3] [ref=e642]:
+              - link "Full Stack Platform Engineer" [ref=e643] [cursor=pointer]:
+                - /url: /en-US/apply/job/Bengaluru-India/Full-Stack-Platform-Engineer_R0072824
+            - generic [ref=e652]:
+              - term [ref=e653]: locations
+              - definition [ref=e654]: Bengaluru, India
+            - generic [ref=e664]:
+              - term [ref=e665]: posted on
+              - definition [ref=e666]: Posted Today
+            - list [ref=e667]:
+              - listitem [ref=e668]: R0072824
+          - listitem [ref=e669]:
+            - heading "Machine Learning Engineer" [level=3] [ref=e673]:
+              - link "Machine Learning Engineer" [ref=e674] [cursor=pointer]:
+                - /url: /en-US/apply/job/Amsterdam/Applied-Researcher_R0074047
+            - generic [ref=e683]:
+              - term [ref=e684]: locations
+              - definition [ref=e685]: Amsterdam
+            - generic [ref=e695]:
+              - term [ref=e696]: posted on
+              - definition [ref=e697]: Posted Today
+            - list [ref=e698]:
+              - listitem [ref=e699]: R0074047
+        - generic [ref=e700]:
+          - navigation "pagination" [ref=e701]:
+            - generic [ref=e702]:
+              - list [ref=e704]:
+                - listitem [ref=e705]:
+                  - button "page 1" [ref=e706] [cursor=pointer]: "1"
+                - listitem [ref=e707]:
+                  - button "page 2" [ref=e708] [cursor=pointer]: "2"
+                - listitem [ref=e709]:
+                  - button "page 3" [ref=e710] [cursor=pointer]: "3"
+                - listitem [ref=e711]:
+                  - button "page 4" [ref=e712] [cursor=pointer]: "4"
+                - listitem [ref=e713]:
+                  - button "page 5" [ref=e714] [cursor=pointer]: "5"
+              - button "next" [ref=e715] [cursor=pointer]
+          - paragraph [ref=e719]: 1 - 20 of 596 jobs
+      - generic [ref=e724]:
+        - heading "About Us" [level=3] [ref=e725]
+        - img "Logo" [ref=e726]
+        - generic [ref=e728]:
+          - generic [ref=e730]:
+            - paragraph [ref=e731]:
+              - generic [ref=e732]: We Empower People and Create Economic Opportunity
+            - paragraph [ref=e733]: "eBay Inc. (NASDAQ: EBAY) is a global commerce leader that connects millions of buyers and sellers around the world. We exist to enable economic opportunity for individuals, entrepreneurs, businesses and organizations of all sizes."
+          - button "Read More" [ref=e736] [cursor=pointer]:
+            - generic [ref=e737]: Read More
+  - generic [ref=e741]:
+    - heading "Follow Us" [level=4] [ref=e742]
+    - list [ref=e743]:
+      - listitem [ref=e744] [cursor=pointer]:
+        - link "YouTube" [ref=e745]:
+          - /url: https://www.youtube.com/user/ebay
+      - listitem [ref=e751] [cursor=pointer]:
+        - link "X" [ref=e752]:
+          - /url: https://twitter.com/eBay
+      - listitem [ref=e756] [cursor=pointer]:
+        - link "LinkedIn" [ref=e757]:
+          - /url: https://www.linkedin.com/company/ebay
+      - listitem [ref=e761] [cursor=pointer]:
+        - link "Glassdoor" [ref=e762]:
+          - /url: https://www.glassdoor.com/Overview/Working-at-eBay-EI_IE7853.11,15.htm
+    - generic [ref=e767]:
+      - img [ref=e771]
+      - generic [ref=e791]: © 2026 Workday, Inc. All rights reserved.

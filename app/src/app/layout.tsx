@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { TopNav } from "@/components/layout/TopNav";
 
 export const metadata: Metadata = {
   // Per-page titles set their own prefix; this is the fallback + suffix.
@@ -14,11 +13,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      {/* Global shell only — TopNav + the authenticated chrome live in the
+          (app) route-group layout. Public pages (/login, /privacy, /terms)
+          render directly inside the flex column. */}
       <body className="min-h-screen font-sans text-brand-body">
-        <div className="min-h-screen flex flex-col">
-          <TopNav />
-          <div className="flex-1 flex flex-col min-w-0">{children}</div>
-        </div>
+        <div className="min-h-screen flex flex-col">{children}</div>
       </body>
     </html>
   );

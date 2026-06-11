@@ -9,9 +9,27 @@ import { researchLeads } from "./researchLeads";
 import { draftEmails } from "./draftEmails";
 import { refreshScrapeTargets } from "./refreshScrapeTargets";
 import { detectBoards } from "./detectBoards";
+import { revalidateListings } from "./revalidateListings";
+import { normalizeEmail } from "@/lib/auth-shared";
 import type { WorkflowName, WorkflowTrigger } from "@/lib/types";
 
-type SyncOpts = { maxItems?: number; dryRun?: boolean; cursor?: { offset?: number } };
+// Engine identity (PRD §5.6 / G11, fail-closed): the engine acts as the OWNER
+// and refuses to run when OWNER_EMAIL is unset — no ownerless rows, ever.
+// Every workflow read/write below is threaded this identity.
+export function resolveOwnerEmail(): string | null {
+  const raw = process.env.OWNER_EMAIL;
+  if (!raw || !raw.trim()) return null;
+  return normalizeEmail(raw);
+}
+
+export const OWNER_EMAIL_UNSET = "OWNER_EMAIL unset — engine refuses to run";
+
+type SyncOpts = {
+  ownerEmail: string;
+  maxItems?: number;
+  dryRun?: boolean;
+  cursor?: { offset?: number };
+};
 
 // research + draft_emails do ONE item per invocation (~6s each: Apollo / Sonnet);
 // the Gmail-sync workers use fast Haiku, so 3 per invocation is fine.
@@ -21,8 +39,9 @@ const SYNC_RUNNERS: Record<string, (o: SyncOpts) => Promise<RunResult>> = {
   sync_interviews: syncInterviews,
   research: researchLeads,
   draft_emails: draftEmails,
-  refresh_scrape_targets: () => refreshScrapeTargets(),
-  detect_boards: detectBoards,
+  refresh_scrape_targets: () => refreshScrapeTargets(), // unowned mart sync — no tenant rows
+  detect_boards: detectBoards, // unowned Scrape_Targets writes — ownerEmail unused
+  revalidate_listings: (o) => revalidateListings({ ownerEmail: o.ownerEmail, dryRun: o.dryRun }),
 };
 
 export function isKnownWorkflow(name: string): boolean {
@@ -50,9 +69,18 @@ export interface ChunkOpts {
 // Runs exactly one bounded step of `name`. scrape_jobs self-manages its run-log
 // row (async multi-source); the others are wrapped in withRunLog per chunk.
 export async function executeChunk(name: string, opts: ChunkOpts): Promise<ChunkResult> {
+  // OWNER_EMAIL resolved at entry, fail-closed: unset → failed result, no work,
+  // no rows written (a run row without an owner would itself be ownerless).
+  const ownerEmail = resolveOwnerEmail();
+  if (!ownerEmail) {
+    console.error(`executeChunk(${name}): ${OWNER_EMAIL_UNSET}`);
+    return { ok: false, more: false, counts: {}, error: OWNER_EMAIL_UNSET };
+  }
+
   if (name === "scrape_jobs") {
     // Parallel scrape completes in one invocation (no cursor / chunk loop).
     const r = await scrapeJobs({
+      ownerEmail,
       dryRun: opts.dryRun,
       windowDays: opts.windowDays,
       trigger: opts.trigger,
@@ -67,8 +95,8 @@ export async function executeChunk(name: string, opts: ChunkOpts): Promise<Chunk
 
   const slow = name === "draft_emails" || name === "research";
   const maxItems = Math.min(Math.max(opts.maxItems ?? (slow ? 1 : 3), 1), 5);
-  const outcome = await withRunLog(name as WorkflowName, opts.trigger, () =>
-    runner({ maxItems, dryRun: opts.dryRun, cursor: opts.cursor as { offset?: number } | undefined }),
+  const outcome = await withRunLog(name as WorkflowName, opts.trigger, ownerEmail, () =>
+    runner({ ownerEmail, maxItems, dryRun: opts.dryRun, cursor: opts.cursor as { offset?: number } | undefined }),
   );
   return {
     ok: !outcome.error,

@@ -7,7 +7,7 @@
 // server REST contract wired here yet, so company facts come from Apollo's org
 // enrichment instead (honest, sourced) — NinjaPear enrichment is a future add.
 import { COMPANY_REGISTRY, deriveBrand } from "@/lib/company-registry";
-import { listLeads, createRecords, TABLES, FIELDS, leadsBase } from "@/lib/airtable";
+import { listLeads, createRecords, withOwner, TABLES, FIELDS, leadsBase } from "@/lib/airtable";
 import type { RunResult } from "./runLog";
 
 const APOLLO = "https://api.apollo.io/api/v1";
@@ -68,8 +68,9 @@ function stageFromHeadcount(n?: number): string | undefined {
 }
 
 export async function researchLeads(
-  opts: { maxItems?: number; dryRun?: boolean; cursor?: { offset?: number } } = {},
+  opts: { ownerEmail: string; maxItems?: number; dryRun?: boolean; cursor?: { offset?: number } },
 ): Promise<RunResult> {
+  const ownerEmail = opts.ownerEmail; // engine identity (PRD §5.6)
   if (!process.env.APOLLO_API_KEY) {
     return { counts: {}, partial: false, notes: "APOLLO_API_KEY not set — research disabled" };
   }
@@ -96,8 +97,8 @@ export async function researchLeads(
     }));
   const batch = targets.slice(offset, offset + max);
 
-  // Dedup set: existing lead emails + linkedin URLs.
-  const existing = await listLeads();
+  // Dedup set: existing lead emails + linkedin URLs (owner-scoped read).
+  const existing = await listLeads(ownerEmail);
   const seenEmail = new Set(existing.map((l) => (l.email ?? "").toLowerCase()).filter(Boolean));
   const seenLi = new Set(existing.map((l) => (l.linkedin ?? "").toLowerCase()).filter(Boolean));
   const seenCompany = new Set(existing.map((l) => l.company.toLowerCase()));
@@ -161,8 +162,9 @@ export async function researchLeads(
         (org?.estimated_num_employees ? `, ~${org.estimated_num_employees.toLocaleString()} employees.` : ".");
 
       if (!dryRun) {
+        // Owner-stamped create (PRD §5.6 / G7).
         await createRecords(TABLES.leads, leadsBase(), [
-          {
+          withOwner("leads", {
             [FIELDS.leads.firstName]: person.first_name ?? person.name?.split(" ")[0] ?? "",
             [FIELDS.leads.lastName]: person.last_name ?? person.name?.split(" ").slice(1).join(" ") ?? "",
             [FIELDS.leads.title]: person.title ?? "",
@@ -177,7 +179,7 @@ export async function researchLeads(
             ...(stageFromHeadcount(org?.estimated_num_employees)
               ? { [FIELDS.leads.companyStage]: stageFromHeadcount(org?.estimated_num_employees) }
               : {}),
-          },
+          }, ownerEmail),
         ]);
         // keep this run idempotent against itself
         if (email) seenEmail.add(email.toLowerCase());

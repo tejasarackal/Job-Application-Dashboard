@@ -1,5 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listJobListings, updateRecords, TABLES, FIELDS, primaryBase } from "@/lib/airtable";
+import {
+  assertOwnership,
+  listJobListings,
+  updateRecords,
+  OwnershipError,
+  TABLES,
+  FIELDS,
+  primaryBase,
+} from "@/lib/airtable";
+import {
+  requireUserApi,
+  getViewContext,
+  assertWritable,
+  assertSameOrigin,
+  handleAuthError,
+  AuthError,
+} from "@/lib/session";
 import { roleKey } from "@/lib/workflows/filters";
 
 export const dynamic = "force-dynamic";
@@ -11,12 +27,22 @@ const STATUSES = new Set(["new", "queued", "approved", "applied", "skipped", "re
 const PRE_APPLY = new Set(["new", "queued", "approved", "review_pending"]);
 
 // POST /api/listings/{id}  body { status } — update one Job_Listings row's status.
+// Gate (PRD §5.3): session + same-origin + not-view-as + ownership proof. The
+// mutation runs as the SESSION identity, never effectiveEmail.
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const { status } = (await req.json().catch(() => ({}))) as { status?: string };
-  if (!status || !STATUSES.has(status)) {
-    return NextResponse.json({ ok: false, error: "valid status required" }, { status: 400 });
-  }
   try {
+    const session = await requireUserApi();
+    assertSameOrigin(req);
+    assertWritable(await getViewContext()); // view-as is read-only by construction (D7)
+
+    const { status } = (await req.json().catch(() => ({}))) as { status?: string };
+    if (!status || !STATUSES.has(status)) {
+      return NextResponse.json({ ok: false, error: "valid status required" }, { status: 400 });
+    }
+
+    // Ownership proof before the write (PRD D5) — 404s on missing OR other-owned.
+    await assertOwnership(TABLES.jobListings, primaryBase(), session.email, [params.id]);
+
     await updateRecords(TABLES.jobListings, primaryBase(), [
       { id: params.id, fields: { [FIELDS.jobListings.status]: status } },
     ]);
@@ -24,9 +50,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // On apply, collapse same-role sibling variants (the same job posted on another
     // board / under a new req id) out of New → expired. Mirrors the scrape-time
     // suppression for the manual path; same-day duplicates the scrape can't see.
+    // Sibling ids derive from the OWNER-FILTERED list, so the second update can
+    // never touch another user's rows.
     let collapsed = 0;
     if (status === "applied") {
-      const listings = await listJobListings({ fresh: true });
+      const listings = await listJobListings(session.email, { fresh: true });
       const self = listings.find((l) => l.id === params.id);
       if (self) {
         const rk = roleKey(self.company, self.title);
@@ -45,6 +73,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
     return NextResponse.json({ ok: true, id: params.id, status, collapsed });
   } catch (e) {
-    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+    if (e instanceof OwnershipError) {
+      return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
+    }
+    if (e instanceof AuthError) return handleAuthError(e);
+    console.error("api/listings/[id]:", e);
+    return NextResponse.json({ ok: false, error: "internal error" }, { status: 500 });
   }
 }

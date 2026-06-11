@@ -4,6 +4,7 @@ import { DataTable } from "@/components/ui/DataTable";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { getWorkflowRuns } from "@/lib/fetcher";
+import { getViewContext } from "@/lib/session";
 import type { WorkflowRun } from "@/lib/types";
 import { RunButton } from "./RunButton";
 
@@ -13,6 +14,7 @@ export const metadata = { title: "Workflows" };
 // Static catalog of the workflows the engine runs. See docs/plan/PRD-workflow-engine.md.
 const WORKFLOWS: { name: string; title: string; desc: string }[] = [
   { name: "scrape_jobs", title: "Job Scraping", desc: "Apify job boards → Job Listings" },
+  { name: "revalidate_listings", title: "Revalidate Links", desc: "Expire listings whose posting has closed (dead links → Expired). Free, no Apify." },
   { name: "detect_boards", title: "Detect Boards", desc: "Resolve & repair Workday board tokens in Scrape Targets" },
   { name: "sync_applications", title: "Application Sync", desc: "Gmail → Application statuses" },
   { name: "sync_interviews", title: "Interview Sync", desc: "Gmail → Interviews" },
@@ -56,7 +58,8 @@ function fmtTime(iso?: string): string {
 }
 
 export default async function WorkflowsPage() {
-  const { data: runs, source } = await getWorkflowRuns();
+  const ctx = await getViewContext();
+  const { data: runs, source } = await getWorkflowRuns(ctx.effectiveEmail);
 
   return (
     <>

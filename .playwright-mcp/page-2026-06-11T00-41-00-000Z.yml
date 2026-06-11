@@ -1,0 +1,545 @@
+- generic [ref=e1]:
+  - link [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+    - text: Skip to main content
+  - banner [ref=e3]:
+    - navigation [ref=e4]:
+      - link [ref=e5] [cursor=pointer]:
+        - /url: /?trk=public_jobs_nav-header-logo
+        - generic [ref=e6]: LinkedIn
+        - img [ref=e8]
+      - generic [ref=e19]:
+        - button [ref=e21] [cursor=pointer]:
+          - generic [ref=e22]: Jobs
+          - generic:
+            - img
+        - tabpanel [ref=e23]:
+          - search [ref=e24]:
+            - generic [ref=e25]:
+              - combobox [ref=e26]: Software Engineer, Data, Global Sustainability
+              - button [ref=e27] [cursor=pointer]:
+                - generic [ref=e28]: Clear text
+                - img [ref=e30]
+            - generic [ref=e34]:
+              - combobox [ref=e35]: San Jose, CA
+              - button [ref=e36] [cursor=pointer]:
+                - generic [ref=e37]: Clear text
+                - img [ref=e39]
+            - button [ref=e43] [cursor=pointer]:
+              - img [ref=e45]
+        - status [ref=e47]
+      - generic [ref=e48]:
+        - link [ref=e49] [cursor=pointer]:
+          - /url: https://www.linkedin.com/login?emailAddress=&fromSignIn=&fromSignIn=true&session_redirect=https%3A%2F%2Fwww.linkedin.com%2Fjobs%2Fview%2F4424565874&trk=public_jobs_nav-header-signin
+          - text: Sign in
+        - link [ref=e50] [cursor=pointer]:
+          - /url: https://www.linkedin.com/signup/cold-join?source=jobs_registration&session_redirect=https%3A%2F%2Fwww.linkedin.com%2Fjobs%2Fview%2F4424565874&trk=public_jobs_nav-header-join
+          - text: Join now
+  - main [ref=e51]:
+    - generic [ref=e53]:
+      - generic [ref=e55]:
+        - link [ref=e56] [cursor=pointer]:
+          - /url: https://www.linkedin.com/company/google?trk=public_jobs_topcard_logo
+          - img [ref=e57]
+        - generic [ref=e59]:
+          - heading [level=1] [ref=e60]: Software Engineer, Data, Global Sustainability
+          - heading [level=4] [ref=e61]:
+            - generic [ref=e62]:
+              - link [ref=e64] [cursor=pointer]:
+                - /url: https://www.linkedin.com/company/google?trk=public_jobs_topcard-org-name
+                - text: Google
+              - text: · Mountain View, CA
+            - generic [ref=e65]: 5 days ago · 65 applicants
+            - link [ref=e66] [cursor=pointer]:
+              - /url: https://www.linkedin.com/login?session_redirect=https%3A%2F%2Fwww%2Elinkedin%2Ecom%2Fsearch%2Fresults%2Fpeople%2F%3FfacetCurrentCompany%3D1441%26title%3DSoftware%2BEngineer&emailAddress=&fromSignIn=&trk=public_jobs_see-who-was-hired_people-search-link_face-pile-cta
+              - generic [ref=e67]:
+                - img [ref=e68]
+                - img [ref=e69]
+                - img [ref=e70]
+              - paragraph [ref=e72]: See who Google has hired for this role
+          - generic [ref=e73]:
+            - button [ref=e74] [cursor=pointer]:
+              - text: Apply
+              - img [ref=e76]
+            - link [ref=e78] [cursor=pointer]:
+              - /url: https://www.linkedin.com/login?emailAddress=&fromSignIn=&session_redirect=https%3A%2F%2Fwww.linkedin.com%2Fjobs%2Fview%2Fsoftware-engineer-data-global-sustainability-at-google-4424565874&trk=public_jobs
+              - text: Save
+        - button [ref=e81] [cursor=pointer]:
+          - img [ref=e83]
+      - generic [ref=e85]:
+        - generic [ref=e87]:
+          - generic [ref=e89]:
+            - generic [ref=e90]:
+              - text: "Applicants in San Francisco: Qualified applications with arrest or conviction records will be considered for employment in accordance with the San Francisco Fair Chance Ordinance for Employers and the California Fair Chance Act. The application window will be open until at least June 19, 2026. This opportunity will remain online based on business needs which may be before or after the specified date. In accordance with Washington state law, we are highlighting our comprehensive benefits package, which is available to all eligible US based employees. Benefits for this role include:"
+              - list [ref=e91]:
+                - listitem [ref=e92]: Health, dental, vision, life, disability insurance
+                - listitem [ref=e93]: "Retirement Benefits: 401(k) with company match"
+                - listitem [ref=e94]: "Paid Time Off: 20 days of vacation per year, accruing at a rate of 6.15 hours per pay period for the first five years of employment"
+                - listitem [ref=e95]: "Sick Time: 40 hours/year (increased to 69 hours/year for Seattle) including 5 discretionary sick days per instance"
+                - listitem [ref=e96]: "Maternity Leave (Short-Term Disability + Baby Bonding): 28-30 weeks"
+                - listitem [ref=e97]: "Baby Bonding Leave: 18 weeks"
+                - listitem [ref=e98]: "Holidays: 13 paid days per year"
+              - text: "Note: By applying to this position you will have an opportunity to share your preferred working location from the following:"
+              - strong [ref=e99]: San Francisco, CA, USA; Boulder, CO, USA; Mountain View, CA, USA; New York, NY, USA; Seattle, WA, USA; Portland, OR, USA
+              - text: .
+              - strong [ref=e100]: "Minimum qualifications:"
+              - list [ref=e101]:
+                - listitem [ref=e102]: Bachelor’s degree in Computer Science, Mathematics, a quantitative discipline, or equivalent practical experience.
+                - listitem [ref=e103]: 2 years of experience with software development in one or more programming languages, or 1 year of experience with an advanced degree, with experience in coding (e.g., Python, R, SQL) and querying databases.
+                - listitem [ref=e104]: 2 years of experience using analytics to solve product or business problems, including managing ETL/ELT processes and statistical analysis.
+                - listitem [ref=e105]: Experience in designing data pipelines and executing conceptual and physical data modeling.
+                - listitem [ref=e106]: Experience in data warehouse design, data integration, data marts, and managing cross-functional stakeholder collaboration.
+              - strong [ref=e107]: "Preferred qualifications:"
+              - list [ref=e108]:
+                - listitem [ref=e109]: Master's degree or PhD in Computer Science, Statistics, Engineering, Mathematics, Sciences, or related technical fields.
+                - listitem [ref=e110]: 2 years of experience with data structures and algorithms, specifically applied to scalable data architecture and analytics.
+                - listitem [ref=e111]: Experience developing accessible technologies and solutions that balance rapid experimentation with robust, long-term engineering design.
+                - listitem [ref=e112]: Proven understanding of environmental data structures, carbon accounting methodologies, or data center energy and efficiency.
+                - listitem [ref=e113]: Strong domain knowledge and familiarity with broader sustainability and renewable energy concepts.
+              - strong [ref=e114]: About The Job
+              - text: "Google's software engineers develop the next-generation technologies that change how billions of users connect, explore, and interact with information and one another. Our products need to handle information at massive scale, and extend well beyond web search. We're looking for engineers who bring fresh ideas from all areas, including information retrieval, distributed computing, large-scale system design, networking and data storage, security, artificial intelligence, natural language processing, UI design and mobile; the list goes on and is growing every day. As a software engineer, you will work on a specific project critical to Google’s needs with opportunities to switch teams and projects as you and our fast-paced business grow and evolve. We need our engineers to be versatile, display leadership qualities and be enthusiastic to take on new problems across the full-stack as we continue to push technology forward. The Sustainability Data and Tech team sits within Google's Global Sustainability Team, the central organization driving our company’s ambitious climate action, clean energy, and decarbonization goals. We focus on building a more sustainable future for everyone by driving strategy and catalyzing solutions at scale. Our team leads the engineering and development of solutions that enable smarter sustainability insights and decision-making across Alphabet. We collect, organize, and share critical sustainability data to empower Google’s operations and global climate impact strategies. As a Software Engineer blending data engineering and software development expertise, you will build critical data solutions driving Google's climate action goals. The Global Sustainability team enables Google to build a more sustainable future for everyone by driving strategy and solutions. We drive the development and implementation of Google’s global sustainability strategy to further empower action, ensure alignment and prioritization, identify leadership opportunities, and mitigate risks. We drive sustainability strategy and programs on carbon, circular economy, water, product integration, reporting, and employee engagement, while serving as a sustainability leadership advocate internally and externally. Individual pay is determined by factors including job-related skills, experience, and relevant education or training. US: $147000 - $211000 (USD) + 15% bonus target + bonus + equity + benefits"
+              - strong [ref=e115]: Responsibilities
+              - text: Learn more about benefits at Google .
+              - list [ref=e116]:
+                - listitem [ref=e117]: Write product or system development code to build and optimize scalable and efficient data pipelines, data integrations, and data mart solutions managing sustainability datasets.
+                - listitem [ref=e118]: Participate in, or lead design reviews with peers and stakeholders to decide amongst available technologies, balancing long-term, scalable architecture design with the need for rapid iteration in a dynamic field.
+                - listitem [ref=e119]: Review code developed by other developers and provide feedback to ensure best practices across both software and data domains.
+                - listitem [ref=e120]: Contribute to existing documentation or educational content and adapt content based on product/program updates, helping to drive broader cross-Google sustainability engineering strategy and scaling impact.
+                - listitem [ref=e121]: Triage product or system issues and debug/track/resolve by analyzing the sources of issues and the impact on hardware, network, or service operations and quality across our critical climate data applications.
+              - text: Google is proud to be an equal opportunity workplace and is an affirmative action employer. We are committed to equal employment opportunity regardless of race, color, ancestry, religion, sex, national origin, sexual orientation, age, citizenship, marital status, disability, gender identity or Veteran status. We also consider qualified applicants regardless of criminal histories, consistent with legal requirements. See also Google's EEO Policy and EEO is the Law. If you have a disability or special need that requires accommodation, please let us know by completing our Accommodations for Applicants form .
+            - button [ref=e122] [cursor=pointer]:
+              - text: Show more
+              - img [ref=e124]
+          - list [ref=e126]:
+            - listitem [ref=e127]:
+              - heading [level=3] [ref=e128]: Seniority level
+              - text: Not Applicable
+            - listitem [ref=e129]:
+              - heading [level=3] [ref=e130]: Employment type
+              - text: Full-time
+            - listitem [ref=e131]:
+              - heading [level=3] [ref=e132]: Job function
+              - text: Information Technology and Engineering
+            - listitem [ref=e133]:
+              - heading [level=3] [ref=e134]: Industries
+              - text: Information Services and Technology, Information and Internet
+        - generic [ref=e139]:
+          - paragraph [ref=e140]: Referrals increase your chances of interviewing at Google by 2x
+          - link [ref=e141] [cursor=pointer]:
+            - /url: https://www.linkedin.com/login?session_redirect=https%3A%2F%2Fwww%2Elinkedin%2Ecom%2Fsearch%2Fresults%2Fpeople%2F%3FfacetCurrentCompany%3D1441&emailAddress=&fromSignIn=&trk=public_jobs_find-a-referral-cta
+            - text: See who you know
+      - generic [ref=e144]:
+        - paragraph [ref=e145]:
+          - text: Get notified about new Software Engineer jobs in
+          - strong [ref=e146]: Mountain View, CA
+          - text: .
+        - link [ref=e147] [cursor=pointer]:
+          - /url: https://www.linkedin.com/login?emailAddress=&fromSignIn=&session_redirect=https%3A%2F%2Fwww.linkedin.com%2Fjobs%2Fview%2Fsoftware-engineer-data-global-sustainability-at-google-4424565874&trk=public_jobs_job-alert-guest-redirect-cta
+          - text: Sign in to create job alert
+      - generic [ref=e148]:
+        - heading [level=2] [ref=e149]: Similar jobs
+        - generic [ref=e151]:
+          - list [ref=e152]:
+            - listitem [ref=e153]:
+              - generic [ref=e154]:
+                - link [ref=e155] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/jobs/view/software-engineer-ai-platform-new-grad-at-nuro-4317707969?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=BRX61rC3PoyWunZy8TXdPw%3D%3D
+                  - generic [ref=e156]: Software Engineer, AI Platform - New Grad
+                - generic [ref=e157]:
+                  - heading [level=3] [ref=e158]: Software Engineer, AI Platform - New Grad
+                  - heading [level=4] [ref=e159]:
+                    - link [ref=e160] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/company/nuro-inc.?trk=public_jobs_similar-jobs_main-jobs-card-subtitle
+                      - text: Nuro
+                  - generic [ref=e161]:
+                    - generic [ref=e162]: Mountain View, CA
+                    - time [ref=e163]: 2 weeks ago
+            - listitem [ref=e164]:
+              - generic [ref=e165]:
+                - link [ref=e166] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/jobs/view/software-engineer-1-at-intuit-4401741037?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=AYI682E5XOihgDtdLi31hg%3D%3D
+                  - generic [ref=e167]: Software Engineer 1
+                - generic [ref=e168]:
+                  - heading [level=3] [ref=e169]: Software Engineer 1
+                  - heading [level=4] [ref=e170]:
+                    - link [ref=e171] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/company/intuit?trk=public_jobs_similar-jobs_main-jobs-card-subtitle
+                      - text: Intuit
+                  - generic [ref=e172]:
+                    - generic [ref=e173]: Mountain View, CA
+                    - time [ref=e174]: 2 weeks ago
+            - listitem [ref=e175]:
+              - generic [ref=e176]:
+                - link [ref=e177] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/jobs/view/software-engineer-i-at-sony-interactive-entertainment-4414360574?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=56%2BAoFrfayhxjI99DnlBtA%3D%3D
+                  - generic [ref=e178]: Software Engineer I
+                - generic [ref=e179]:
+                  - heading [level=3] [ref=e180]: Software Engineer I
+                  - heading [level=4] [ref=e181]:
+                    - link [ref=e182] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/company/sony-interactive-entertainment-llc?trk=public_jobs_similar-jobs_main-jobs-card-subtitle
+                      - text: Sony Interactive Entertainment
+                  - generic [ref=e183]:
+                    - generic [ref=e184]: San Mateo, CA
+                    - time [ref=e185]: 2 weeks ago
+            - listitem [ref=e186]:
+              - generic [ref=e187]:
+                - link [ref=e188] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/jobs/view/software-engineer-at-google-4425291706?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=VkyjJ4IAN3kJrhVXYR%2Bm7A%3D%3D
+                  - generic [ref=e189]: Software Engineer
+                - generic [ref=e190]:
+                  - heading [level=3] [ref=e191]: Software Engineer
+                  - heading [level=4] [ref=e192]:
+                    - link [ref=e193] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/company/google?trk=public_jobs_similar-jobs_main-jobs-card-subtitle
+                      - text: Google
+                  - generic [ref=e194]:
+                    - generic [ref=e195]: Mountain View, CA
+                    - time [ref=e196]: 2 days ago
+            - listitem [ref=e197]:
+              - generic [ref=e198]:
+                - link [ref=e199] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/jobs/view/junior-software-development-engineer-at-adobe-4408916821?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=uppdwMYKg%2BOoGW7M7Q5n4w%3D%3D
+                  - generic [ref=e200]: Junior Software Development Engineer
+                - generic [ref=e201]:
+                  - heading [level=3] [ref=e202]: Junior Software Development Engineer
+                  - heading [level=4] [ref=e203]:
+                    - link [ref=e204] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/company/adobe?trk=public_jobs_similar-jobs_main-jobs-card-subtitle
+                      - text: Adobe
+                  - generic [ref=e205]:
+                    - generic [ref=e206]: San Jose, CA
+                    - time [ref=e207]: 2 weeks ago
+            - listitem [ref=e208]:
+              - generic [ref=e209]:
+                - link [ref=e210] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/jobs/view/software-engineer-university-grad-at-glean-4295123743?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=TCbxvPlqCysSgzizZKu8Aw%3D%3D
+                  - generic [ref=e211]: Software Engineer, University Grad
+                - generic [ref=e212]:
+                  - heading [level=3] [ref=e213]: Software Engineer, University Grad
+                  - heading [level=4] [ref=e214]:
+                    - link [ref=e215] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/company/gleanwork?trk=public_jobs_similar-jobs_main-jobs-card-subtitle
+                      - text: Glean
+                  - generic [ref=e216]:
+                    - generic [ref=e217]: Mountain View, CA
+                    - time [ref=e218]: 1 week ago
+          - button [ref=e219] [cursor=pointer]: Show more jobs like this
+    - generic [ref=e221]:
+      - generic [ref=e222]:
+        - heading [level=2] [ref=e223]: People also viewed
+        - list [ref=e225]:
+          - listitem [ref=e226]:
+            - generic [ref=e227]:
+              - link [ref=e228] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/view/software-engineer-backend-at-plaid-4410265188?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=Hc7Eur2NWOpY%2B1bb3hAPLQ%3D%3D
+                - generic [ref=e229]: Software Engineer, Backend
+              - generic [ref=e230]:
+                - heading [level=3] [ref=e231]: Software Engineer, Backend
+                - paragraph [ref=e232]:
+                  - link [ref=e233] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/plaid-?trk=public_jobs_people-also-viewed_aside-job-card-subtitle
+                    - text: Plaid
+                - generic [ref=e234]:
+                  - generic [ref=e235]: San Francisco Bay Area
+                  - generic [ref=e236]: $176,400 - $226,800
+                  - time [ref=e237]: 2 weeks ago
+          - listitem [ref=e238]:
+            - generic [ref=e239]:
+              - link [ref=e240] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/view/software-engineer-backend-factory-software-at-tesla-4418904660?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=vSplzDQoinY%2FiFmM1IlgEQ%3D%3D
+                - generic [ref=e241]: Software Engineer, Backend, Factory Software
+              - generic [ref=e242]:
+                - heading [level=3] [ref=e243]: Software Engineer, Backend, Factory Software
+                - paragraph [ref=e244]:
+                  - link [ref=e245] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/tesla-motors?trk=public_jobs_people-also-viewed_aside-job-card-subtitle
+                    - text: Tesla
+                - generic [ref=e246]:
+                  - generic [ref=e247]: Fremont, CA
+                  - time [ref=e248]: 2 weeks ago
+          - listitem [ref=e249]:
+            - generic [ref=e250]:
+              - link [ref=e251] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/view/software-engineer-backend-factory-software-at-tesla-4420213695?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=BlhFnEfyo4u%2BEfescforhw%3D%3D
+                - generic [ref=e252]: Software Engineer, Backend, Factory Software
+              - generic [ref=e253]:
+                - heading [level=3] [ref=e254]: Software Engineer, Backend, Factory Software
+                - paragraph [ref=e255]:
+                  - link [ref=e256] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/tesla-motors?trk=public_jobs_people-also-viewed_aside-job-card-subtitle
+                    - text: Tesla
+                - generic [ref=e257]:
+                  - generic [ref=e258]: Fremont, CA
+                  - time [ref=e259]: 1 week ago
+          - listitem [ref=e260]:
+            - generic [ref=e261]:
+              - link [ref=e262] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/view/full-stack-software-engineer-at-blink-new-4317742141?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=ePc12ipXAMmMGmTC9tIGdQ%3D%3D
+                - generic [ref=e263]: Full Stack Software Engineer
+              - generic [ref=e264]:
+                - heading [level=3] [ref=e265]: Full Stack Software Engineer
+                - paragraph [ref=e266]:
+                  - link [ref=e267] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/blinkdotnew?trk=public_jobs_people-also-viewed_aside-job-card-subtitle
+                    - text: Blink.new
+                - generic [ref=e268]:
+                  - generic [ref=e269]: Redwood City, CA
+                  - generic [ref=e270]: $85,000 - $150,000
+                  - time [ref=e271]: 7 months ago
+          - listitem [ref=e272]:
+            - generic [ref=e273]:
+              - link [ref=e274] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/view/software-engineer-at-robinhood-4419621917?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=UQ5%2Beyk2yOQZR6z7HRCFtg%3D%3D
+                - generic [ref=e275]: Software Engineer
+              - generic [ref=e276]:
+                - heading [level=3] [ref=e277]: Software Engineer
+                - paragraph [ref=e278]:
+                  - link [ref=e279] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/robinhood?trk=public_jobs_people-also-viewed_aside-job-card-subtitle
+                    - text: Robinhood
+                - generic [ref=e280]:
+                  - generic [ref=e281]: Menlo Park, CA
+                  - time [ref=e282]: 1 week ago
+          - listitem [ref=e283]:
+            - generic [ref=e284]:
+              - link [ref=e285] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/view/software-engineer-at-robinhood-4419606920?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=RYZpjo9PgbESHRprhhvSZg%3D%3D
+                - generic [ref=e286]: Software Engineer
+              - generic [ref=e287]:
+                - heading [level=3] [ref=e288]: Software Engineer
+                - paragraph [ref=e289]:
+                  - link [ref=e290] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/robinhood?trk=public_jobs_people-also-viewed_aside-job-card-subtitle
+                    - text: Robinhood
+                - generic [ref=e291]:
+                  - generic [ref=e292]: Menlo Park, CA
+                  - time [ref=e293]: 1 week ago
+          - listitem [ref=e294]:
+            - generic [ref=e295]:
+              - link [ref=e296] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/view/software-engineer-optimus-at-tesla-4419556793?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=oynA665YWRDUfxrMvw46Og%3D%3D
+                - generic [ref=e297]: Software Engineer, Optimus
+              - generic [ref=e298]:
+                - heading [level=3] [ref=e299]: Software Engineer, Optimus
+                - paragraph [ref=e300]:
+                  - link [ref=e301] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/tesla-motors?trk=public_jobs_people-also-viewed_aside-job-card-subtitle
+                    - text: Tesla
+                - generic [ref=e302]:
+                  - generic [ref=e303]: Fremont, CA
+                  - time [ref=e304]: 2 weeks ago
+          - listitem [ref=e305]:
+            - generic [ref=e306]:
+              - link [ref=e307] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/view/software-engineer-at-paypal-4424138125?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=QleRL9W6Wsi%2Fpmfg%2FdMivA%3D%3D
+                - generic [ref=e308]: Software Engineer
+              - generic [ref=e309]:
+                - heading [level=3] [ref=e310]: Software Engineer
+                - paragraph [ref=e311]:
+                  - link [ref=e312] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/paypal?trk=public_jobs_people-also-viewed_aside-job-card-subtitle
+                    - text: PayPal
+                - generic [ref=e313]:
+                  - generic [ref=e314]: San Jose, CA
+                  - time [ref=e315]: 5 days ago
+          - listitem [ref=e316]:
+            - generic [ref=e317]:
+              - link [ref=e318] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/view/software-engineer-at-robinhood-4419626031?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=sQ0h8VvCh%2FQBE0ORxDLF7w%3D%3D
+                - generic [ref=e319]: Software Engineer
+              - generic [ref=e320]:
+                - heading [level=3] [ref=e321]: Software Engineer
+                - paragraph [ref=e322]:
+                  - link [ref=e323] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/robinhood?trk=public_jobs_people-also-viewed_aside-job-card-subtitle
+                    - text: Robinhood
+                - generic [ref=e324]:
+                  - generic [ref=e325]: Menlo Park, CA
+                  - time [ref=e326]: 1 week ago
+          - listitem [ref=e327]:
+            - generic [ref=e328]:
+              - link [ref=e329] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/view/software-engineer-backend-at-glean-4258382945?refId=3iGFHldunEw%2Bl8YLALoAgQ%3D%3D&trackingId=qmmZ7twRBC5v0x3FOz58dQ%3D%3D
+                - generic [ref=e330]: Software Engineer, Backend
+              - generic [ref=e331]:
+                - heading [level=3] [ref=e332]: Software Engineer, Backend
+                - paragraph [ref=e333]:
+                  - link [ref=e334] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/gleanwork?trk=public_jobs_people-also-viewed_aside-job-card-subtitle
+                    - text: Glean
+                - generic [ref=e335]:
+                  - generic [ref=e336]: Mountain View, CA
+                  - time [ref=e337]: 3 days ago
+      - generic [ref=e338]:
+        - heading [level=2] [ref=e339]: Similar Searches
+        - generic [ref=e341]:
+          - list [ref=e342]:
+            - listitem [ref=e343]:
+              - link [ref=e344] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/senior-automation-engineer-jobs?trk=public_jobs_full-click
+                - generic [ref=e345]:
+                  - heading [level=3] [ref=e346]: Senior Automation Engineer jobs
+                  - generic [ref=e347]: 52,948 open jobs
+            - listitem [ref=e348]:
+              - link [ref=e349] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/senior-3d-artist-jobs?trk=public_jobs_full-click
+                - generic [ref=e350]:
+                  - heading [level=3] [ref=e351]: Senior 3D Artist jobs
+                  - generic [ref=e352]: 383 open jobs
+            - listitem [ref=e353]:
+              - link [ref=e354] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/senior-computer-scientist-jobs?trk=public_jobs_full-click
+                - generic [ref=e355]:
+                  - heading [level=3] [ref=e356]: Senior Computer Scientist jobs
+                  - generic [ref=e357]: 41,808 open jobs
+            - listitem [ref=e358]:
+              - link [ref=e359] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/software-engineer-jobs?trk=public_jobs_full-click
+                - generic [ref=e360]:
+                  - heading [level=3] [ref=e361]: Software Engineer jobs
+                  - generic [ref=e362]: 300,699 open jobs
+            - listitem [ref=e363]:
+              - link [ref=e364] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/circuit-design-engineer-jobs?trk=public_jobs_full-click
+                - generic [ref=e365]:
+                  - heading [level=3] [ref=e366]: Circuit Design Engineer jobs
+                  - generic [ref=e367]: 6,339 open jobs
+            - listitem [ref=e368]:
+              - link [ref=e369] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/regional-director-of-admissions-jobs?trk=public_jobs_full-click
+                - generic [ref=e370]:
+                  - heading [level=3] [ref=e371]: Regional Director of Admissions jobs
+                  - generic [ref=e372]: 721 open jobs
+            - listitem [ref=e373]:
+              - link [ref=e374] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/computational-chemist-jobs?trk=public_jobs_full-click
+                - generic [ref=e375]:
+                  - heading [level=3] [ref=e376]: Computational Chemist jobs
+                  - generic [ref=e377]: 6,812 open jobs
+            - listitem [ref=e378]:
+              - link [ref=e379] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/information-assurance-engineer-jobs?trk=public_jobs_full-click
+                - generic [ref=e380]:
+                  - heading [level=3] [ref=e381]: Information Assurance Engineer jobs
+                  - generic [ref=e382]: 8,607 open jobs
+            - listitem [ref=e383]:
+              - link [ref=e384] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/technical-sales-account-manager-jobs?trk=public_jobs_full-click
+                - generic [ref=e385]:
+                  - heading [level=3] [ref=e386]: Technical Sales Account Manager jobs
+                  - generic [ref=e387]: 5,219 open jobs
+            - listitem [ref=e388]:
+              - link [ref=e389] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/director-of-architecture-jobs?trk=public_jobs_full-click
+                - generic [ref=e390]:
+                  - heading [level=3] [ref=e391]: Director of Architecture jobs
+                  - generic [ref=e392]: 5,759 open jobs
+            - listitem [ref=e393]:
+              - link [ref=e394] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/software-engineer-intern-jobs?trk=public_jobs_full-click
+                - generic [ref=e395]:
+                  - heading [level=3] [ref=e396]: Software Engineer Intern jobs
+                  - generic [ref=e397]: 1,941 open jobs
+            - listitem [ref=e398]:
+              - link [ref=e399] [cursor=pointer]:
+                - /url: https://www.linkedin.com/jobs/game-programmer-jobs?trk=public_jobs_full-click
+                - generic [ref=e400]:
+                  - heading [level=3] [ref=e401]: Game Programmer jobs
+                  - generic [ref=e402]: 958 open jobs
+          - button [ref=e403] [cursor=pointer]: Show more
+      - generic [ref=e407]:
+        - heading [level=2] [ref=e409]: Explore top content on LinkedIn
+        - paragraph [ref=e410]: Find curated posts and insights for relevant topics all in one place.
+        - link [ref=e411] [cursor=pointer]:
+          - /url: https://www.linkedin.com/top-content/
+          - text: View top content
+  - button [ref=e416] [cursor=pointer]: More searches
+  - contentinfo [ref=e418]:
+    - list [ref=e419]:
+      - listitem [ref=e420]:
+        - generic [ref=e421]: LinkedIn
+        - generic [ref=e423]: © 2026
+      - listitem [ref=e424]:
+        - link [ref=e425] [cursor=pointer]:
+          - /url: https://about.linkedin.com?trk=d_jobs_guest_details_footer-about
+          - text: About
+      - listitem [ref=e426]:
+        - link [ref=e427] [cursor=pointer]:
+          - /url: https://www.linkedin.com/accessibility?trk=d_jobs_guest_details_footer-accessibility
+          - text: Accessibility
+      - listitem [ref=e428]:
+        - link [ref=e429] [cursor=pointer]:
+          - /url: https://www.linkedin.com/legal/user-agreement?trk=d_jobs_guest_details_footer-user-agreement
+          - text: User Agreement
+      - listitem [ref=e430]:
+        - link [ref=e431] [cursor=pointer]:
+          - /url: https://www.linkedin.com/legal/privacy-policy?trk=d_jobs_guest_details_footer-privacy-policy
+          - text: Privacy Policy
+      - listitem [ref=e432]:
+        - link [ref=e433] [cursor=pointer]:
+          - /url: https://www.linkedin.com/legal/california-privacy-disclosure?trk=d_jobs_guest_details_footer-california-privacy-rights-act
+          - text: Your California Privacy Choices
+      - listitem [ref=e434]:
+        - link [ref=e435] [cursor=pointer]:
+          - /url: https://www.linkedin.com/legal/cookie-policy?trk=d_jobs_guest_details_footer-cookie-policy
+          - text: Cookie Policy
+      - listitem [ref=e436]:
+        - link [ref=e437] [cursor=pointer]:
+          - /url: https://www.linkedin.com/legal/copyright-policy?trk=d_jobs_guest_details_footer-copyright-policy
+          - text: Copyright Policy
+      - listitem [ref=e438]:
+        - link [ref=e439] [cursor=pointer]:
+          - /url: https://brand.linkedin.com/policies?trk=d_jobs_guest_details_footer-brand-policy
+          - text: Brand Policy
+      - listitem [ref=e440]:
+        - link [ref=e441] [cursor=pointer]:
+          - /url: https://www.linkedin.com/psettings/guest-controls?trk=d_jobs_guest_details_footer-guest-controls
+          - text: Guest Controls
+      - listitem [ref=e442]:
+        - link [ref=e443] [cursor=pointer]:
+          - /url: https://www.linkedin.com/legal/professional-community-policies?trk=d_jobs_guest_details_footer-community-guide
+          - text: Community Guidelines
+      - listitem [ref=e444]:
+        - button [ref=e446]: Language
+  - dialog "Sign in to see who you already know at Google" [active] [ref=e449]:
+    - button "Dismiss" [ref=e450] [cursor=pointer]:
+      - img [ref=e452]
+    - generic [ref=e455]:
+      - generic [ref=e456]:
+        - img [ref=e457]
+        - heading "Sign in to see who you already know at Google" [level=2] [ref=e458]
+      - generic [ref=e459]:
+        - button "Continue with google" [ref=e462]:
+          - generic [ref=e463]:
+            - button "Continue with Google" [ref=e465] [cursor=pointer]:
+              - generic [ref=e467]:
+                - img [ref=e470]
+                - generic [ref=e477]: Continue with Google
+            - iframe
+        - button "Sign in with Email" [ref=e478] [cursor=pointer]:
+          - img [ref=e480]
+          - generic [ref=e482]: Sign in with Email
+        - paragraph [ref=e484]: or
+        - button "Continue with google" [ref=e486]:
+          - generic [ref=e487]:
+            - button "Continue with Google" [ref=e489] [cursor=pointer]:
+              - generic [ref=e491]:
+                - img [ref=e493]
+                - generic [ref=e500]: Continue with Google
+            - iframe
+        - paragraph [ref=e501]:
+          - text: New to LinkedIn?
+          - link "Join now" [ref=e502] [cursor=pointer]:
+            - /url: https://www.linkedin.com/signup/cold-join?source=jobs_registration&trk=public_jobs_contextual-sign-in-modal_join-link
+        - paragraph [ref=e503]:
+          - text: By clicking Continue to join or sign in, you agree to LinkedIn’s
+          - link "User Agreement" [ref=e504] [cursor=pointer]:
+            - /url: /legal/user-agreement?trk=linkedin-tc_auth-button_user-agreement
+          - text: ","
+          - link "Privacy Policy" [ref=e505] [cursor=pointer]:
+            - /url: /legal/privacy-policy?trk=linkedin-tc_auth-button_privacy-policy
+          - text: ", and"
+          - link "Cookie Policy" [ref=e506] [cursor=pointer]:
+            - /url: /legal/cookie-policy?trk=linkedin-tc_auth-button_cookie-policy
+          - text: .

@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
 import { getOutreach, getSequences } from "@/lib/fetcher";
+import { getViewContext } from "@/lib/session";
 import { formatRelative, pct } from "@/lib/utils";
 import type { OutreachContact, ApolloSequence } from "@/lib/types";
 
@@ -13,8 +14,9 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Outreach" };
 
 export default async function OutreachPage() {
+  const ctx = await getViewContext();
   const [outreach, sequences] = await Promise.all([
-    getOutreach(),
+    getOutreach(ctx.effectiveEmail),
     getSequences(),
   ]);
 

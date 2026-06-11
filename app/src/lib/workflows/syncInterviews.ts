@@ -16,6 +16,7 @@ import {
   listLeads,
   createRecords,
   updateRecords,
+  withOwner,
   TABLES,
   FIELDS,
   primaryBase,
@@ -240,8 +241,9 @@ function appendNote(existing: string | undefined, meta: string): string {
 }
 
 export async function syncInterviews(
-  opts: { maxItems?: number; dryRun?: boolean; offset?: number; cursor?: { offset?: number } } = {},
+  opts: { ownerEmail: string; maxItems?: number; dryRun?: boolean; offset?: number; cursor?: { offset?: number } },
 ): Promise<RunResult> {
+  const ownerEmail = opts.ownerEmail; // engine identity (PRD §5.6)
   const max = opts.maxItems ?? 3; // Hobby ~10s cap → small batch; chunk-loop covers the rest
   const offset = opts.cursor?.offset ?? opts.offset ?? 0;
   const dryRun = Boolean(opts.dryRun);
@@ -259,7 +261,11 @@ export async function syncInterviews(
   }
   const batch = candidates.slice(offset, offset + max);
 
-  const [interviews, apps, leads] = await Promise.all([listInterviews(), listApplications(), listLeads()]);
+  const [interviews, apps, leads] = await Promise.all([
+    listInterviews(ownerEmail),
+    listApplications(ownerEmail),
+    listLeads(ownerEmail),
+  ]);
   const pipeline = new Set<string>();
   for (const i of interviews) pipeline.add(normalizeCompany(i.company));
   for (const a of apps) pipeline.add(normalizeCompany(a.company));
@@ -353,7 +359,10 @@ export async function syncInterviews(
 
       let id = `dry-${created}`;
       if (!dryRun) {
-        const [rec] = await createRecords(TABLES.interviews, primaryBase(), [fields]);
+        // Owner-stamped create (PRD §5.6 / G7).
+        const [rec] = await createRecords(TABLES.interviews, primaryBase(), [
+          withOwner("interviews", fields, ownerEmail),
+        ]);
         id = rec.id;
       }
       rows.push({ id, company: ex.company, role, interviewer, stage, status, scheduledAt, notes: meta } as Interview);

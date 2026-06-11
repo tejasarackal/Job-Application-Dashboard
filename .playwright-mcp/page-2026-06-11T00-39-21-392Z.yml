@@ -1,0 +1,130 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "Skip to main content" [ref=e5] [cursor=pointer]:
+          - /url: "#main-content"
+        - link "Careers at Airbnb Careers" [ref=e6] [cursor=pointer]:
+          - /url: https://careers.airbnb.com/
+          - img "Careers at Airbnb" [ref=e7]
+          - text: Careers
+        - generic [ref=e11]:
+          - button "Search" [ref=e12] [cursor=pointer]:
+            - generic [ref=e13]: Search
+          - textbox "Start your search" [ref=e14]
+        - navigation [ref=e15]:
+          - list [ref=e16]:
+            - listitem [ref=e17]:
+              - link "Life at Airbnb" [ref=e18] [cursor=pointer]:
+                - /url: https://careers.airbnb.com/life-at-airbnb/
+            - listitem [ref=e19]:
+              - link "Job Search" [ref=e20] [cursor=pointer]:
+                - /url: /positions
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - heading "Oops!" [level=1] [ref=e24]
+        - heading "We can't seem to find the page you're looking for." [level=2] [ref=e25]
+        - 'heading "Error code: 404" [level=6] [ref=e26]'
+        - paragraph [ref=e27]: "Here are some helpful links instead:"
+        - list [ref=e28]:
+          - listitem [ref=e29]:
+            - link "Home" [ref=e30] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=e31]:
+            - link "Search" [ref=e32] [cursor=pointer]:
+              - /url: /search
+          - listitem [ref=e33]:
+            - link "Help" [ref=e34] [cursor=pointer]:
+              - /url: /help
+          - listitem [ref=e35]:
+            - link "Traveling on Airbnb" [ref=e36] [cursor=pointer]:
+              - /url: /help/getting-started/how-to-travel
+          - listitem [ref=e37]:
+            - link "Hosting on Airbnb" [ref=e38] [cursor=pointer]:
+              - /url: /info/why_host
+          - listitem [ref=e39]:
+            - link "Trust & Safety" [ref=e40] [cursor=pointer]:
+              - /url: /trust
+      - img "Girl has dropped her ice cream." [ref=e42]
+    - contentinfo [ref=e43]:
+      - generic [ref=e44]:
+        - paragraph [ref=e45]: "Airbnb, Inc. can hire employees in states where we have registered entities. Currently, employees cannot be located/live in: Alaska, Mississippi, and North Dakota. This list is continuously evolving, so please check back with us if the state you live in is on the exclusion list."
+        - paragraph [ref=e46]: Reasonable Accommodation — Airbnb values diversity & belonging and is proud to be an Equal Employment Opportunity employer. All individuals seeking employment at Airbnb are considered without regard to race, color, religion, national origin, age, sex, marital status, ancestry, physical or mental disability, veteran status, gender identity, sexual orientation, or any other legally protected characteristic. We are committed to providing reasonable accommodations throughout the recruitment process for applicants with disabilities. If you need assistance, or an accommodation, please let your recruiter know once you are contacted about a role.
+      - list [ref=e48]:
+        - listitem [ref=e49]:
+          - link "Airbnb" [ref=e50] [cursor=pointer]:
+            - /url: https://airbnb.com/
+            - generic [ref=e51]: Airbnb
+          - list [ref=e52]:
+            - listitem [ref=e53]:
+              - link "Life at Airbnb" [ref=e54] [cursor=pointer]:
+                - /url: https://careers.airbnb.com/life-at-airbnb/
+            - listitem [ref=e55]:
+              - link "FAQ" [ref=e56] [cursor=pointer]:
+                - /url: https://careers.airbnb.com/faq/
+            - listitem [ref=e57]:
+              - link "Candidate Privacy" [ref=e58] [cursor=pointer]:
+                - /url: https://careers.airbnb.com/candidate-privacy/
+        - listitem [ref=e59]:
+          - generic [ref=e61]: Careers
+          - list [ref=e62]:
+            - listitem [ref=e63]:
+              - link "Job Search" [ref=e64] [cursor=pointer]:
+                - /url: https://careers.airbnb.com/positions
+            - listitem [ref=e65]:
+              - link "Connect Engineering Apprenticeship" [ref=e66] [cursor=pointer]:
+                - /url: https://careers.airbnb.com/connect-engineering-apprenticeship/
+            - listitem [ref=e67]:
+              - link "Internship Programs" [ref=e68] [cursor=pointer]:
+                - /url: https://careers.airbnb.com/internship-programs/
+        - listitem [ref=e69]:
+          - generic [ref=e71]: Machine Readable Files
+          - list [ref=e72]:
+            - listitem [ref=e73]:
+              - link "HMSA" [ref=e74] [cursor=pointer]:
+                - /url: https://www.hmsa.com/help-center/transparency-in-coverage-machine-readable-files/
+            - listitem [ref=e75]:
+              - link "Kaiser Permanente" [ref=e76] [cursor=pointer]:
+                - /url: https://healthy.kaiserpermanente.org/northern-california/pages/technical-information#machine-readable-files
+            - listitem [ref=e77]:
+              - link "Anthem" [ref=e78] [cursor=pointer]:
+                - /url: https://www.anthem.com/ca/machine-readable-file/search/
+      - generic [ref=e79]:
+        - generic [ref=e80]:
+          - text: © Airbnb, Inc
+          - list [ref=e82]:
+            - listitem [ref=e83]:
+              - text: •
+              - link "Terms" [ref=e84] [cursor=pointer]:
+                - /url: https://www.airbnb.com/terms
+            - listitem [ref=e85]:
+              - text: •
+              - link "Privacy" [ref=e86] [cursor=pointer]:
+                - /url: https://www.airbnb.com/terms/privacy_policy
+            - listitem [ref=e87]:
+              - text: •
+              - link "Sitemap" [ref=e88] [cursor=pointer]:
+                - /url: https://www.airbnb.com/sitemaps/v2
+          - link "• Cookie Preferences" [ref=e89] [cursor=pointer]:
+            - /url: "#"
+            - text: •
+            - generic [ref=e90]: Cookie Preferences
+          - link "• Your Privacy Choices" [ref=e91] [cursor=pointer]:
+            - /url: "#"
+            - text: •
+            - generic [ref=e92]: Your Privacy Choices
+            - img [ref=e94]
+        - generic [ref=e103]:
+          - button "English" [ref=e105] [cursor=pointer]
+          - generic [ref=e106]:
+            - link "linkedin" [ref=e107] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/airbnb
+              - img "linkedin" [ref=e108]
+            - link "twitter" [ref=e109] [cursor=pointer]:
+              - /url: https://twitter.com/airbnb
+              - img "twitter" [ref=e110]
+            - link "instagram" [ref=e111] [cursor=pointer]:
+              - /url: https://instagram.com/airbnb
+              - img "instagram" [ref=e112]
+  - status [ref=e113]
+  - status [ref=e114]

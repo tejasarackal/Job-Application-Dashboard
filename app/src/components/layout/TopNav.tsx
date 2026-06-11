@@ -110,6 +110,8 @@ function Tab({ item, active }: { item: NavItem; active: boolean }) {
 // fit a phone width) so every page stays reachable on small screens.
 export function TopNav() {
   const pathname = usePathname();
+  // M0: until the (app) route group lands in M2
+  if (pathname === "/login" || pathname === "/privacy" || pathname === "/terms") return null;
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 

@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { driveJob, jobWorkflows } from "@/lib/workflows/drive";
 
@@ -9,16 +10,23 @@ export const maxDuration = 60;
 // workflows to completion within a time budget; idempotent + resumable next run.
 // Query (manual testing only): ?dryRun=1, ?budgetMs=NNNNN.
 export async function GET(req: NextRequest, { params }: { params: { job: string } }) {
+  // CRON_SECRET is mandatory (fail-closed): unset → 503, so the endpoint is never
+  // open to public hits. Vercel Cron sends it as the bearer header; compare
+  // timing-safe to avoid leaking the secret byte-by-byte. Auth runs before the
+  // job lookup so unauthenticated callers can't enumerate job names.
+  const secret = process.env.CRON_SECRET;
+  if (!secret) {
+    return NextResponse.json({ ok: false, error: "cron secret not configured" }, { status: 503 });
+  }
+  const presented = Buffer.from(req.headers.get("authorization") ?? "");
+  const expected = Buffer.from(`Bearer ${secret}`);
+  if (presented.length !== expected.length || !timingSafeEqual(presented, expected)) {
+    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  }
+
   const job = params.job;
   if (!jobWorkflows(job)) {
     return NextResponse.json({ ok: false, error: `unknown cron job: ${job}` }, { status: 404 });
-  }
-
-  // If CRON_SECRET is set in Vercel, require the bearer header Vercel Cron sends —
-  // blocks public hits. If unset, the endpoint is open (set CRON_SECRET to secure).
-  const secret = process.env.CRON_SECRET;
-  if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) {
-    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
   const url = new URL(req.url);

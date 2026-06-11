@@ -1,0 +1,157 @@
+- generic [ref=e4]:
+  - link "Skip to main content" [ref=e5] [cursor=pointer]:
+    - /url: ""
+  - banner [ref=e8]:
+    - generic [ref=e10]:
+      - link "careers home" [ref=e88] [cursor=pointer]:
+        - /url: https://www.nvidia.com/en-us/about-nvidia/careers/
+        - img "careers home" [ref=e89]
+      - heading "CAREERS AT NVIDIA" [level=1] [ref=e13]
+      - generic [ref=e15]:
+        - button "Sign In" [ref=e17] [cursor=pointer]:
+          - generic [ref=e22]: Sign In
+        - navigation [ref=e23]:
+          - button "Home" [ref=e24] [cursor=pointer]
+          - button "Search for Jobs" [ref=e25] [cursor=pointer]
+  - generic [ref=e28]:
+    - generic [ref=e91]:
+      - alert [ref=e92]: Senior Data Engineer - Financial Transactions & Automation page is loaded
+      - generic [ref=e93]:
+        - generic [ref=e95]:
+          - heading "Senior Data Engineer - Financial Transactions & Automation" [level=2] [ref=e96]
+          - button "Apply" [ref=e101] [cursor=pointer]
+        - generic [ref=e102]:
+          - generic [ref=e103]:
+            - generic [ref=e111]:
+              - term [ref=e112]: locations
+              - definition [ref=e113]: US, CA, Santa Clara
+              - definition [ref=e114]: US, Remote
+            - generic [ref=e115]:
+              - generic [ref=e124]:
+                - term [ref=e125]: time type
+                - definition [ref=e126]: Full time
+              - generic [ref=e135]:
+                - term [ref=e136]: posted on
+                - definition [ref=e137]: Posted 20 Days Ago
+              - generic [ref=e146]:
+                - term [ref=e147]: job requisition id
+                - definition [ref=e148]: JR2009512
+          - generic [ref=e150]:
+            - paragraph [ref=e151]: Within NVIDIA, our Financial Services Engineering (FSE) group’s mission is to architect the financial infrastructure powering NVIDIA Cloud Services, including GeForce Now, by owning the end-to-end monetization pipeline. We orchestrate seamless global payment capture and transform complex service usage into precise financial obligations, leveraging tax engines, financial ledgers, and compliant invoicing to ensure every customer transaction is accurate and frictionless across the globe.
+            - paragraph [ref=e152]
+            - paragraph [ref=e153]: We are looking for a Senior Data Engineer to join our Financial Systems Engineering team. This role involves building the foundational systems that support NVIDIA's high-performance financial infrastructure. This individual will play an important role in building scalable cloud services that integrate with diverse financial systems, enabling operational automation across global financial operations.
+            - paragraph [ref=e154]
+            - paragraph [ref=e155]: "What You'll Be Doing:"
+            - list [ref=e156]:
+              - listitem [ref=e157]:
+                - paragraph [ref=e158]: "Pipeline Architecture & Integrity: Architect event-driven pipelines (Kafka) and develop new data models that ensure transactional integrity (ACID) for commercial events like invoices, payments, and adjustments."
+              - listitem [ref=e159]:
+                - paragraph [ref=e160]: "Scalable Data Solutions: Automate scalable ETL processes and refactor next-generation data architectures to improve quality, security, and coverage for rapidly growing business demands."
+              - listitem [ref=e161]:
+                - paragraph [ref=e162]: "Operational Excellence: Collaborate across teams to codify business processes into self-measuring systems, debugging complex challenges to ensure the reliability of financial operations."
+            - paragraph [ref=e163]
+            - paragraph [ref=e164]: "What We Need To See:"
+            - list [ref=e165]:
+              - listitem [ref=e166]:
+                - paragraph [ref=e167]: Bachelor’s degree (or equivalent experience); Master’s preferred.
+              - listitem [ref=e168]:
+                - paragraph [ref=e169]: 10+ years of industry experience delivering scalable financial services.
+              - listitem [ref=e170]:
+                - paragraph [ref=e171]: "Core Technical Skills: Expertise in building scalable REST APIs backed by PostgreSQL and proficiency in Python, Golang, Scala, or NodeJS. Hands-on experience architecting robust ETL/ELT pipelines using Databricks and dbt to manage large-scale Delta Lake or Apache Iceberg tables."
+              - listitem [ref=e172]:
+                - paragraph [ref=e173]: "Infrastructure & Systems: Deep understanding of high-scale distributed systems, Linux, and cloud infrastructure (AWS/GCP/Azure) using container technologies like Docker and Kubernetes."
+            - paragraph [ref=e174]
+            - paragraph [ref=e175]: "Ways to Stand Out from the Crowd:"
+            - list [ref=e176]:
+              - listitem [ref=e177]:
+                - paragraph [ref=e178]: "Advanced Data Modeling: Experience developing data ontology or semantic data layers that map disparate raw data into interconnected objects with defined properties and functions."
+              - listitem [ref=e179]:
+                - paragraph [ref=e180]: "Financial Domain Scale: A track record of managing Financial/ERP data at internet scale, ensuring transactional integrity and zero data loss."
+              - listitem [ref=e181]:
+                - paragraph [ref=e182]: "Modern Operations: An \"Infrastructure as Code\" mindset with specific experience building self-healing systems in distributed environments."
+            - paragraph [ref=e183]
+            - paragraph [ref=e184]: With competitive salaries and a generous benefits package, NVIDIA is widely considered to be one of the technology world’s most desirable employers. We have some of the most forward-thinking and hardworking people in the world working for us. Due to unprecedented growth, our exclusive engineering teams are rapidly growing. If you're a creative and autonomous engineer with a real passion for technology, we want to hear from you!
+            - paragraph [ref=e185]
+            - paragraph [ref=e186]
+            - text: Your base salary will be determined based on your location, experience, and the pay of employees in similar positions. The base salary range is 184,000 USD - 287,500 USD.
+            - generic [ref=e193]:
+              - paragraph [ref=e194]
+              - paragraph [ref=e195]:
+                - generic [ref=e196]:
+                  - text: You will also be eligible for equity and
+                  - link "benefits" [ref=e197] [cursor=pointer]:
+                    - /url: https://www.nvidia.com/en-us/benefits/
+                  - text: .
+              - paragraph [ref=e198]
+            - text: Applications for this job will be accepted at least until May 25, 2026.
+            - paragraph [ref=e199]
+            - paragraph [ref=e200]: This posting is for an existing vacancy.
+            - paragraph [ref=e201]: NVIDIA uses AI tools in its recruiting processes.
+            - paragraph [ref=e202]
+            - text: NVIDIA is committed to fostering a diverse work environment and proud to be an equal opportunity employer. As we highly value diversity in our current and future employees, we do not discriminate (including in our hiring and promotion practices) on the basis of race, religion, color, national origin, gender, gender expression, sexual orientation, age, marital status, veteran status, disability status or any other characteristic protected by law.
+            - paragraph [ref=e203]
+            - paragraph [ref=e204]
+      - generic [ref=e206]:
+        - heading "Similar Jobs (5)" [level=3] [ref=e207]
+        - generic [ref=e208]:
+          - generic [ref=e209]:
+            - link "Senior Software Engineer - Server Manageability" [ref=e213] [cursor=pointer]:
+              - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Remote/Senior-Software-Engineer---Server-Manageability_JR2015959
+              - heading "Senior Software Engineer - Server Manageability" [level=4] [ref=e214]
+            - generic [ref=e222]:
+              - term [ref=e223]: locations
+              - definition [ref=e224]: 6 Locations
+            - generic [ref=e233]:
+              - term [ref=e234]: time type
+              - definition [ref=e235]: Full time
+            - generic [ref=e244]:
+              - term [ref=e245]: posted on
+              - definition [ref=e246]: Posted 4 Days Ago
+          - generic [ref=e247]:
+            - link "Senior System Software Engineer - Data Platform Observability" [ref=e251] [cursor=pointer]:
+              - /url: /en-US/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Senior-System-Software-Engineer---Data-Platform-Observability_JR2012588
+              - heading "Senior System Software Engineer - Data Platform Observability" [level=4] [ref=e252]
+            - generic [ref=e260]:
+              - term [ref=e261]: locations
+              - definition [ref=e262]: 3 Locations
+            - generic [ref=e271]:
+              - term [ref=e272]: time type
+              - definition [ref=e273]: Full time
+            - generic [ref=e282]:
+              - term [ref=e283]: posted on
+              - definition [ref=e284]: Posted 30+ Days Ago
+        - button "View All 5 Jobs" [ref=e287] [cursor=pointer]:
+          - generic [ref=e291]: View All 5 Jobs
+    - generic [ref=e294]:
+      - img "NV-rgb-blk-apr2026" [ref=e295]
+      - generic [ref=e299]:
+        - paragraph [ref=e300]: NVIDIA pioneered accelerated computing. Today, our AI infrastructure powers global intelligence, transforming every industry.
+        - paragraph [ref=e301]
+        - paragraph [ref=e302]:
+          - text: Learn more about
+          - link "NVIDIA" [ref=e303] [cursor=pointer]:
+            - /url: https://nam11.safelinks.protection.outlook.com/?url=http%3A%2F%2Fwww.nvidia.com%2Fobject%2Fabout-nvidia.html%23sthash.qlXKW56Q.dpuf&data=05%7C01%7Chozkan%40nvidia.com%7Cf442a08620ed4ab9afb108db18e6d308%7C43083d15727340c1b7db39efd9ccc17a%7C0%7C0%7C638131151878484303%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C3000%7C%7C%7C&sdata=DjpWGYWzl3J2uwSP6woYwjdRi52yvWRVeAijKer9u%2Fk%3D&reserved=0
+          - text: .
+  - generic [ref=e29]:
+    - heading "Follow Us" [level=4] [ref=e30]
+    - list [ref=e31]:
+      - listitem [ref=e32] [cursor=pointer]:
+        - link "X" [ref=e33]:
+          - /url: https://twitter.com/nvidia?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor
+      - listitem [ref=e37] [cursor=pointer]:
+        - link "Facebook" [ref=e38]:
+          - /url: https://www.facebook.com/NVIDIA
+      - listitem [ref=e42] [cursor=pointer]:
+        - link "Glassdoor" [ref=e43]:
+          - /url: https://www.glassdoor.com/Overview/Working-at-NVIDIA-EI_IE7633.11,17.htm
+      - listitem [ref=e48] [cursor=pointer]:
+        - link "LinkedIn" [ref=e49]:
+          - /url: https://www.linkedin.com/company/nvidia
+      - listitem [ref=e53] [cursor=pointer]:
+        - link "YouTube" [ref=e54]:
+          - /url: https://www.youtube.com/nvidia
+    - link "Applicant Privacy Policy" [ref=e61] [cursor=pointer]:
+      - /url: https://www.nvidia.com/en-us/about-nvidia/careers/applicant-privacy-policy/
+    - generic [ref=e62]:
+      - img [ref=e66]
+      - generic [ref=e86]: © 2026 Workday, Inc. All rights reserved.

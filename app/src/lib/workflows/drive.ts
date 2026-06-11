@@ -3,7 +3,7 @@
 // endpoint loops executeChunk() until the workflow is done OR a wall-clock budget
 // runs out (Hobby caps the function at ~60s). Everything is idempotent + cursor
 // resumable, so whatever doesn't finish today resumes on the next run.
-import { executeChunk, type ChunkResult } from "./execute";
+import { executeChunk, resolveOwnerEmail, OWNER_EMAIL_UNSET, type ChunkResult } from "./execute";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -11,12 +11,15 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 //   scrape   → the async Apify scrape (its own budget; it's the long pole)
 //   pipeline → the chunked Gmail-sync + outreach generation, in priority order
 // (On Vercel Pro these could be split into per-workflow crons at any frequency.)
-// detect_boards runs LAST in the pipeline (resolves/repairs Workday tokens with
-// whatever budget remains) so it never starves the outreach workflows; it's
-// idempotent + resumable, so a partial sweep finishes over subsequent days.
+// revalidate_listings runs FIRST in the pipeline (fast, native-only, no Apify/LLM):
+// it prunes dead/closed listing links so New never shows a stale posting — a 2nd
+// daily expiry pass complementing the scrape cron's own buildExpiries.
+// detect_boards runs LAST (resolves/repairs Workday tokens with whatever budget
+// remains) so it never starves the outreach workflows; it's idempotent + resumable,
+// so a partial sweep finishes over subsequent days.
 const JOBS: Record<string, string[]> = {
   scrape: ["scrape_jobs"],
-  pipeline: ["sync_applications", "sync_interviews", "research", "draft_emails", "detect_boards"],
+  pipeline: ["revalidate_listings", "sync_applications", "sync_interviews", "research", "draft_emails", "detect_boards"],
 };
 
 export function jobWorkflows(job: string): string[] | undefined {
@@ -38,6 +41,13 @@ export async function driveJob(
 ): Promise<{ ok: boolean; job: string; error?: string; summary: WorkflowDriveSummary[] }> {
   const workflows = JOBS[job];
   if (!workflows) return { ok: false, job, error: `unknown cron job: ${job}`, summary: [] };
+
+  // Engine identity is fail-closed (PRD §5.6 / G11): OWNER_EMAIL unset → the
+  // cron run fails loudly and does nothing — no ownerless rows ever.
+  if (!resolveOwnerEmail()) {
+    console.error(`driveJob(${job}): ${OWNER_EMAIL_UNSET}`);
+    return { ok: false, job, error: OWNER_EMAIL_UNSET, summary: [] };
+  }
 
   const deadline = Date.now() + (opts.budgetMs ?? 52_000); // leave headroom under maxDuration=60
   const summary: WorkflowDriveSummary[] = [];

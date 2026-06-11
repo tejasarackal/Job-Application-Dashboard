@@ -6,6 +6,7 @@ import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
 import { Funnel } from "@/components/ui/Funnel";
 import { getInterviews } from "@/lib/fetcher";
+import { getViewContext } from "@/lib/session";
 import { formatDate, statusColor } from "@/lib/utils";
 import type { Interview } from "@/lib/types";
 
@@ -28,7 +29,8 @@ const STAGES = [
 const ACTIVE_STATUSES = ["Scheduled", "Awaiting Feedback"];
 
 export default async function InterviewsPage() {
-  const { data, source } = await getInterviews();
+  const ctx = await getViewContext();
+  const { data, source } = await getInterviews(ctx.effectiveEmail);
 
   const active = data.filter((i) => ACTIVE_STATUSES.includes(i.status ?? ""));
   const offers = data.filter((i) => i.stage === "Offer").length;

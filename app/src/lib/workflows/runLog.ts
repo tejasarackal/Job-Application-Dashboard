@@ -22,11 +22,12 @@ export interface RunOutcome {
 export async function withRunLog(
   workflow: WorkflowName,
   trigger: WorkflowTrigger,
+  ownerEmail: string, // engine identity — the run row is stamped User Email = OWNER_EMAIL
   fn: (ctx: { runId: string }) => Promise<RunResult>,
 ): Promise<RunOutcome> {
   let runId = "";
   try {
-    runId = await createWorkflowRun({ workflow, trigger });
+    runId = await createWorkflowRun({ workflow, trigger, ownerEmail });
   } catch (e) {
     // Couldn't even open the run row — surface immediately, nothing to clean up.
     return { runId: "", error: `run-log create failed: ${(e as Error).message}` };

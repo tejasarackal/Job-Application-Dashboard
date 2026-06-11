@@ -4,17 +4,21 @@
 // `draft_pending` and is NOT placed in Gmail. The human gate at /review must
 // approve it before any Gmail draft is created (see /api/review/draft).
 import { callClaude, parseJsonObject } from "./llm";
-import { VOICE, ABOUT } from "./knowledge";
+import { loadOwnerKnowledge } from "./knowledge";
 import { listLeads, updateRecords, TABLES, FIELDS, leadsBase } from "@/lib/airtable";
 import type { RunResult } from "./runLog";
 
-const SYSTEM = `You draft ONE cold introduction email for Tejas Arackal's data-engineering job search. Follow the voice rules and the writer profile exactly.
+// System prompt is built per run from the OWNER's stored voice/about (Users-row
+// preferences with constant fallback — PRD C2, via knowledge.ts#loadOwnerKnowledge),
+// so /profile edits are real for the owner without forking the engine.
+const buildSystem = (about: string, voice: string) =>
+  `You draft ONE cold introduction email for Tejas Arackal's data-engineering job search. Follow the voice rules and the writer profile exactly.
 
 === WRITER PROFILE ===
-${ABOUT}
+${about}
 
 === VOICE RULES ===
-${VOICE}
+${voice}
 
 Return ONLY a JSON object, no prose:
 {"subject": string, "body": string}
@@ -28,8 +32,9 @@ interface Draft {
 }
 
 export async function draftEmails(
-  opts: { maxItems?: number; dryRun?: boolean; cursor?: { offset?: number } } = {},
+  opts: { ownerEmail: string; maxItems?: number; dryRun?: boolean; cursor?: { offset?: number } },
 ): Promise<RunResult> {
+  const ownerEmail = opts.ownerEmail; // engine identity (PRD §5.6)
   const max = opts.maxItems ?? 1;
   // Cursor threads a running total across chunks so the final message reflects
   // the WHOLE run (each invocation only drafts one item).
@@ -37,7 +42,11 @@ export async function draftEmails(
   const offset = prior.offset ?? 0;
   const dryRun = Boolean(opts.dryRun);
 
-  const approved = (await listLeads())
+  // Owner's stored voice/about (constant fallback) — PRD C2 contract.
+  const { voice, about } = await loadOwnerKnowledge();
+  const system = buildSystem(about, voice);
+
+  const approved = (await listLeads(ownerEmail))
     .filter((l) => l.status === "approved")
     .sort((a, b) => a.id.localeCompare(b.id)); // stable order for the cursor
   const batch = approved.slice(offset, offset + max);
@@ -58,7 +67,7 @@ export async function draftEmails(
       .join("\n");
 
     const reply = await callClaude({
-      system: SYSTEM,
+      system,
       user: `Draft the email for this lead:\n${context}`,
       model: process.env.ANTHROPIC_DRAFT_MODEL || "claude-sonnet-4-6",
       maxTokens: 450, // a 3-paragraph email is ~200 tokens; smaller cap = faster, fits the function limit

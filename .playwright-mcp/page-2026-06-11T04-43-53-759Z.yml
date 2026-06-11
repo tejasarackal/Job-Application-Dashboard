@@ -1,0 +1,345 @@
+- generic [ref=e4]:
+  - link "Skip to main content" [ref=e5] [cursor=pointer]:
+    - /url: ""
+  - banner [ref=e8]:
+    - generic [ref=e10]:
+      - link "search for jobs" [ref=e13] [cursor=pointer]:
+        - /url: /en-US/ext
+        - img "search for jobs" [ref=e14]
+      - heading "Careers" [level=1] [ref=e16]
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - button "English" [ref=e21] [cursor=pointer]:
+            - generic [ref=e25]: English
+          - button "Sign In" [ref=e27] [cursor=pointer]:
+            - generic [ref=e32]: Sign In
+        - navigation [ref=e33]:
+          - button "Search for Jobs" [ref=e34] [cursor=pointer]
+  - generic [ref=e39]:
+    - generic [ref=e40]:
+      - search [ref=e41]:
+        - generic [ref=e42]:
+          - textbox "Search" [ref=e48]:
+            - /placeholder: Search for jobs or keywords
+          - status [ref=e49]
+        - button "Search" [ref=e52] [cursor=pointer]
+      - group "Filters" [ref=e53]:
+        - generic [ref=e54]: Filters
+        - button "Distance or Location" [ref=e56] [cursor=pointer]: Distance or Location
+        - button "Time Type" [ref=e61] [cursor=pointer]: Time Type
+        - button "Job Category" [ref=e66] [cursor=pointer]: Job Category
+        - button "More" [ref=e71] [cursor=pointer]: More
+    - generic [ref=e75]:
+      - alert [ref=e76]: Search for Jobs page is loaded
+      - region "Search Results" [ref=e77]:
+        - paragraph [ref=e78]: 656 JOBS FOUND
+        - list "Page 1 of 33" [ref=e79]:
+          - listitem [ref=e80]:
+            - heading "Corporate Counsel" [level=3] [ref=e84]:
+              - link "Corporate Counsel" [ref=e85] [cursor=pointer]:
+                - /url: /en-US/ext/job/Toronto-ON-CAN/Corporate-Counsel_26WD99183-1
+            - generic [ref=e94]:
+              - term [ref=e95]: locations
+              - definition [ref=e96]: Toronto, ON, CAN
+            - generic [ref=e106]:
+              - term [ref=e107]: posted on
+              - definition [ref=e108]: Posted Today
+            - list [ref=e109]:
+              - listitem [ref=e110]: 26WD99183
+          - listitem [ref=e111]:
+            - heading "Senior Software QA Engineer" [level=3] [ref=e115]:
+              - link "Senior Software QA Engineer" [ref=e116] [cursor=pointer]:
+                - /url: /en-US/ext/job/Bengaluru-IND/Senior-Software-QA-Engineer_26WD99210-2
+            - generic [ref=e125]:
+              - term [ref=e126]: locations
+              - definition [ref=e127]: Bengaluru, IND
+            - generic [ref=e137]:
+              - term [ref=e138]: posted on
+              - definition [ref=e139]: Posted Today
+            - list [ref=e140]:
+              - listitem [ref=e141]: 26WD99210
+          - listitem [ref=e142]:
+            - heading "Senior Detection Engineer and Threat Hunter" [level=3] [ref=e146]:
+              - link "Senior Detection Engineer and Threat Hunter" [ref=e147] [cursor=pointer]:
+                - /url: /en-US/ext/job/Bengaluru-IND/Senior-Detection-Engineer-and-Threat-Hunter_25WD93150-1
+            - generic [ref=e156]:
+              - term [ref=e157]: locations
+              - definition [ref=e158]: Bengaluru, IND
+            - generic [ref=e168]:
+              - term [ref=e169]: posted on
+              - definition [ref=e170]: Posted Today
+            - list [ref=e171]:
+              - listitem [ref=e172]: 25WD93150
+          - listitem [ref=e173]:
+            - heading "Technical Support Specialist" [level=3] [ref=e177]:
+              - link "Technical Support Specialist" [ref=e178] [cursor=pointer]:
+                - /url: /en-US/ext/job/California-USA---Remote/Technical-Support-Specialist_26WD98981-2
+            - generic [ref=e187]:
+              - term [ref=e188]: locations
+              - definition [ref=e189]: California, USA - Remote
+            - generic [ref=e199]:
+              - term [ref=e200]: posted on
+              - definition [ref=e201]: Posted Today
+            - list [ref=e202]:
+              - listitem [ref=e203]: 26WD98981
+          - listitem [ref=e204]:
+            - heading "Sr. Software Engineer" [level=3] [ref=e208]:
+              - link "Sr. Software Engineer" [ref=e209] [cursor=pointer]:
+                - /url: /en-US/ext/job/Toronto-ON-CAN/Sr-Software-Engineer_26WD98254-1
+            - generic [ref=e218]:
+              - term [ref=e219]: locations
+              - definition [ref=e220]: Toronto, ON, CAN
+            - generic [ref=e230]:
+              - term [ref=e231]: posted on
+              - definition [ref=e232]: Posted Today
+            - list [ref=e233]:
+              - listitem [ref=e234]: 26WD98254
+          - listitem [ref=e235]:
+            - heading "Sr Creative Writer - Small Business" [level=3] [ref=e239]:
+              - link "Sr Creative Writer - Small Business" [ref=e240] [cursor=pointer]:
+                - /url: /en-US/ext/job/AMER---United-States---California---Irvine---100-Progress/Sr-Writer---Small-Business_26WD98294-1
+            - generic [ref=e249]:
+              - term [ref=e250]: locations
+              - definition [ref=e251]: 3 Locations
+            - generic [ref=e261]:
+              - term [ref=e262]: posted on
+              - definition [ref=e263]: Posted Today
+            - list [ref=e264]:
+              - listitem [ref=e265]: 26WD98294
+          - listitem [ref=e266]:
+            - heading "Senior Technology Consultant" [level=3] [ref=e270]:
+              - link "Senior Technology Consultant" [ref=e271] [cursor=pointer]:
+                - /url: /en-US/ext/job/Krakw-POL/Senior-Technology-Consultant_26WD98629
+            - generic [ref=e280]:
+              - term [ref=e281]: locations
+              - definition [ref=e282]: 2 Locations
+            - generic [ref=e292]:
+              - term [ref=e293]: posted on
+              - definition [ref=e294]: Posted Today
+            - list [ref=e295]:
+              - listitem [ref=e296]: 26WD98629
+          - listitem [ref=e297]:
+            - heading "Technology Consultant" [level=3] [ref=e301]:
+              - link "Technology Consultant" [ref=e302] [cursor=pointer]:
+                - /url: /en-US/ext/job/Krakw-POL/Technology-Consultant_26WD98630
+            - generic [ref=e311]:
+              - term [ref=e312]: locations
+              - definition [ref=e313]: 2 Locations
+            - generic [ref=e323]:
+              - term [ref=e324]: posted on
+              - definition [ref=e325]: Posted Today
+            - list [ref=e326]:
+              - listitem [ref=e327]: 26WD98630
+          - listitem [ref=e328]:
+            - heading "Senior Software QA Engineer" [level=3] [ref=e332]:
+              - link "Senior Software QA Engineer" [ref=e333] [cursor=pointer]:
+                - /url: /en-US/ext/job/Bengaluru-IND/Senior-Software-QA-Engineer_26WD98374
+            - generic [ref=e342]:
+              - term [ref=e343]: locations
+              - definition [ref=e344]: Bengaluru, IND
+            - generic [ref=e354]:
+              - term [ref=e355]: posted on
+              - definition [ref=e356]: Posted Today
+            - list [ref=e357]:
+              - listitem [ref=e358]: 26WD98374
+          - listitem [ref=e359]:
+            - heading "Principal Applied AI/ML Engineer" [level=3] [ref=e363]:
+              - link "Principal Applied AI/ML Engineer" [ref=e364] [cursor=pointer]:
+                - /url: /en-US/ext/job/AMER---Canada---British-Columbia---Remote/Principal-Applied-AI-ML-Engineer_26WD99166-1
+            - generic [ref=e373]:
+              - term [ref=e374]: locations
+              - definition [ref=e375]: 9 Locations
+            - generic [ref=e385]:
+              - term [ref=e386]: posted on
+              - definition [ref=e387]: Posted Today
+            - list [ref=e388]:
+              - listitem [ref=e389]: 26WD99166
+          - listitem [ref=e390]:
+            - heading "Intern, Machine Learning Developer" [level=3] [ref=e394]:
+              - link "Intern, Machine Learning Developer" [ref=e395] [cursor=pointer]:
+                - /url: /en-US/ext/job/Toronto-ON-CAN/Intern--Machine-Learning-Developer_25WD92311-2
+            - generic [ref=e404]:
+              - term [ref=e405]: locations
+              - definition [ref=e406]: Toronto, ON, CAN
+            - generic [ref=e416]:
+              - term [ref=e417]: posted on
+              - definition [ref=e418]: Posted Today
+            - list [ref=e419]:
+              - listitem [ref=e420]: 25WD92311
+          - listitem [ref=e421]:
+            - heading "Rhumbix Professional Services Consultant" [level=3] [ref=e425]:
+              - link "Rhumbix Professional Services Consultant" [ref=e426] [cursor=pointer]:
+                - /url: /en-US/ext/job/Oregon-USA---Remote/Rhumbix-Professional-Services-Consultant_26WD97725
+            - generic [ref=e435]:
+              - term [ref=e436]: locations
+              - definition [ref=e437]: Oregon, USA - Remote
+            - generic [ref=e447]:
+              - term [ref=e448]: posted on
+              - definition [ref=e449]: Posted Today
+            - list [ref=e450]:
+              - listitem [ref=e451]: 26WD97725
+          - listitem [ref=e452]:
+            - heading "Business Customer Success Manager" [level=3] [ref=e456]:
+              - link "Business Customer Success Manager" [ref=e457] [cursor=pointer]:
+                - /url: /en-US/ext/job/Denver-CO-USA/Business-Customer-Success-Manager_26WD99167
+            - generic [ref=e466]:
+              - term [ref=e467]: locations
+              - definition [ref=e468]: 5 Locations
+            - generic [ref=e478]:
+              - term [ref=e479]: posted on
+              - definition [ref=e480]: Posted Today
+            - list [ref=e481]:
+              - listitem [ref=e482]: 26WD99167
+          - listitem [ref=e483]:
+            - heading "Emerging Solutions (Construction) - Sales Specialist_LATAM" [level=3] [ref=e487]:
+              - link "Emerging Solutions (Construction) - Sales Specialist_LATAM" [ref=e488] [cursor=pointer]:
+                - /url: /en-US/ext/job/Colombia---Remote/Emerging-Solutions--Construction----Sales-Specialist-LATAM_26WD99227-1
+            - generic [ref=e497]:
+              - term [ref=e498]: locations
+              - definition [ref=e499]: 2 Locations
+            - generic [ref=e509]:
+              - term [ref=e510]: posted on
+              - definition [ref=e511]: Posted Today
+            - list [ref=e512]:
+              - listitem [ref=e513]: 26WD99227
+          - listitem [ref=e514]:
+            - heading "Senior Associate License Compliance Representative" [level=3] [ref=e518]:
+              - link "Senior Associate License Compliance Representative" [ref=e519] [cursor=pointer]:
+                - /url: /en-US/ext/job/Costa-Rica---Remote/Senior-Associate-License-Compliance-Representative_26WD98958-1
+            - generic [ref=e528]:
+              - term [ref=e529]: locations
+              - definition [ref=e530]: Costa Rica - Remote
+            - generic [ref=e540]:
+              - term [ref=e541]: posted on
+              - definition [ref=e542]: Posted Today
+            - list [ref=e543]:
+              - listitem [ref=e544]: 26WD98958
+          - listitem [ref=e545]:
+            - heading "Software Engineer, Education" [level=3] [ref=e549]:
+              - link "Software Engineer, Education" [ref=e550] [cursor=pointer]:
+                - /url: /en-US/ext/job/AMER---Canada---Ontario---Toronto---University-Ave/Software-Engineer--Education_26WD98536-2
+            - generic [ref=e559]:
+              - term [ref=e560]: locations
+              - definition [ref=e561]: 2 Locations
+            - generic [ref=e571]:
+              - term [ref=e572]: posted on
+              - definition [ref=e573]: Posted Today
+            - list [ref=e574]:
+              - listitem [ref=e575]: 26WD98536
+          - listitem [ref=e576]:
+            - heading "Senior Principal Software Engineer" [level=3] [ref=e580]:
+              - link "Senior Principal Software Engineer" [ref=e581] [cursor=pointer]:
+                - /url: /en-US/ext/job/Krakw-POL/Senior-Principal-Engineer_26WD96547
+            - generic [ref=e590]:
+              - term [ref=e591]: locations
+              - definition [ref=e592]: Kraków, POL
+            - generic [ref=e602]:
+              - term [ref=e603]: posted on
+              - definition [ref=e604]: Posted Today
+            - list [ref=e605]:
+              - listitem [ref=e606]: 26WD96547
+          - listitem [ref=e607]:
+            - heading "Principal Software Development Engineer, Cloud Services & Applied AI" [level=3] [ref=e611]:
+              - link "Principal Software Development Engineer, Cloud Services & Applied AI" [ref=e612] [cursor=pointer]:
+                - /url: /en-US/ext/job/AMER---Canada---Ontario---Toronto---University-Ave/Principal-Software-Development-Engineer--Cloud-Services---Applied-AI_26WD98278-1
+            - generic [ref=e621]:
+              - term [ref=e622]: locations
+              - definition [ref=e623]: 2 Locations
+            - generic [ref=e633]:
+              - term [ref=e634]: posted on
+              - definition [ref=e635]: Posted Today
+            - list [ref=e636]:
+              - listitem [ref=e637]: 26WD98278
+          - listitem [ref=e638]:
+            - heading "People (HR) Consultant - 6 month fixed term contract" [level=3] [ref=e642]:
+              - link "People (HR) Consultant - 6 month fixed term contract" [ref=e643] [cursor=pointer]:
+                - /url: /en-US/ext/job/Poland---Remote/People--HR--Consultant---6-month-fixed-term-contract_26WD99297
+            - generic [ref=e652]:
+              - term [ref=e653]: locations
+              - definition [ref=e654]: Poland - Remote
+            - generic [ref=e664]:
+              - term [ref=e665]: posted on
+              - definition [ref=e666]: Posted Today
+            - list [ref=e667]:
+              - listitem [ref=e668]: 26WD99297
+          - listitem [ref=e669]:
+            - heading "Senior Principal Software Developer" [level=3] [ref=e673]:
+              - link "Senior Principal Software Developer" [ref=e674] [cursor=pointer]:
+                - /url: /en-US/ext/job/Krakw-POL/Senior-Principal-Software-Developer-_26WD99290
+            - generic [ref=e683]:
+              - term [ref=e684]: locations
+              - definition [ref=e685]: 2 Locations
+            - generic [ref=e695]:
+              - term [ref=e696]: posted on
+              - definition [ref=e697]: Posted Today
+            - list [ref=e698]:
+              - listitem [ref=e699]: 26WD99290
+        - generic [ref=e700]:
+          - navigation "pagination" [ref=e701]:
+            - generic [ref=e702]:
+              - list [ref=e704]:
+                - listitem [ref=e705]:
+                  - button "page 1" [ref=e706] [cursor=pointer]: "1"
+                - listitem [ref=e707]:
+                  - button "page 2" [ref=e708] [cursor=pointer]: "2"
+                - listitem [ref=e709]:
+                  - button "page 3" [ref=e710] [cursor=pointer]: "3"
+                - listitem [ref=e711]:
+                  - button "page 4" [ref=e712] [cursor=pointer]: "4"
+                - listitem [ref=e713]:
+                  - button "page 5" [ref=e714] [cursor=pointer]: "5"
+              - button "next" [ref=e715] [cursor=pointer]
+          - paragraph [ref=e719]: 1 - 20 of 656 jobs
+      - generic [ref=e723]:
+        - generic [ref=e724]:
+          - heading "Shape the world, shape your future" [level=3] [ref=e725]
+          - button "Play video Shape the world, shape your future" [ref=e726] [cursor=pointer]
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - heading [level=3]
+                  - paragraph
+                  - heading [level=3]
+        - generic [ref=e733]:
+          - img "ADSKLF" [ref=e734]
+          - generic [ref=e736]:
+            - generic [ref=e738]:
+              - paragraph [ref=e739]: Welcome to Autodesk! Amazing things are created every day with our software – from the greenest buildings and cleanest cars to the smartest factories and biggest hit movies. We help innovators turn their ideas into reality, transforming not only how things are made, but what can be made.
+              - paragraph [ref=e740]
+              - paragraph [ref=e741]: We take great pride in our culture here at Autodesk – it’s at the core of everything we do. Our culture guides the way we work and treat each other, informs how we connect with customers and partners, and defines how we show up in the world.
+              - paragraph [ref=e742]
+              - paragraph [ref=e743]: When you’re an Autodesker, you can do meaningful work that helps build a better world designed and made for all. Ready to shape the world and your future? Join us!
+            - button "Read More" [ref=e746] [cursor=pointer]:
+              - generic [ref=e747]: Read More
+        - generic [ref=e752]:
+          - heading "Let's stay in touch!" [level=3] [ref=e753]
+          - img "TA SF" [ref=e754]
+          - paragraph [ref=e759]:
+            - text: Not quite ready to apply?
+            - link "Join our talent community" [ref=e760] [cursor=pointer]:
+              - /url: https://flows.beamery.com/autodesk/tc-signup
+            - text: to stay up to date on new job opportunities and the latest Autodesk news.
+  - generic [ref=e761]:
+    - heading "Follow Us" [level=4] [ref=e762]
+    - list [ref=e763]:
+      - listitem [ref=e764] [cursor=pointer]:
+        - link "X" [ref=e765]:
+          - /url: https://twitter.com/AutodeskLife
+      - listitem [ref=e769] [cursor=pointer]:
+        - link "LinkedIn" [ref=e770]:
+          - /url: https://www.linkedin.com/company/autodesk/
+      - listitem [ref=e774] [cursor=pointer]:
+        - link "YouTube" [ref=e775]:
+          - /url: https://www.youtube.com/channel/UCRnX4Yc585eRTj4UvNkBM8w
+      - listitem [ref=e781] [cursor=pointer]:
+        - link "Glassdoor" [ref=e782]:
+          - /url: https://www.glassdoor.com/Overview/Working-at-Autodesk-EI_IE1155.11,19.htm
+      - listitem [ref=e787] [cursor=pointer]:
+        - link "Facebook" [ref=e788]:
+          - /url: https://www.facebook.com/AutodeskLife/
+    - link "Autodesk’s Candidate Privacy Statement" [ref=e793] [cursor=pointer]:
+      - /url: https://www.autodesk.com/company/legal-notices-trademarks/privacy-statement/candidates
+    - generic [ref=e794]:
+      - img [ref=e798]
+      - generic [ref=e818]: © 2026 Workday, Inc. All rights reserved.

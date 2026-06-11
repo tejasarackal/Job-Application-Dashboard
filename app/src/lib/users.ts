@@ -12,6 +12,7 @@
 import { revalidateTag } from "next/cache";
 import { normalizeEmail } from "./auth-shared";
 import { primaryBase, usersTable, escapeFormulaString, updateRecords, FIELDS } from "./airtable";
+import { encryptSecret, decryptSecret } from "./crypto";
 
 const API = "https://api.airtable.com/v0";
 
@@ -40,6 +41,9 @@ const F = {
   defaultTargets: "Default Targets",
   preferences: "Preferences",
   lastLogin: "Last Login",
+  gmailToken: "Gmail Refresh Token", // AES-GCM ciphertext (Phase 3b)
+  gmailEmail: "Gmail Email",
+  gmailConnectedAt: "Gmail Connected At",
 } as const;
 
 export interface UserRow {
@@ -51,6 +55,10 @@ export interface UserRow {
   defaultTargets?: string | null; // "h1b_all" | "none"
   preferences?: string | null; // UserPrefs v1 JSON (lib/prefs.ts parses it)
   lastLogin?: string;
+  gmailEmail?: string | null; // connected Gmail address (Phase 3b) — display
+  gmailConnectedAt?: string | null;
+  // NB: the encrypted refresh token is deliberately NOT on UserRow — it never
+  // travels with the cached row. Read it only via getGmailRefreshToken().
 }
 
 /** True when Airtable is reachable. The Users table id is hardcoded since M1
@@ -97,6 +105,8 @@ function toRow(r: UsersRecord): UserRow {
     defaultTargets: selectName(r.fields[F.defaultTargets]),
     preferences: r.fields[F.preferences] as string | undefined,
     lastLogin: r.fields[F.lastLogin] as string | undefined,
+    gmailEmail: (r.fields[F.gmailEmail] as string | undefined) ?? null,
+    gmailConnectedAt: (r.fields[F.gmailConnectedAt] as string | undefined) ?? null,
   };
 }
 
@@ -243,6 +253,65 @@ export async function updateUserRow(email: string, patch: UserRowPatch): Promise
   if (Object.keys(fields).length === 0) return;
   await updateRecords(usersTable(), primaryBase(), [{ id: row.id, fields }]);
   bustUserCache(email); // fresh read next request — fixes the onboarding stale-gate race
+}
+
+// ── Per-user Gmail connection (Phase 3b) ──────────────────────────────────────
+
+/** Store a user's Gmail connection. The refresh token is AES-GCM encrypted at
+ *  rest — plaintext never touches Airtable, logs, or any client response. */
+export async function setGmailConnection(
+  email: string,
+  conn: { refreshToken: string; gmailEmail: string },
+): Promise<void> {
+  if (!usersConfigured()) throw new Error("users table not configured");
+  const row = await getUserRow(email);
+  if (!row) throw new Error("users: no row to attach Gmail to");
+  const f = FIELDS.users;
+  await updateRecords(usersTable(), primaryBase(), [
+    {
+      id: row.id,
+      fields: {
+        [f.gmailRefreshToken]: encryptSecret(conn.refreshToken),
+        [f.gmailEmail]: conn.gmailEmail,
+        [f.gmailConnectedAt]: new Date().toISOString().slice(0, 10),
+      },
+    },
+  ]);
+  bustUserCache(email);
+}
+
+/** Disconnect Gmail: clear the stored token + metadata. */
+export async function clearGmailConnection(email: string): Promise<void> {
+  if (!usersConfigured()) throw new Error("users table not configured");
+  const row = await getUserRow(email);
+  if (!row) return;
+  const f = FIELDS.users;
+  await updateRecords(usersTable(), primaryBase(), [
+    { id: row.id, fields: { [f.gmailRefreshToken]: "", [f.gmailEmail]: "", [f.gmailConnectedAt]: null } },
+  ]);
+  bustUserCache(email);
+}
+
+/** Decrypted Gmail refresh token for `email`, or null if not connected / on any
+ *  decrypt failure. Fresh read — the ciphertext is never on the cached UserRow.
+ *  SERVER-ONLY: never return this value to a client. */
+export async function getGmailRefreshToken(email: string): Promise<string | null> {
+  if (!usersConfigured()) return null;
+  try {
+    const url = new URL(usersUrl());
+    url.searchParams.set("filterByFormula", ownerFormula(email));
+    url.searchParams.set("pageSize", "2");
+    const res = await fetch(url.toString(), { headers: authHeaders(), cache: "no-store" });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { records: UsersRecord[] };
+    if (json.records.length !== 1) return null;
+    const enc = json.records[0].fields[F.gmailToken] as string | undefined;
+    if (!enc || !enc.trim()) return null;
+    return decryptSecret(enc);
+  } catch (e) {
+    console.error("users: gmail token read/decrypt failed", e);
+    return null;
+  }
 }
 
 /** Best-effort Last-Login touch, throttled to once per UTC day. Errors are

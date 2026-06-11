@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { describeInputs } from "@/lib/workflows/scrapeJobs";
-import { executeChunk } from "@/lib/workflows/execute";
+import { executeChunk, GMAIL_NOT_CONNECTED, GMAIL_AUTH_FAILED } from "@/lib/workflows/execute";
 import {
   requireUserApi,
   assertSameOrigin,
@@ -17,12 +17,14 @@ export const dynamic = "force-dynamic";
 // returns; the client re-invokes with `cursor` until `more` is false.
 export const maxDuration = 60;
 
-// Workflows a non-admin member may run for THEMSELVES (Phase 3a). These touch no
-// Gmail and no owner credentials beyond shared Apify/Apollo (quota-capped). The
-// Gmail-dependent workflows (sync_applications, sync_interviews, draft_emails)
-// stay admin-only until Phase 3b wires per-user Gmail tokens — otherwise a member
-// run would hit the OWNER's mailbox. Mart/global ops are admin-only too.
-const MEMBER_ALLOWED = new Set(["scrape_jobs", "research"]);
+// Workflows a non-admin member may run for THEMSELVES. scrape_jobs + research
+// (Phase 3a) use shared Apify/Apollo (quota-capped). sync_applications +
+// sync_interviews + draft_emails (Phase 3b) operate on the MEMBER's own data;
+// the two syncs require a per-user Gmail connection (executeChunk refuses
+// otherwise → 409), and draft_emails only writes draft_pending on the member's
+// own leads (the Gmail draft itself is created later, in the member's mailbox,
+// at the /api/review/draft human gate). The mart/global ops stay admin-only.
+const MEMBER_ALLOWED = new Set(["scrape_jobs", "research", "sync_applications", "sync_interviews", "draft_emails"]);
 
 interface Body {
   trigger?: string;
@@ -86,6 +88,20 @@ export async function POST(req: NextRequest, { params }: { params: { name: strin
     cursor: body.cursor,
     actorEmail: session.email, // owner's email === OWNER_EMAIL; members run as self
   });
+
+  // Map the Gmail-connection errors to a 409 with member-friendly copy.
+  if (r.error === GMAIL_NOT_CONNECTED) {
+    return NextResponse.json(
+      { ok: false, error: "Connect your Gmail first — open Profile → Connect Gmail, then try again.", code: GMAIL_NOT_CONNECTED },
+      { status: 409 },
+    );
+  }
+  if (r.error === GMAIL_AUTH_FAILED) {
+    return NextResponse.json(
+      { ok: false, error: "Your Gmail connection needs renewing — reconnect it in Profile, then try again.", code: GMAIL_AUTH_FAILED },
+      { status: 409 },
+    );
+  }
 
   const status = r.error ? (r.error.startsWith("unknown") ? 404 : 500) : 200;
   return NextResponse.json(

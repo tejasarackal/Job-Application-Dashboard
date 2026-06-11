@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
 import { Funnel } from "@/components/ui/Funnel";
+import { JobTrigger } from "@/components/workflows/JobTrigger";
 import { getApplications, getInterviews } from "@/lib/fetcher";
 import { getViewContext } from "@/lib/session";
 import { formatDate, statusColor } from "@/lib/utils";
@@ -58,6 +59,7 @@ export default async function InterviewsPage() {
       <main className="p-8 space-y-6">
         {!ctx.isViewAs && (
           <div className="flex items-center justify-end gap-3">
+            <JobTrigger workflow="sync_interviews" idleLabel="Sync from Gmail" busyLabel="Syncing…" />
             {!hasApplications && (
               <span className="text-[12px] text-brand-muted">Log an application first</span>
             )}

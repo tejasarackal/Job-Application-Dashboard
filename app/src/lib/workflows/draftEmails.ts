@@ -4,27 +4,28 @@
 // `draft_pending` and is NOT placed in Gmail. The human gate at /review must
 // approve it before any Gmail draft is created (see /api/review/draft).
 import { callClaude, parseJsonObject } from "./llm";
-import { loadOwnerKnowledge } from "./knowledge";
+import { loadUserKnowledge } from "./knowledge";
 import { listLeads, updateRecords, TABLES, FIELDS, leadsBase } from "@/lib/airtable";
 import type { RunResult } from "./runLog";
 
-// System prompt is built per run from the OWNER's stored voice/about (Users-row
-// preferences with constant fallback — PRD C2, via knowledge.ts#loadOwnerKnowledge),
-// so /profile edits are real for the owner without forking the engine.
-const buildSystem = (about: string, voice: string) =>
-  `You draft ONE cold introduction email for Tejas Arackal's data-engineering job search. Follow the voice rules and the writer profile exactly.
+// System prompt is built per run from the ACTOR's stored voice/about + name
+// (Users-row prefs; owner gets the vendored constants as fallback, a member uses
+// their own — Phase 3b). So /profile edits are real for everyone, and a member's
+// drafts are never written in the owner's voice.
+const buildSystem = (about: string, voice: string, name: string) =>
+  `You draft ONE cold introduction email for ${name ? `${name}'s` : "the user's"} job search. Follow the voice rules and the writer profile exactly.
 
 === WRITER PROFILE ===
-${about}
+${about || "(no profile provided — keep it concise, specific, and professional.)"}
 
 === VOICE RULES ===
-${voice}
+${voice || "(no custom voice provided — write plainly: no hype words, no exclamation marks, short and specific.)"}
 
 Return ONLY a JSON object, no prose:
 {"subject": string, "body": string}
 
 - subject: 6-10 words, per the subject-line format.
-- body: the THREE paragraphs only (P1 hook, P2 concrete connection, P3 ask), separated by a single blank line. Do NOT include the "Hello {name}," greeting or the "Best,/Tejas" closing — those are added later. First sentence must start with "I".`;
+- body: the THREE paragraphs only (P1 hook, P2 concrete connection, P3 ask), separated by a single blank line. Do NOT include the "Hello {name}," greeting or the closing — those are added later. First sentence must start with "I".`;
 
 interface Draft {
   subject: string;
@@ -42,9 +43,9 @@ export async function draftEmails(
   const offset = prior.offset ?? 0;
   const dryRun = Boolean(opts.dryRun);
 
-  // Owner's stored voice/about (constant fallback) — PRD C2 contract.
-  const { voice, about } = await loadOwnerKnowledge();
-  const system = buildSystem(about, voice);
+  // Actor's stored voice/about/name (owner → constant fallback; member → own).
+  const { voice, about, name } = await loadUserKnowledge(ownerEmail);
+  const system = buildSystem(about, voice, name);
 
   const approved = (await listLeads(ownerEmail))
     .filter((l) => l.status === "approved")

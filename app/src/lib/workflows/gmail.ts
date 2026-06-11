@@ -1,14 +1,25 @@
-// gmail.ts — minimal Gmail REST client (server-side). Read + search only here;
-// draft creation + labeling is added in Phase 2. There is deliberately NO send
-// path, and the OAuth token uses scope `gmail.modify` which cannot send anyway.
-let cached: { token: string; exp: number } | null = null;
+// gmail.ts — minimal Gmail REST client (server-side). Read/search + draft/label;
+// there is deliberately NO send path, and scope `gmail.modify` cannot send.
+//
+// Per-user (Phase 3b): getAccessToken accepts an explicit refresh token (the
+// ACTOR's, decrypted) and caches the resulting access token per refresh token.
+// With no argument it falls back to the owner's GOOGLE_REFRESH_TOKEN env (cron /
+// owner). Each member run threads its own access token into the calls below, so
+// a member's sync only ever touches the member's own mailbox.
+import { createHash } from "crypto";
 
-export async function getAccessToken(): Promise<string> {
-  if (cached && cached.exp > Date.now() + 60_000) return cached.token;
+const tokenCache = new Map<string, { token: string; exp: number }>();
+
+export async function getAccessToken(refreshToken?: string): Promise<string> {
   const id = process.env.GOOGLE_CLIENT_ID;
   const secret = process.env.GOOGLE_CLIENT_SECRET;
-  const refresh = process.env.GOOGLE_REFRESH_TOKEN;
+  const refresh = refreshToken ?? process.env.GOOGLE_REFRESH_TOKEN;
   if (!id || !secret || !refresh) throw new Error("Gmail OAuth env not set (GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN)");
+
+  // Cache per refresh token (hashed so plaintext secrets aren't used as keys).
+  const cacheKey = refreshToken ? "u:" + createHash("sha256").update(refreshToken).digest("hex").slice(0, 24) : "owner";
+  const c = tokenCache.get(cacheKey);
+  if (c && c.exp > Date.now() + 60_000) return c.token;
 
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
@@ -22,8 +33,9 @@ export async function getAccessToken(): Promise<string> {
   });
   if (!res.ok) throw new Error(`Gmail token refresh ${res.status} (${(await res.text()).slice(0, 120)})`);
   const j = (await res.json()) as { access_token: string; expires_in?: number };
-  cached = { token: j.access_token, exp: Date.now() + (j.expires_in ?? 3600) * 1000 };
-  return cached.token;
+  const entry = { token: j.access_token, exp: Date.now() + (j.expires_in ?? 3600) * 1000 };
+  tokenCache.set(cacheKey, entry);
+  return entry.token;
 }
 
 export interface GmailMsg {
@@ -39,8 +51,9 @@ export interface GmailMsg {
 export async function searchMessageIds(
   query: string,
   max = 20,
+  accessToken?: string, // ACTOR's token (Phase 3b); omit → owner env token
 ): Promise<Array<{ id: string; threadId: string }>> {
-  const token = await getAccessToken();
+  const token = accessToken ?? (await getAccessToken());
   const url = new URL("https://gmail.googleapis.com/gmail/v1/users/me/messages");
   url.searchParams.set("q", query);
   url.searchParams.set("maxResults", String(max));
@@ -50,8 +63,8 @@ export async function searchMessageIds(
   return j.messages ?? [];
 }
 
-export async function getMessage(id: string): Promise<GmailMsg> {
-  const token = await getAccessToken();
+export async function getMessage(id: string, accessToken?: string): Promise<GmailMsg> {
+  const token = accessToken ?? (await getAccessToken());
   const res = await fetch(
     `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`,
     { headers: { Authorization: `Bearer ${token}` } },
@@ -137,8 +150,8 @@ export interface CreatedDraft {
 
 // Creates a Gmail draft (never sends). The REST response carries the underlying
 // message id directly, so we avoid the SOP's list_drafts message-id lookup.
-export async function createDraft(to: string, subject: string, body: string): Promise<CreatedDraft> {
-  const token = await getAccessToken();
+export async function createDraft(to: string, subject: string, body: string, accessToken?: string): Promise<CreatedDraft> {
+  const token = accessToken ?? (await getAccessToken());
   const raw = encodeB64Url(buildMime(to, subject, body));
   const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/drafts", {
     method: "POST",
@@ -151,8 +164,8 @@ export async function createDraft(to: string, subject: string, body: string): Pr
 }
 
 // Returns the id of the named label, creating it if it doesn't exist.
-export async function ensureLabel(name: string): Promise<string> {
-  const token = await getAccessToken();
+export async function ensureLabel(name: string, accessToken?: string): Promise<string> {
+  const token = accessToken ?? (await getAccessToken());
   const listRes = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/labels", {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -170,9 +183,9 @@ export async function ensureLabel(name: string): Promise<string> {
   return ((await createRes.json()) as { id: string }).id;
 }
 
-export async function labelMessage(messageId: string, labelId: string): Promise<void> {
+export async function labelMessage(messageId: string, labelId: string, accessToken?: string): Promise<void> {
   if (!messageId) return;
-  const token = await getAccessToken();
+  const token = accessToken ?? (await getAccessToken());
   const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}/modify`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },

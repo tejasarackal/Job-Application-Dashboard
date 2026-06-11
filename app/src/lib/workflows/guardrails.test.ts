@@ -428,14 +428,20 @@ describe("M2 isolation guardrails", () => {
       .map((f) => posix(f.file));
     expect(adminCallOffenders).toEqual([]);
 
-    // createDraft call sites are admin-gated (CR-S17): the only writer is the
-    // review/draft route, which gates with requireAdminApi.
+    // createDraft call sites: the only writer is the review/draft human gate.
+    // Phase 3b — it is auth-gated (requireUserApi) AND creates the draft in the
+    // ACTOR's OWN mailbox: createDraft must be called WITH a per-user access
+    // token resolved from the session, so a member approval can never write into
+    // the owner's mailbox. (Members only ever reach their own leads via
+    // assertOwnership in the same route.)
     const draftCallers = allFiles
       .filter((f) => /\bcreateDraft\(/.test(f.text) && !posix(f.file).endsWith("workflows/gmail.ts"))
       .map((f) => posix(f.file));
     for (const caller of draftCallers) {
       const text = readFileSync(caller, "utf8");
-      expect(text, `${caller} calls createDraft without requireAdminApi`).toMatch(/requireAdminApi\(/);
+      expect(text, `${caller} calls createDraft without an auth gate`).toMatch(/require(User|Admin)Api\(/);
+      expect(text, `${caller} must thread a per-user Gmail token into createDraft`).toMatch(/createDraft\([^)]*accessToken/);
+      expect(text, `${caller} must prove lead ownership before drafting`).toMatch(/assertOwnership\(/);
     }
   });
 
@@ -466,36 +472,61 @@ describe("M2 isolation guardrails", () => {
     expect(air).toMatch(/EMAIL_RE\.test/);
   });
 
-  // ── G14 — per-user run boundary (Phase 3a) ──────────────────────────────────
-  // Members may trigger workflows ONLY for themselves and ONLY the non-Gmail,
-  // non-owner-mart ones. A member run of a Gmail workflow would hit the OWNER's
-  // mailbox; the engine actor must come from the session, never the request body.
-  it("G14: workflow route gates members to scrape/research and derives the actor from the session", () => {
+  // ── G14 — per-user run boundary (Phase 3a/3b) ───────────────────────────────
+  // Members may trigger workflows ONLY for themselves. The actor is the session
+  // (never the request body); a quota is checked first; and the Gmail-touching
+  // sync workflows are member-allowed ONLY because executeChunk refuses to run
+  // them for a member without their OWN connected Gmail (so a member run can
+  // never reach the owner's mailbox). draft_emails + mart/global ops stay
+  // admin-only.
+  it("G14: workflow route + executeChunk enforce the per-user run boundary", () => {
     const route = fileText("app/api/workflows/[name]/route.ts");
     expect(route).toMatch(/requireUserApi\(/); // members can reach it
     expect(route).toMatch(/MEMBER_ALLOWED/);
     expect(route).toMatch(/!isAdmin && !MEMBER_ALLOWED\.has\(name\)[\s\S]{0,120}?40[13]/);
+    expect(route).toMatch(/actorEmail:\s*session\.email/); // actor from session
+    expect(route).not.toMatch(/actorEmail:\s*body\./); // never client-supplied
+    expect(route).toMatch(/quotaStatus\(/); // cost cap checked before running
 
-    const setMatch = route.match(/MEMBER_ALLOWED\s*=\s*new Set\(\[([^\]]*)\]/);
-    expect(setMatch, "MEMBER_ALLOWED set literal not found").toBeTruthy();
-    const allowed = setMatch![1];
-    for (const forbidden of [
-      "sync_applications",
-      "sync_interviews",
-      "draft_emails",
-      "refresh_scrape_targets",
-      "detect_boards",
-      "revalidate_listings",
-    ]) {
-      expect(allowed, `MEMBER_ALLOWED must not include ${forbidden} (Gmail/owner-only)`).not.toContain(forbidden);
-    }
+    const allowed = route.match(/MEMBER_ALLOWED\s*=\s*new Set\(\[([^\]]*)\]/)?.[1] ?? "";
     expect(allowed).toContain("scrape_jobs");
+    // These must NEVER be member-runnable — they write shared mart/global state.
+    // (draft_emails IS member-allowed: it only writes draft_pending on the
+    // member's own leads; the Gmail draft is created later, in the member's own
+    // mailbox, at the review/draft gate — see G12.)
+    for (const forbidden of ["refresh_scrape_targets", "detect_boards", "revalidate_listings"]) {
+      expect(allowed, `MEMBER_ALLOWED must not include ${forbidden}`).not.toContain(forbidden);
+    }
 
-    // Actor identity is the authenticated session — never client-supplied.
-    expect(route).toMatch(/actorEmail:\s*session\.email/);
-    expect(route).not.toMatch(/actorEmail:\s*body\./);
+    // The Gmail sync workflows are gated in executeChunk: a member with no stored
+    // token is refused (GMAIL_NOT_CONNECTED); the env-token fallback is
+    // OWNER-ONLY, so a member sync can never run on the owner's mailbox.
+    const execute = fileText("lib/workflows/execute.ts");
+    expect(execute).toMatch(/GMAIL_WORKFLOWS\s*=\s*new Set\(\[[^\]]*sync_applications[^\]]*sync_interviews[^\]]*\]/);
+    expect(execute).toMatch(/getGmailRefreshToken\(actor\)/);
+    // env fallback guarded by isOwner; otherwise refuse.
+    expect(execute).toMatch(/else if \(isOwner\(actor\)\)[\s\S]{0,120}?getAccessToken\(\)/);
+    expect(execute).toMatch(/else return[\s\S]{0,80}?GMAIL_NOT_CONNECTED/);
+  });
 
-    // A weekly quota is checked before the run (cost cap, members).
-    expect(route).toMatch(/quotaStatus\(/);
+  // ── G15 — Gmail tokens are encrypted + never leaked (Phase 3b) ──────────────
+  it("G15: per-user Gmail refresh tokens are encrypted at rest and never client-exposed", () => {
+    const users = fileText("lib/users.ts");
+    // setGmailConnection encrypts before writing; the raw token never hits Airtable.
+    expect(users).toMatch(/encryptSecret\(conn\.refreshToken\)/);
+    // The decrypted token is only produced by a clearly server-only accessor.
+    expect(users).toMatch(/getGmailRefreshToken/);
+    expect(users).toMatch(/decryptSecret\(/);
+    // The token ciphertext is NOT carried on the cached UserRow (toRow maps only
+    // gmailEmail/connectedAt, never the token field).
+    const toRow = users.slice(users.indexOf("function toRow"), users.indexOf("function toRow") + 600);
+    expect(toRow).not.toMatch(/gmailToken|Gmail Refresh Token|gmailRefreshToken/);
+
+    // The callback stores via setGmailConnection and only ever redirects back to
+    // /profile with a status — it never returns the token/code in a response body.
+    const cb = fileText("app/api/gmail/callback/route.ts");
+    expect(cb).toMatch(/setGmailConnection\(/);
+    expect(cb).toMatch(/NextResponse\.redirect/);
+    expect(cb).not.toMatch(/NextResponse\.json\([^)]*refresh_token/);
   });
 });

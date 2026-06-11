@@ -8,7 +8,7 @@ import {
   leadsBase,
 } from "@/lib/airtable";
 import {
-  requireAdminApi,
+  requireUserApi,
   getViewContext,
   assertWritable,
   assertSameOrigin,
@@ -19,11 +19,13 @@ import {
 export const dynamic = "force-dynamic";
 
 // Human gate B2 — lead approval. Pure Airtable writes, no external calls.
-// Gate (PRD §5.3): admin + same-origin + not-view-as + ownership proof on the lead.
+// Gate (PRD §5.3 + Phase 3b): signed-in + same-origin + not-view-as + ownership
+// proof on the lead (session email, never effectiveEmail) — a member can only
+// approve their OWN leads.
 // POST body: { id, action: "approve" | "reject" | "edit", fields?: { email?, title?, linkedin? } }
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireAdminApi();
+    const session = await requireUserApi();
     assertSameOrigin(req);
     assertWritable(await getViewContext()); // never under view-as (D7)
 

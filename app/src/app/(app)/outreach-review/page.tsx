@@ -1,6 +1,7 @@
 import { Header } from "@/components/layout/Header";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { JobTrigger } from "@/components/workflows/JobTrigger";
 import { listLeads, isConfigured } from "@/lib/airtable";
 import { getViewContext } from "@/lib/session";
 import type { OutreachContact } from "@/lib/types";
@@ -23,7 +24,9 @@ export default async function ReviewPage() {
   const ctx = await getViewContext();
   const leads = await loadLeads(ctx.effectiveEmail);
   const toApprove = leads.filter((l) => l.status === "research");
+  const approved = leads.filter((l) => l.status === "approved");
   const toReview = leads.filter((l) => l.status === "draft_pending");
+  const editable = !ctx.isViewAs;
 
   return (
     <>
@@ -32,6 +35,19 @@ export default async function ReviewPage() {
         subtitle="Human gates — approve researched leads, then review generated drafts. Nothing reaches Gmail without approval."
       />
       <main className="p-8 space-y-8">
+        {editable && approved.length > 0 && (
+          <Card>
+            <CardBody>
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-[13px] text-brand-body">
+                  {approved.length} approved {approved.length === 1 ? "lead is" : "leads are"} ready for a draft.
+                </p>
+                <JobTrigger workflow="draft_emails" idleLabel="Draft outreach" busyLabel="Drafting…" />
+              </div>
+            </CardBody>
+          </Card>
+        )}
+
         {/* Gate 1 — lead approval */}
         <section className="space-y-3">
           <h2 className="text-[14px] font-semibold text-brand-heading">
@@ -41,7 +57,7 @@ export default async function ReviewPage() {
             <Card>
               <CardBody>
                 <p className="text-[13px] text-brand-muted">
-                  No researched leads waiting. Run <span className="font-mono">Lead Research</span> on the Workflows page.
+                  No researched leads waiting. Click <span className="font-medium">Research leads</span> on the Outreach page to find recruiters at your target companies.
                 </p>
               </CardBody>
             </Card>
@@ -62,9 +78,11 @@ export default async function ReviewPage() {
                     </div>
                     {l.recentSignal && <p className="text-[12px] text-brand-body">{l.recentSignal}</p>}
                     <p className="text-[11px] text-brand-muted font-mono">{l.email ?? l.linkedin ?? "no contact"}</p>
-                    <div className="pt-1">
-                      <LeadActions id={l.id} />
-                    </div>
+                    {editable && (
+                      <div className="pt-1">
+                        <LeadActions id={l.id} />
+                      </div>
+                    )}
                   </div>
                 </Card>
               ))}
@@ -81,7 +99,7 @@ export default async function ReviewPage() {
             <Card>
               <CardBody>
                 <p className="text-[13px] text-brand-muted">
-                  No generated drafts waiting. Approve leads above, then run <span className="font-mono">Email Drafting</span>.
+                  No generated drafts waiting. Approve leads above, then click <span className="font-medium">Draft outreach</span>.
                 </p>
               </CardBody>
             </Card>
@@ -94,12 +112,16 @@ export default async function ReviewPage() {
                     subtitle={`${l.title ? `${l.title} · ` : ""}${l.company}${l.email ? ` · ${l.email}` : " · LinkedIn only"}`}
                   />
                   <CardBody>
-                    <DraftActions
-                      id={l.id}
-                      subject={l.emailSubject ?? ""}
-                      body={l.emailBody ?? ""}
-                      hasEmail={Boolean(l.email)}
-                    />
+                    {editable ? (
+                      <DraftActions
+                        id={l.id}
+                        subject={l.emailSubject ?? ""}
+                        body={l.emailBody ?? ""}
+                        hasEmail={Boolean(l.email)}
+                      />
+                    ) : (
+                      <p className="text-[12px] text-brand-muted">Read-only in view-as mode.</p>
+                    )}
                   </CardBody>
                 </Card>
               ))}

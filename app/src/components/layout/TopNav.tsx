@@ -80,6 +80,7 @@ const NAV: NavItem[] = [
   { href: "/", label: "Overview", icon: Icon.dashboard },
   { href: "/listings", label: "Job Listings", icon: Icon.listings },
   { href: "/outreach", label: "Outreach", icon: Icon.outreach },
+  { href: "/outreach-review", label: "Outreach Review", icon: Icon.review },
   { href: "/applications", label: "Applications", icon: Icon.applications },
   { href: "/interviews", label: "Interviews", icon: Icon.interviews },
   { href: "/targets", label: "Target Companies", icon: Icon.targets },
@@ -87,9 +88,9 @@ const NAV: NavItem[] = [
 
 // Automation + admin surfaces — rendered only for `isAdmin && !isViewAs`.
 // Hiding here is cosmetic; the (app)/(admin) layout is the real gate.
+// (Outreach Review moved to NAV above — it's a per-user surface in Phase 3b.)
 const AUTOMATION_NAV: NavItem[] = [
   { href: "/workflows", label: "Workflows", icon: Icon.workflows },
-  { href: "/outreach-review", label: "Outreach Review", icon: Icon.review },
   { href: "/admin", label: "Admin", icon: Icon.admin },
 ];
 

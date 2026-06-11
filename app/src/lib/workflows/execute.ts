@@ -10,8 +10,10 @@ import { draftEmails } from "./draftEmails";
 import { refreshScrapeTargets } from "./refreshScrapeTargets";
 import { detectBoards } from "./detectBoards";
 import { revalidateListings } from "./revalidateListings";
+import { getAccessToken } from "./gmail";
 import { normalizeEmail, isOwner } from "@/lib/auth-shared";
 import { scrapeableTargetKeys } from "@/lib/targets-server";
+import { getGmailRefreshToken } from "@/lib/users";
 import type { WorkflowName, WorkflowTrigger } from "@/lib/types";
 
 // Engine identity (PRD §5.6 / G11, fail-closed): the engine acts as the OWNER
@@ -24,12 +26,21 @@ export function resolveOwnerEmail(): string | null {
 }
 
 export const OWNER_EMAIL_UNSET = "OWNER_EMAIL unset — engine refuses to run";
+// Phase 3b: member-facing error when a Gmail workflow runs without a connection.
+export const GMAIL_NOT_CONNECTED = "gmail_not_connected";
+export const GMAIL_AUTH_FAILED = "gmail_auth_failed";
+
+// Workflows that read/write the ACTOR's Gmail and so need a per-user token.
+// (draft_emails only sets draft_pending; the actual Gmail draft is created in the
+// review route, so it is NOT in this set.)
+const GMAIL_WORKFLOWS = new Set(["sync_applications", "sync_interviews"]);
 
 type SyncOpts = {
   ownerEmail: string;
   maxItems?: number;
   dryRun?: boolean;
   cursor?: { offset?: number };
+  gmailAccessToken?: string; // ACTOR's Gmail token (Phase 3b); owner → env fallback
 };
 
 // research + draft_emails do ONE item per invocation (~6s each: Apollo / Sonnet);
@@ -104,10 +115,27 @@ export async function executeChunk(name: string, opts: ChunkOpts): Promise<Chunk
     return { ok: false, more: false, counts: {}, error: `unknown or not-yet-implemented workflow: ${name}` };
   }
 
+  // Gmail workflows run on the ACTOR's mailbox: resolve their token. A member
+  // with no connection is refused (the route maps this to "connect Gmail
+  // first"); the owner falls back to the env token (their stored token wins if
+  // they've connected — which also repairs a stale env token).
+  let gmailAccessToken: string | undefined;
+  if (GMAIL_WORKFLOWS.has(name)) {
+    try {
+      const stored = await getGmailRefreshToken(actor);
+      if (stored) gmailAccessToken = await getAccessToken(stored);
+      else if (isOwner(actor)) gmailAccessToken = await getAccessToken(); // owner env token
+      else return { ok: false, more: false, counts: {}, error: GMAIL_NOT_CONNECTED };
+    } catch (e) {
+      console.error(`executeChunk(${name}): gmail auth failed`, e);
+      return { ok: false, more: false, counts: {}, error: GMAIL_AUTH_FAILED };
+    }
+  }
+
   const slow = name === "draft_emails" || name === "research";
   const maxItems = Math.min(Math.max(opts.maxItems ?? (slow ? 1 : 3), 1), 5);
   const outcome = await withRunLog(name as WorkflowName, opts.trigger, actor, () =>
-    runner({ ownerEmail: actor, maxItems, dryRun: opts.dryRun, cursor: opts.cursor as { offset?: number } | undefined }),
+    runner({ ownerEmail: actor, maxItems, dryRun: opts.dryRun, cursor: opts.cursor as { offset?: number } | undefined, gmailAccessToken }),
   );
   return {
     ok: !outcome.error,

@@ -192,6 +192,9 @@ export const FIELDS = {
     defaultTargets: "fldnelGtFjsniXSIS",
     preferences: "fldh0X3lcG0fraV0w",
     lastLogin: "flddvShgUem4rqEwH",
+    gmailRefreshToken: "fldxAOCPX1ydgze7w", // AES-GCM ciphertext (Phase 3b)
+    gmailEmail: "flde6wuVRUL1s8iFv",
+    gmailConnectedAt: "fldC1MiWfExfkmUbF",
   },
   userTargets: {
     userEmail: "fldglKur3FlymvhBe",

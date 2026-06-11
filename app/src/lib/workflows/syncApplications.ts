@@ -118,9 +118,10 @@ async function markListingApplied(
 }
 
 export async function syncApplications(
-  opts: { ownerEmail: string; maxItems?: number; dryRun?: boolean; offset?: number; cursor?: { offset?: number } },
+  opts: { ownerEmail: string; maxItems?: number; dryRun?: boolean; offset?: number; cursor?: { offset?: number }; gmailAccessToken?: string },
 ): Promise<RunResult> {
   const ownerEmail = opts.ownerEmail; // engine identity (PRD §5.6)
+  const gmail = opts.gmailAccessToken; // ACTOR's Gmail token (Phase 3b); undefined → owner env
   const max = opts.maxItems ?? 3; // Hobby ~10s cap → small batch; chunk-loop covers the rest
   const offset = opts.cursor?.offset ?? opts.offset ?? 0;
   const dryRun = Boolean(opts.dryRun);
@@ -130,7 +131,7 @@ export async function syncApplications(
   const seen = new Set<string>();
   const candidates: Array<{ id: string; threadId: string }> = [];
   for (const q of QUERIES) {
-    for (const m of await searchMessageIds(q, 15)) {
+    for (const m of await searchMessageIds(q, 15, gmail)) {
       if (!seen.has(m.threadId)) {
         seen.add(m.threadId);
         candidates.push(m);
@@ -164,7 +165,7 @@ export async function syncApplications(
     listingsApplied = 0;
 
   for (const c of batch) {
-    const msg = await getMessage(c.id);
+    const msg = await getMessage(c.id, gmail);
     const reply = await callClaude({
       system: SYSTEM,
       user: `From: ${msg.from}\nSubject: ${msg.subject}\nDate: ${msg.date}\n\n${msg.body}`,

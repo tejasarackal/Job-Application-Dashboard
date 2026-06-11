@@ -27,6 +27,7 @@ import {
   VoiceAboutCard,
   SignOutButton,
 } from "@/components/profile/ProfileCards";
+import { GmailCard } from "@/components/profile/GmailCard";
 
 export const metadata: Metadata = { title: "Profile" };
 export const dynamic = "force-dynamic";
@@ -69,7 +70,11 @@ async function targetsSummary(
   }
 }
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams?: { gmail?: string };
+}) {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
   const ctx = await getViewContext();
@@ -118,6 +123,15 @@ export default async function ProfilePage() {
               </Link>
             </CardBody>
           </Card>
+
+          {!ctx.isViewAs && (
+            <GmailCard
+              connected={Boolean(row?.gmailEmail)}
+              gmailEmail={row?.gmailEmail}
+              connectedAt={row?.gmailConnectedAt}
+              status={searchParams?.gmail}
+            />
+          )}
 
           {!ctx.isViewAs && (
             <Card>

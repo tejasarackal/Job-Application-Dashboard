@@ -47,22 +47,39 @@ SUBJECT LINE: 6-10 words, credential + company interest, no sales triggers.
 // human-readable summary of the same rule for prompt context.
 export const LOCATION = `Target: SF Bay Area (San Francisco, San Jose, Santa Clara, Sunnyvale, Mountain View, Palo Alto, Oakland, Berkeley, Redwood City and nearby) or US/California remote. Disqualifying: roles only in Seattle, New York, Austin, or offshore (India, etc.). CA in-office preferred, then CA/US remote.`;
 
-// ── Owner knowledge loader (multi-user C2 / D11) ─────────────────────────────
-// The engine is owner-only by construction (it executes as OWNER_EMAIL), so
-// this loader makes the owner's /profile voice/about edits real: prefer the
-// owner's Users-row prefs, fall back to the vendored constants on any miss or
-// error (members never reach this path). `@/lib/prefs` is imported lazily to
-// keep this module's constants dependency-free for prompt-context consumers.
-export async function loadOwnerKnowledge(): Promise<{ voice: string; about: string }> {
+// ── Per-user knowledge loader (multi-user C2 / D11 / Phase 3b) ───────────────
+// Returns the voice/about/name used to draft outreach FOR a given user. The
+// OWNER falls back to the vendored constants on any empty/missing field (his
+// /profile edits still win); a MEMBER uses their own stored voice/about (empty
+// if they haven't set them — never the owner's). `name` is the sender's display
+// name for the prompt + signature. Lazy imports keep the constants dependency-
+// free for prompt-context consumers.
+export async function loadUserKnowledge(
+  email: string,
+): Promise<{ voice: string; about: string; name: string }> {
+  const owner = (process.env.OWNER_EMAIL ?? "").trim().toLowerCase() === (email ?? "").trim().toLowerCase();
   try {
-    const { getUserPrefs } = await import("@/lib/prefs");
-    const prefs = await getUserPrefs(process.env.OWNER_EMAIL ?? "");
+    const [{ getUserPrefs }, { getUserRow }] = await Promise.all([
+      import("@/lib/prefs"),
+      import("@/lib/users"),
+    ]);
+    const [prefs, row] = await Promise.all([getUserPrefs(email), getUserRow(email)]);
+    const fallbackName = owner ? "Tejas Arackal" : "";
     return {
-      voice: typeof prefs.voice === "string" && prefs.voice.trim() ? prefs.voice : VOICE,
-      about: typeof prefs.about === "string" && prefs.about.trim() ? prefs.about : ABOUT,
+      // Owner: constant fallback on empty. Member: their own value, empty if unset
+      // (a member's drafts must never inherit the owner's voice/about).
+      voice: typeof prefs.voice === "string" && prefs.voice.trim() ? prefs.voice : owner ? VOICE : "",
+      about: typeof prefs.about === "string" && prefs.about.trim() ? prefs.about : owner ? ABOUT : "",
+      name: row?.name?.trim() || fallbackName,
     };
   } catch (e) {
-    console.error("knowledge: owner prefs load failed — using vendored constants", e);
-    return { voice: VOICE, about: ABOUT };
+    console.error("knowledge: user prefs load failed", e);
+    return owner ? { voice: VOICE, about: ABOUT, name: "Tejas Arackal" } : { voice: "", about: "", name: "" };
   }
+}
+
+/** Back-compat owner loader (kept for any owner-only callers). */
+export async function loadOwnerKnowledge(): Promise<{ voice: string; about: string }> {
+  const { voice, about } = await loadUserKnowledge(process.env.OWNER_EMAIL ?? "");
+  return { voice, about };
 }

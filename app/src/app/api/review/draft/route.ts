@@ -9,14 +9,17 @@ import {
   leadsBase,
 } from "@/lib/airtable";
 import {
-  requireAdminApi,
+  requireUserApi,
   getViewContext,
   assertWritable,
   assertSameOrigin,
   handleAuthError,
   AuthError,
 } from "@/lib/session";
-import { createDraft, ensureLabel, labelMessage } from "@/lib/workflows/gmail";
+import { createDraft, ensureLabel, labelMessage, getAccessToken } from "@/lib/workflows/gmail";
+import { loadUserKnowledge } from "@/lib/workflows/knowledge";
+import { getGmailRefreshToken } from "@/lib/users";
+import { isOwner } from "@/lib/auth-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -24,12 +27,14 @@ const LABEL = "Job Outreach";
 
 // Human gate B3 — draft review. This is the ONLY place a Gmail draft is created,
 // and only on explicit approval. There is no send path anywhere.
-// Gate (PRD §5.3): admin + same-origin + not-view-as (CR-S17: draft approval
-// writes into the owner's mailbox) + ownership proof on the lead.
+// Gate (PRD §5.3 + Phase 3b): signed-in + same-origin + not-view-as (D7/CR-S17)
+// + ownership proof on the lead. The draft is created in the ACTOR's OWN mailbox
+// (their decrypted Gmail token; owner falls back to the env token) — a member
+// approval can never write into the owner's mailbox.
 // POST body: { id, action: "approve" | "reject" | "edit", subject?, body? }
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireAdminApi();
+    const session = await requireUserApi();
     assertSameOrigin(req);
     assertWritable(await getViewContext()); // never under view-as (D7/CR-S17)
 
@@ -71,14 +76,36 @@ export async function POST(req: NextRequest) {
     if (!subject || !bodyText) {
       return NextResponse.json({ ok: false, error: "subject and body required to approve" }, { status: 400 });
     }
+    // Signer name = the ACTOR's display name (owner → "Tejas"), never hardcoded.
+    const { name: senderName } = await loadUserKnowledge(session.email);
+    const signer = senderName.split(" ")[0] || senderName || "Me";
     const firstName = lead.contactName?.split(" ")[0] || "there";
-    const fullBody = `Hello ${firstName},\n\n${bodyText}\n\nBest,\nTejas`;
+    const fullBody = `Hello ${firstName},\n\n${bodyText}\n\nBest,\n${signer}`;
 
     let gmail: { draftId: string; messageId: string } | null = null;
     if (lead.email) {
-      const draft = await createDraft(lead.email, subject, fullBody);
-      const labelId = await ensureLabel(LABEL);
-      await labelMessage(draft.messageId, labelId);
+      // Create the draft in the ACTOR's OWN mailbox. Member → their decrypted
+      // token (must be connected); owner → stored token or env fallback.
+      let accessToken: string | undefined;
+      try {
+        const stored = await getGmailRefreshToken(session.email);
+        if (stored) accessToken = await getAccessToken(stored);
+        else if (isOwner(session.email)) accessToken = await getAccessToken(); // env
+        else {
+          return NextResponse.json(
+            { ok: false, error: "Connect your Gmail first (Profile → Connect Gmail) to draft to an email contact.", code: "gmail_not_connected" },
+            { status: 409 },
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          { ok: false, error: "Your Gmail connection needs renewing — reconnect it in Profile, then try again.", code: "gmail_auth_failed" },
+          { status: 409 },
+        );
+      }
+      const draft = await createDraft(lead.email, subject, fullBody, accessToken);
+      const labelId = await ensureLabel(LABEL, accessToken);
+      await labelMessage(draft.messageId, labelId, accessToken);
       gmail = { draftId: draft.draftId, messageId: draft.messageId };
     }
 

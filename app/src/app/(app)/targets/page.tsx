@@ -4,8 +4,17 @@ import { DataTable } from "@/components/ui/DataTable";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
+import { ActivationBanner } from "@/components/targets/ActivationBanner";
+import {
+  TargetCompanyEditor,
+  type EditorDeviation,
+  type EditorMasterRow,
+} from "@/components/targets/TargetCompanyEditor";
+import { listUserTargets } from "@/lib/airtable";
 import { getTargets } from "@/lib/fetcher";
 import { getViewContext } from "@/lib/session";
+import { getUserRow } from "@/lib/users";
+import { normalizeCompany } from "@/lib/workflows/filters";
 import type { StatusColor, TargetCompany } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -45,12 +54,45 @@ function dedupeByEmployer(rows: TargetCompany[]): TargetCompany[] {
     });
 }
 
+// Editor inputs: master rows keyed by filters.ts#normalizeCompany (the same
+// canonical key lib/targets.ts and the PUT route use), first row wins on
+// duplicate keys.
+function editorMaster(companies: TargetCompany[]): EditorMasterRow[] {
+  const out: EditorMasterRow[] = [];
+  const seen = new Set<string>();
+  for (const t of companies) {
+    const key = normalizeCompany(t.employer);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push({ key, name: t.employer, sector: t.sector, ats: t.ats, bayArea: t.bayArea });
+  }
+  return out;
+}
+
 export default async function TargetsPage() {
   // Session-scope the page (PRD §5.2). getTargets() reads the shared H1B
-  // master list — unowned by design (§6.3), so no email is threaded here.
-  await getViewContext();
+  // master list — unowned by design (§6.3); the EDITOR is per-user, scoped to
+  // ctx.effectiveEmail (view-as renders the member's selection, read-only).
+  const ctx = await getViewContext();
   const { data, source } = await getTargets();
   const companies = dedupeByEmployer(data);
+
+  // Per-user editor state: sparse deviation rows + the Users-row mode flag.
+  // Airtable unreachable/unconfigured → empty deviations + default mode (the
+  // editor still renders; saves go through PUT /api/targets/user regardless).
+  const deviationRows = await listUserTargets(ctx.effectiveEmail).catch(() => []);
+  const userRow = await getUserRow(ctx.effectiveEmail).catch(() => null);
+  const mode: "h1b_all" | "none" = userRow?.defaultTargets === "none" ? "none" : "h1b_all";
+  const master = editorMaster(companies);
+  const deviations: EditorDeviation[] = deviationRows
+    .filter((d) => d.status === "excluded" || d.status === "added")
+    .map((d) => ({
+      companyKey: d.companyKey,
+      status: d.status as "excluded" | "added",
+      companyName: d.companyName,
+      careersUrl: d.careersUrl,
+      h1bVerified: d.h1bVerified,
+    }));
 
   const total = companies.length;
   const done = companies.filter((t) => t.status === "done").length;
@@ -71,9 +113,26 @@ export default async function TargetsPage() {
           <Card><div className="p-6"><Stat label="Bay Area" value={bayArea} hint="With local office" /></div></Card>
         </div>
 
+        <ActivationBanner count={master.length} />
+
         <Card>
           <CardHeader
-            title="All target companies"
+            title="My target companies"
+            subtitle={`Start from ${master.length} verified H1B sponsors — uncheck, add your own, or opt out`}
+          />
+          <CardBody padded={false}>
+            <TargetCompanyEditor
+              mode={mode}
+              master={master}
+              deviations={deviations}
+              isViewAs={ctx.isViewAs}
+            />
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="All target companies (reference)"
             subtitle="Sorted by LCA count (H1B sponsorship volume)"
             right={<SourceBadge source={source} />}
           />

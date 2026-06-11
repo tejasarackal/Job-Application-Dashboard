@@ -26,7 +26,8 @@ import {
   getSequences,
   getSummary,
 } from "@/lib/fetcher";
-import { formatRelative, pct, statusColor } from "@/lib/utils";
+import { classNames, formatRelative, pct, statusColor } from "@/lib/utils";
+import { pct5 } from "@/components/ui/ratio";
 import { getViewContext } from "@/lib/session";
 import type { ApolloSequence, Application, OutreachContact } from "@/lib/types";
 
@@ -46,15 +47,24 @@ const FUNNEL_ROUTES: Record<string, string> = {
 export default async function OverviewPage() {
   // Owned reads are scoped to the viewing identity (PRD §5.2/§7.8).
   const ctx = await getViewContext();
+  // Automation modules (Apify scrape health, Apollo sequences) are admin-only
+  // and hidden entirely under view-as — pixel-faithful member view (§7.8).
+  // When hidden, nothing replaces them and their data is never fetched.
+  const showAutomation = ctx.isAdmin && !ctx.isViewAs;
   const [summary, apps, outreach, sequences, runs] = await Promise.all([
     getSummary(ctx.effectiveEmail),
     getApplications(ctx.effectiveEmail),
     getOutreach(ctx.effectiveEmail),
-    getSequences(),
-    getApifyRuns(),
+    showAutomation ? getSequences() : Promise.resolve(null),
+    showAutomation ? getApifyRuns() : Promise.resolve(null),
   ]);
 
   const s = summary.data;
+  // Dashboard state (§7.8): activity counts what the user has actually done.
+  // Targets is deliberately excluded — a seeded target list alone is still S0,
+  // so the funnel never renders when Targets is the only nonzero stage.
+  const interviewCount = s.funnel.find((f) => f.stage === "Interviewing")?.count ?? 0;
+  const activity = s.listings.total + s.applications.total + s.outreach.total + interviewCount;
   const recentApps = [...apps.data]
     .sort((a, b) => (b.submittedAt ?? "").localeCompare(a.submittedAt ?? ""))
     .slice(0, 5);
@@ -65,7 +75,7 @@ export default async function OverviewPage() {
   // Collapse the repeated per-actor runs (e.g. five "Linkedin Jobs Scraper"
   // rows) into one summary line per actor: latest status + total items + run count.
   const scrapeHealth = Object.values(
-    runs.data.reduce<Record<string, { actorName: string; runs: number; items: number; latest?: string; status: string }>>(
+    (runs?.data ?? []).reduce<Record<string, { actorName: string; runs: number; items: number; latest?: string; status: string }>>(
       (acc, r) => {
         const key = r.actorName ?? "Unknown";
         const g = (acc[key] ??= { actorName: key, runs: 0, items: 0, latest: r.startedAt, status: r.status });
@@ -106,7 +116,9 @@ export default async function OverviewPage() {
               <Stat
                 label="Job Listings"
                 value={s.listings.total}
-                hint={`${s.listings.new} new · ${s.listings.applied} applied`}
+                // "tracked", not "new" — "new" implies scraper inflow members
+                // don't have (§7.8).
+                hint={`${s.listings.total} tracked · ${s.listings.applied} applied`}
               />
             </div>
           </Card>
@@ -117,8 +129,9 @@ export default async function OverviewPage() {
                 value={s.outreach.total}
                 hint={`${s.outreach.sent} sent · ${s.outreach.replied} replied`}
                 trend={s.outreach.replied > 0 ? "up" : "flat"}
+                // Suppressed ("—") until the denominator reaches 5 (§7.8).
                 trendLabel={
-                  s.outreach.sent ? `${pct(s.outreach.replied, s.outreach.sent)} reply rate` : undefined
+                  s.outreach.sent ? `${pct5(s.outreach.replied, s.outreach.sent)} reply rate` : undefined
                 }
               />
             </div>
@@ -130,9 +143,10 @@ export default async function OverviewPage() {
                 value={s.applications.total}
                 hint={`${s.applications.interviewing} interviewing · ${s.applications.offered} offered`}
                 trend={s.applications.offered ? "up" : s.applications.rejected ? "down" : "flat"}
+                // Suppressed ("—") until the denominator reaches 5 (§7.8).
                 trendLabel={
                   s.applications.total
-                    ? `${pct(s.applications.rejected, s.applications.total)} rejected`
+                    ? `${pct5(s.applications.rejected, s.applications.total)} rejected`
                     : undefined
                 }
               />
@@ -140,63 +154,89 @@ export default async function OverviewPage() {
           </Card>
         </div>
 
-        {/* Funnel + Sources */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2">
-            <CardHeader
-              title="Pipeline funnel"
-              subtitle="Conversion from target list to offer"
-              right={<SourceBadge source={summary.source} />}
-            />
-            <CardBody>
-              <Funnel
-                stages={s.funnel.map((f) => ({ ...f, href: FUNNEL_ROUTES[f.stage] }))}
-              />
-            </CardBody>
-          </Card>
-
-          <Card>
-            <CardHeader
-              title="Scrape health"
-              subtitle="Recent Apify actor runs"
-              right={
-                <div className="flex items-center gap-3">
-                  <ViewAllLink href="/listings" />
-                  <SourceBadge source={runs.source} />
+        {/* Funnel (or the S0 empty state) + admin-only scrape health. When the
+            automation card is hidden the grid drops to one column and the
+            funnel card takes the full row — nothing replaces the card. */}
+        <div className={classNames("grid grid-cols-1 gap-6", showAutomation && "lg:grid-cols-3")}>
+          {activity === 0 ? (
+            <Card className={showAutomation ? "lg:col-span-2" : undefined}>
+              <CardBody>
+                <div className="px-2 py-12 text-center">
+                  <h2 className="text-[16px] font-semibold text-brand-heading">
+                    Your pipeline starts here.
+                  </h2>
+                  <p className="mt-1.5 text-[13px] text-brand-body">
+                    Add roles as you find them — your funnel builds as you track applications.
+                  </p>
+                  {/* Wave 3: point at /listings/new */}
+                  <Link
+                    href="/listings"
+                    className="mt-5 inline-block px-4 py-2 rounded-md bg-brand-ink text-white text-[13px] font-medium hover:bg-brand-inkHover"
+                  >
+                    Add your first listing
+                  </Link>
                 </div>
-              }
-            />
-            <CardBody padded={false}>
-              <ul className="divide-y divide-brand-subtleBorder">
-                {scrapeHealth.map((g) => (
-                  <li key={g.actorName} className="px-6 py-3 flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-medium text-brand-heading truncate">
-                        {g.actorName}
-                      </p>
-                      <p className="text-[11px] text-brand-muted">
-                        {formatRelative(g.latest)}
-                        {` · ${g.items} items`}
-                        {g.runs > 1 ? ` · ${g.runs} runs` : ""}
-                      </p>
-                    </div>
-                    <StatusBadge
-                      label={g.status}
-                      color={statusColor(
-                        g.status === "SUCCEEDED"
-                          ? "approved"
-                          : g.status === "FAILED"
-                            ? "rejected"
-                            : g.status === "RUNNING"
-                              ? "in_progress"
-                              : "pending",
-                      )}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </CardBody>
-          </Card>
+              </CardBody>
+            </Card>
+          ) : (
+            <Card className={showAutomation ? "lg:col-span-2" : undefined}>
+              <CardHeader
+                title="Pipeline funnel"
+                subtitle="Conversion from target list to offer"
+                right={<SourceBadge source={summary.source} />}
+              />
+              <CardBody>
+                <Funnel
+                  stages={s.funnel.map((f) => ({ ...f, href: FUNNEL_ROUTES[f.stage] }))}
+                />
+              </CardBody>
+            </Card>
+          )}
+
+          {showAutomation && runs && (
+            <Card>
+              <CardHeader
+                title="Scrape health"
+                subtitle="Recent Apify actor runs"
+                right={
+                  <div className="flex items-center gap-3">
+                    <ViewAllLink href="/listings" />
+                    <SourceBadge source={runs.source} />
+                  </div>
+                }
+              />
+              <CardBody padded={false}>
+                <ul className="divide-y divide-brand-subtleBorder">
+                  {scrapeHealth.map((g) => (
+                    <li key={g.actorName} className="px-6 py-3 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-medium text-brand-heading truncate">
+                          {g.actorName}
+                        </p>
+                        <p className="text-[11px] text-brand-muted">
+                          {formatRelative(g.latest)}
+                          {` · ${g.items} items`}
+                          {g.runs > 1 ? ` · ${g.runs} runs` : ""}
+                        </p>
+                      </div>
+                      <StatusBadge
+                        label={g.status}
+                        color={statusColor(
+                          g.status === "SUCCEEDED"
+                            ? "approved"
+                            : g.status === "FAILED"
+                              ? "rejected"
+                              : g.status === "RUNNING"
+                                ? "in_progress"
+                                : "pending",
+                        )}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </CardBody>
+            </Card>
+          )}
         </div>
 
         {/* Two-up: recent apps + recent outreach */}
@@ -222,7 +262,7 @@ export default async function OverviewPage() {
                   { key: "status", header: "Status", render: (r) => <StatusBadge label={r.status} /> },
                   { key: "stage", header: "Stage", render: (r) => <StatusBadge label={r.interviewStage} /> },
                 ]}
-                empty="No applications submitted yet."
+                empty="No applications tracked. Add one when you submit your next application."
               />
             </CardBody>
           </Card>
@@ -248,13 +288,15 @@ export default async function OverviewPage() {
                   { key: "contact", header: "Contact", render: (r) => r.contactName ?? "—" },
                   { key: "status", header: "Status", render: (r) => <StatusBadge label={r.status} /> },
                 ]}
-                empty="No outreach yet."
+                empty="No outreach tracked. Log contacts manually — automated research and drafting are not enabled for member accounts in this release."
               />
             </CardBody>
           </Card>
         </div>
 
-        {/* Apollo sequences */}
+        {/* Apollo sequences — admin-only automation module (§7.8); hidden
+            entirely for members and under view-as. */}
+        {showAutomation && sequences && (
         <div className="grid grid-cols-1 gap-6">
           <Card>
             <CardHeader
@@ -303,6 +345,7 @@ export default async function OverviewPage() {
             </CardBody>
           </Card>
         </div>
+        )}
       </main>
     </>
   );

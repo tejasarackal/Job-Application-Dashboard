@@ -2,17 +2,18 @@
 // (PRD §5.2). Middleware is only the coarse wall; every page and member API
 // route calls one of these itself (layouts don't re-run on soft navigation).
 //
-// M0 shape: the Users table is unconfigured, so the Account-Status check is a
-// no-op (owner-only world) — M1 flips it on by configuring lib/users.ts, no
-// code change here. getViewContext/assertWritable/assertSameOrigin are
-// exported now so M2 routes can adopt them without touching this file.
+// M2 shape: getViewContext honors the signed `viewas` cookie (admin-only,
+// PRD D7/§5.5), and requireUser gains the onboarding redirect. requireUserApi
+// never redirects — Account Status enforcement only.
 
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "./auth";
 import { isOwner, normalizeEmail } from "./auth-shared";
 import { getUserRowCached, usersConfigured } from "./users";
+import { VIEWAS_COOKIE, verifyViewAsToken } from "./viewas";
 
 // ── Errors ───────────────────────────────────────────────────────────────────
 
@@ -65,11 +66,28 @@ async function accountActive(email: string): Promise<boolean> {
 /** Pages: require a signed-in, active user.
  *  M0 simplification: redirects to /login without a callbackUrl — middleware
  *  already preserves callbackUrl on its own redirects, and the current path
- *  isn't cleanly knowable server-side. */
+ *  isn't cleanly knowable server-side.
+ *
+ *  M2 onboarding gate (PRD §5.2/§7.4): a Users row that exists with
+ *  `Onboarding Status !== "complete"` redirects to /onboarding — EXCEPT
+ *  (a) under view-as (the admin is viewing a member; never bounce the admin
+ *  into the member's wizard) and (b) the owner-with-no-row bootstrap (the
+ *  owner is allowed through; the migrate route creates his row). */
 export async function requireUser(): Promise<{ email: string }> {
   const email = await sessionEmail();
   if (!email) redirect("/login");
   if (!(await accountActive(email))) redirect("/login?error=account-disabled");
+
+  if (usersConfigured()) {
+    const ctx = await getViewContext(); // cached; cannot 401 here — email exists
+    if (!ctx.isViewAs) {
+      // Members with a duplicate-row anomaly were already failed closed by
+      // accountActive(); only the owner can reach this catch — let him through
+      // (bootstrap: no row / broken row must never brick the owner).
+      const row = await getUserRowCached(email).catch(() => null);
+      if (row && row.onboardingStatus !== "complete") redirect("/onboarding");
+    }
+  }
   return { email };
 }
 
@@ -97,7 +115,7 @@ export async function requireAdminApi(): Promise<{ email: string }> {
   return { email };
 }
 
-// ── View context (M0 minimal — view-as cookie logic lands in M2) ─────────────
+// ── View context (M2 — real view-as, PRD D7/§5.5) ────────────────────────────
 
 export interface ViewContext {
   sessionEmail: string;
@@ -106,22 +124,36 @@ export interface ViewContext {
   isViewAs: boolean;
 }
 
-/** Resolved once per request (React cache). In M0 there is no view-as cookie,
- *  so effectiveEmail always equals sessionEmail. Mutations must NEVER read
- *  effectiveEmail (PRD §4). */
+/** Resolved once per request (React cache). The `viewas` cookie is honored
+ *  ONLY when ALL of:
+ *    1. signature + expiry verify (HMAC under AUTH_SECRET — lib/viewas.ts),
+ *    2. the session is the admin RIGHT NOW (isOwner is an env compare, so this
+ *       is the fresh per-request re-verify D7 requires), and
+ *    3. the token's `admin` matches the session email (a minted token is bound
+ *       to the admin who minted it).
+ *  Any failure → ignored silently: the caller sees their OWN data (a member
+ *  presenting a forged/stolen cookie learns nothing). Mutations must NEVER
+ *  read effectiveEmail (PRD §4). */
 export const getViewContext = cache(async (): Promise<ViewContext> => {
   const email = await sessionEmail();
   if (!email) throw new AuthError(401);
-  return {
-    sessionEmail: email,
-    effectiveEmail: email,
-    isAdmin: isOwner(email),
-    isViewAs: false,
-  };
+  const isAdmin = isOwner(email);
+
+  if (isAdmin) {
+    const payload = verifyViewAsToken(cookies().get(VIEWAS_COOKIE)?.value);
+    if (payload && normalizeEmail(payload.admin) === email) {
+      const target = normalizeEmail(payload.target);
+      if (target && target !== email) {
+        return { sessionEmail: email, effectiveEmail: target, isAdmin, isViewAs: true };
+      }
+    }
+  }
+
+  return { sessionEmail: email, effectiveEmail: email, isAdmin, isViewAs: false };
 });
 
-/** Top of every mutating route (M2 wires it in): view-as sessions are
- *  read-only by construction (PRD D7). Inert in M0 — isViewAs is always false. */
+/** Top of every mutating route: view-as sessions are read-only by
+ *  construction (PRD D7) — 403 `read-only: view-as session`. */
 export function assertWritable(ctx: ViewContext): void {
   if (ctx.isViewAs) throw new AuthError(403, "read-only: view-as session");
 }

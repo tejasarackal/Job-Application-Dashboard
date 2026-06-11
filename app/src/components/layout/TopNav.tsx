@@ -68,6 +68,12 @@ const Icon = {
       <path d="M8 9h8M8 12h5" />
     </svg>
   ),
+  admin: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-[18px] h-[18px]">
+      <path d="M12 3l8 3v5c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-3z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  ),
 };
 
 const NAV: NavItem[] = [
@@ -79,10 +85,12 @@ const NAV: NavItem[] = [
   { href: "/targets", label: "Target Companies", icon: Icon.targets },
 ];
 
-// Automation surfaces — trigger + monitor workflows (PRD-workflow-engine.md).
+// Automation + admin surfaces — rendered only for `isAdmin && !isViewAs`.
+// Hiding here is cosmetic; the (app)/(admin) layout is the real gate.
 const AUTOMATION_NAV: NavItem[] = [
   { href: "/workflows", label: "Workflows", icon: Icon.workflows },
   { href: "/outreach-review", label: "Outreach Review", icon: Icon.review },
+  { href: "/admin", label: "Admin", icon: Icon.admin },
 ];
 
 function Tab({ item, active }: { item: NavItem; active: boolean }) {
@@ -105,13 +113,13 @@ function Tab({ item, active }: { item: NavItem; active: boolean }) {
   );
 }
 
-// Top tab bar — replaces the old left sidebar. Pipeline tabs, a divider, then
-// the Automation tabs. The strip scrolls horizontally on mobile (8 tabs don't
-// fit a phone width) so every page stays reachable on small screens.
-export function TopNav() {
+// Top tab bar — replaces the old left sidebar. Pipeline tabs always render;
+// the divider + automation/admin tabs render only for admins outside view-as
+// (PRD §7.3). The strip scrolls horizontally on mobile so every page stays
+// reachable on small screens.
+export function TopNav({ isAdmin, isViewAs }: { isAdmin: boolean; isViewAs?: boolean }) {
   const pathname = usePathname();
-  // M0: until the (app) route group lands in M2
-  if (pathname === "/login" || pathname === "/privacy" || pathname === "/terms") return null;
+  const showAdminTabs = isAdmin && !isViewAs;
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 
@@ -130,10 +138,14 @@ export function TopNav() {
             {NAV.map((item) => (
               <Tab key={item.href} item={item} active={isActive(item.href)} />
             ))}
-            <li aria-hidden className="self-center mx-1.5 h-6 w-px bg-brand-border shrink-0" />
-            {AUTOMATION_NAV.map((item) => (
-              <Tab key={item.href} item={item} active={isActive(item.href)} />
-            ))}
+            {showAdminTabs && (
+              <>
+                <li aria-hidden className="self-center mx-1.5 h-6 w-px bg-brand-border shrink-0" />
+                {AUTOMATION_NAV.map((item) => (
+                  <Tab key={item.href} item={item} active={isActive(item.href)} />
+                ))}
+              </>
+            )}
           </ul>
         </nav>
       </div>

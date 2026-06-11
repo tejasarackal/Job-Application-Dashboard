@@ -153,7 +153,7 @@ export default async function ApplicationsPage() {
                     ) : null,
                 },
               ]}
-              empty="No applications submitted yet."
+              empty="No applications tracked. Add one when you submit your next application."
             />
           </CardBody>
         </Card>

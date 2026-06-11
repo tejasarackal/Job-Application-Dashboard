@@ -15,9 +15,12 @@ export const metadata = { title: "Outreach" };
 
 export default async function OutreachPage() {
   const ctx = await getViewContext();
+  // Apollo is an admin-only automation module (PRD §7.8) — hidden entirely
+  // for members and under view-as; its data is never fetched in member view.
+  const showAutomation = ctx.isAdmin && !ctx.isViewAs;
   const [outreach, sequences] = await Promise.all([
     getOutreach(ctx.effectiveEmail),
-    getSequences(),
+    showAutomation ? getSequences() : Promise.resolve(null),
   ]);
 
   const total = outreach.data.length;
@@ -118,11 +121,12 @@ export default async function OutreachPage() {
                   ),
                 },
               ]}
-              empty="No outreach yet. Add a row to the Outreach table in Airtable."
+              empty="No outreach tracked. Log contacts manually — automated research and drafting are not enabled for member accounts in this release."
             />
           </CardBody>
         </Card>
 
+        {showAutomation && sequences && (
         <div className="grid grid-cols-1 gap-6">
           <Card>
             <CardHeader
@@ -172,6 +176,7 @@ export default async function OutreachPage() {
             </CardBody>
           </Card>
         </div>
+        )}
       </main>
     </>
   );

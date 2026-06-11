@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { describeInputs } from "@/lib/workflows/scrapeJobs";
 import { executeChunk } from "@/lib/workflows/execute";
-import { requireAdminApi, assertSameOrigin, handleAuthError, AuthError } from "@/lib/session";
+import {
+  requireAdminApi,
+  assertSameOrigin,
+  getViewContext,
+  assertWritable,
+  handleAuthError,
+  AuthError,
+} from "@/lib/session";
 import type { WorkflowTrigger } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +32,7 @@ export async function POST(req: NextRequest, { params }: { params: { name: strin
   try {
     await requireAdminApi();
     assertSameOrigin(req);
+    assertWritable(await getViewContext()); // engine runs never start under view-as (D7)
   } catch (e) {
     if (e instanceof AuthError) return handleAuthError(e);
     throw e;

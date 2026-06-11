@@ -2,6 +2,18 @@
 // so the operator can confirm every integration's key works before running
 // workflows. Used by /api/health/credentials. All checks run in parallel with a
 // per-call timeout so the whole thing stays well inside Vercel's function limit.
+import { normalizeEmail } from "./auth-shared";
+import {
+  countUnstamped,
+  ownedBase,
+  ownerFilter,
+  TABLES,
+  FIELDS,
+  primaryBase,
+  usersTable,
+  type OwnedTableKey,
+} from "./airtable";
+
 export interface CredCheck {
   service: string;
   configured: boolean; // required env var(s) present
@@ -146,12 +158,132 @@ export function shapePublicHealth(results: CredCheck[]): PublicHealth {
 export interface DetailHealth {
   ok: boolean;
   checks: CredCheck[];
+  multiuser?: MultiuserHealth;
 }
 
 /** Detail shaper — full per-service ok/detail/error payload. Gated by the route. */
-export function shapeDetailHealth(results: CredCheck[]): DetailHealth {
-  // M2: multiuser block (blank-owner counts, formula-name probes) lands here
-  return { ok: results.every((c) => c.ok), checks: results };
+export function shapeDetailHealth(results: CredCheck[], multiuser?: MultiuserHealth): DetailHealth {
+  // M2: multiuser block (blank-owner counts, owner Users-row probe, frozen
+  // formula-name probes — PRD D13 + §6.6 verify). GATED detail only; the
+  // public shaper above stays byte-identical (guardrail-pinned).
+  return {
+    ok: results.every((c) => c.ok),
+    checks: results,
+    ...(multiuser ? { multiuser } : {}),
+  };
+}
+
+// ── M2 multiuser verification block (gated detail only — PRD D13/§6.6) ───────
+
+const OWNED_KEYS: OwnedTableKey[] = [
+  "jobListings",
+  "applications",
+  "interviews",
+  "outreach",
+  "workflowRuns",
+  "leads",
+];
+
+export interface MultiuserHealth {
+  /** Blank-owner row count per owned table (0 everywhere = backfill done).
+   *  null = the count probe itself failed. */
+  unstamped: Record<OwnedTableKey, number | null>;
+  /** Owner Users row: present + Preferences parses + Onboarding Status. */
+  ownerUserRow: { present: boolean; prefsParse: boolean; onboarding: string | null };
+  /** 1-record ownerFilter(OWNER_EMAIL) read per owned table. true = the frozen
+   *  `User Email` formula name still resolves; a rename surfaces here as a
+   *  named false, not a silent empty dashboard. */
+  formulaProbe: Record<OwnedTableKey, boolean>;
+}
+
+// Light structural mirror of the prefs zod schema (prefs.ts doesn't export the
+// schema, and prefsOrNeutral can't distinguish "failed" from "neutral").
+function prefsParses(raw: unknown): boolean {
+  if (typeof raw !== "string" || raw.trim() === "") return false;
+  try {
+    const p = JSON.parse(raw) as Record<string, unknown>;
+    const jp = (p?.jobPrefs ?? null) as Record<string, unknown> | null;
+    return (
+      p?.v === 1 &&
+      typeof p?.identity === "object" &&
+      p?.identity !== null &&
+      jp !== null &&
+      Array.isArray(jp.titleKeywords) &&
+      Array.isArray(jp.locations) &&
+      ["remote_only", "onsite_ok", "no_preference"].includes(String(jp.remotePref))
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Never throws — every probe is individually fenced. */
+export async function checkMultiuser(): Promise<MultiuserHealth> {
+  const owner = normalizeEmail(process.env.OWNER_EMAIL ?? "");
+  const token = process.env.AIRTABLE_TOKEN;
+
+  const [unstampedEntries, probeEntries, ownerUserRow] = await Promise.all([
+    // Blank-owner counts (internal-only blank-filter use — airtable.ts).
+    Promise.all(
+      OWNED_KEYS.map(async (k) => {
+        try {
+          return [k, await countUnstamped(k)] as const;
+        } catch {
+          return [k, null] as const;
+        }
+      }),
+    ),
+    // Frozen formula-name probes: 1-record owner-filtered read per table.
+    Promise.all(
+      OWNED_KEYS.map(async (k) => {
+        if (!owner || !token) return [k, false] as const;
+        try {
+          const url = new URL(`https://api.airtable.com/v0/${ownedBase(k)}/${TABLES[k]}`);
+          url.searchParams.set("filterByFormula", ownerFilter(owner));
+          url.searchParams.set("maxRecords", "1");
+          const res = await fetch(url.toString(), {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store",
+          });
+          return [k, res.ok] as const; // 422 = formula field name no longer resolves
+        } catch {
+          return [k, false] as const;
+        }
+      }),
+    ),
+    probeOwnerUserRow(owner, token),
+  ]);
+
+  return {
+    unstamped: Object.fromEntries(unstampedEntries) as Record<OwnedTableKey, number | null>,
+    ownerUserRow,
+    formulaProbe: Object.fromEntries(probeEntries) as Record<OwnedTableKey, boolean>,
+  };
+}
+
+async function probeOwnerUserRow(
+  owner: string,
+  token: string | undefined,
+): Promise<MultiuserHealth["ownerUserRow"]> {
+  const out = { present: false, prefsParse: false, onboarding: null as string | null };
+  if (!owner || !token) return out;
+  try {
+    const { getUserRow } = await import("./users");
+    const row = await getUserRow(owner);
+    if (!row) return out;
+    out.present = true;
+    out.onboarding = row.onboardingStatus ?? null;
+    // Preferences isn't on the typed UserRow — raw keyed read by field ID.
+    const url = `https://api.airtable.com/v0/${primaryBase()}/${usersTable()}/${row.id}?returnFieldsByFieldId=true`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+    if (res.ok) {
+      const rec = (await res.json()) as { fields?: Record<string, unknown> };
+      out.prefsParse = prefsParses(rec.fields?.[FIELDS.users.preferences]);
+    }
+  } catch {
+    // probe only — leave whatever was resolved so far
+  }
+  return out;
 }
 
 export async function checkCredentials(): Promise<CredCheck[]> {

@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { checkCredentials, shapeDetailHealth, shapePublicHealth } from "@/lib/health";
+import { checkCredentials, checkMultiuser, shapeDetailHealth, shapePublicHealth } from "@/lib/health";
 import { requireAdminApi } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -52,7 +52,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const body = shapeDetailHealth(await checkCredentials());
+  // Multiuser verification block (PRD D13/§6.6) rides only in the gated detail.
+  const [results, multiuser] = await Promise.all([checkCredentials(), checkMultiuser()]);
+  const body = shapeDetailHealth(results, multiuser);
   return NextResponse.json(body, {
     status: body.ok ? 200 : 207,
     headers: { "Cache-Control": "no-store" },

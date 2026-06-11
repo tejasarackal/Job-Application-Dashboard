@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { scaleLinear } from "d3-scale";
-import { classNames, pct } from "@/lib/utils";
+import { classNames } from "@/lib/utils";
+import { pct5 } from "@/components/ui/ratio";
 import type { StatusColor } from "@/lib/types";
 
 // SVG fill per status color — the light "-bg" tints (matching the status badges)
@@ -38,7 +39,9 @@ export function Funnel({ stages, className }: FunnelProps) {
     <div className={classNames("space-y-2", className)}>
       {stages.map((s, i) => {
         const fill = s.color ? BAR_FILL[s.color] : DEFAULT_FILL;
-        const conv = i === 0 ? "—" : pct(s.count, stages[0].count);
+        // Conversion vs the funnel top; suppressed ("—") while the
+        // denominator is < 5 (PRD §7.8 S1).
+        const conv = i === 0 ? "—" : pct5(s.count, stages[0].count);
         const rowClass = classNames(
           "flex items-center gap-3 rounded-md px-1 -mx-1 py-0.5",
           s.href && "group hover:bg-brand-canvas transition-colors",

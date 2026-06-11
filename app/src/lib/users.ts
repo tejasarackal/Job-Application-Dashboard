@@ -10,7 +10,7 @@
 // (same rule that pins the formula names — a rename fails closed to "no rows").
 
 import { normalizeEmail } from "./auth-shared";
-import { primaryBase, usersTable, escapeFormulaString } from "./airtable";
+import { primaryBase, usersTable, escapeFormulaString, updateRecords, FIELDS } from "./airtable";
 
 const API = "https://api.airtable.com/v0";
 
@@ -21,15 +21,19 @@ const F = {
   authSub: "Auth Sub",
   accountStatus: "Account Status",
   onboardingStatus: "Onboarding Status",
+  defaultTargets: "Default Targets",
+  preferences: "Preferences",
   lastLogin: "Last Login",
 } as const;
 
 export interface UserRow {
   id: string;
   email: string;
-  name?: string;
+  name?: string | null;
   accountStatus?: string; // "active" | "pending" | "disabled"
   onboardingStatus?: string; // "pending" | "complete"
+  defaultTargets?: string | null; // "h1b_all" | "none"
+  preferences?: string | null; // UserPrefs v1 JSON (lib/prefs.ts parses it)
   lastLogin?: string;
 }
 
@@ -74,6 +78,8 @@ function toRow(r: UsersRecord): UserRow {
     name: r.fields[F.name] as string | undefined,
     accountStatus: selectName(r.fields[F.accountStatus]),
     onboardingStatus: selectName(r.fields[F.onboardingStatus]),
+    defaultTargets: selectName(r.fields[F.defaultTargets]),
+    preferences: r.fields[F.preferences] as string | undefined,
     lastLogin: r.fields[F.lastLogin] as string | undefined,
   };
 }
@@ -165,7 +171,9 @@ export async function createUserRow(input: {
   name?: string;
   authSub?: string;
   accountStatus: "active" | "pending";
-  onboardingStatus: "pending";
+  onboardingStatus: "pending" | "complete";
+  defaultTargets?: "h1b_all" | "none";
+  preferences?: string;
 }): Promise<string> {
   if (!usersConfigured()) throw new Error("users table not configured");
   const fields: Record<string, unknown> = {
@@ -175,6 +183,8 @@ export async function createUserRow(input: {
   };
   if (input.name) fields[F.name] = input.name;
   if (input.authSub) fields[F.authSub] = input.authSub;
+  if (input.defaultTargets) fields[F.defaultTargets] = input.defaultTargets;
+  if (input.preferences) fields[F.preferences] = input.preferences;
   const res = await fetch(usersUrl(), {
     method: "POST",
     headers: { ...authHeaders(), "Content-Type": "application/json" },
@@ -184,6 +194,37 @@ export async function createUserRow(input: {
   if (!res.ok) throw new Error(`Airtable users POST ${res.status} ${await res.text()}`);
   const json = (await res.json()) as { records: UsersRecord[] };
   return json.records[0].id;
+}
+
+// Typed self-service patch (PRD §5.3 /api/profile + §7.4/§7.5). Email is
+// deliberately absent — the PK is never rewritten through this path.
+export interface UserRowPatch {
+  name?: string;
+  authSub?: string;
+  accountStatus?: "active" | "pending" | "disabled";
+  onboardingStatus?: "pending" | "complete";
+  defaultTargets?: "h1b_all" | "none";
+  preferences?: string; // serialized UserPrefs v1 (lib/prefs.ts#serializePrefs)
+}
+
+/** PATCH the user's own Users row. Fresh row lookup by normalized email, then
+ *  a field-ID write via the shared airtable.ts write layer (typecast handles
+ *  single-select option names). Never writes Email. Throws when the table is
+ *  unconfigured or no row exists — callers decide whether to create instead. */
+export async function updateUserRow(email: string, patch: UserRowPatch): Promise<void> {
+  if (!usersConfigured()) throw new Error("users table not configured");
+  const row = await getUserRow(email);
+  if (!row) throw new Error("users: no row to update");
+  const f = FIELDS.users;
+  const fields: Record<string, unknown> = {};
+  if (patch.name !== undefined) fields[f.name] = patch.name;
+  if (patch.authSub !== undefined) fields[f.authSub] = patch.authSub;
+  if (patch.accountStatus !== undefined) fields[f.accountStatus] = patch.accountStatus;
+  if (patch.onboardingStatus !== undefined) fields[f.onboardingStatus] = patch.onboardingStatus;
+  if (patch.defaultTargets !== undefined) fields[f.defaultTargets] = patch.defaultTargets;
+  if (patch.preferences !== undefined) fields[f.preferences] = patch.preferences;
+  if (Object.keys(fields).length === 0) return;
+  await updateRecords(usersTable(), primaryBase(), [{ id: row.id, fields }]);
 }
 
 /** Best-effort Last-Login touch, throttled to once per UTC day. Errors are

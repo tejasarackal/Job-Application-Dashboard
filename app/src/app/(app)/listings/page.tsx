@@ -69,7 +69,7 @@ export default async function ListingsPage() {
             <CardBody padded={false}>
               <ListingsTable
                 rows={[]}
-                empty="No listings have been scraped yet. Run the scrape_jobs workflow to populate this table."
+                empty="No job listings yet. Add roles as you find them — automated scraping runs for admin accounts only in this release."
               />
             </CardBody>
           </Card>

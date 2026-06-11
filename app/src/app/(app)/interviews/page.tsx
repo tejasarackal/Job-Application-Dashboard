@@ -117,7 +117,7 @@ export default async function InterviewsPage() {
                     ),
                 },
               ]}
-              empty="No interviews yet. They'll appear here as the Gmail → Interviews sync records them."
+              empty="No interviews yet. They'll appear here when you log one against an application."
             />
           </CardBody>
         </Card>

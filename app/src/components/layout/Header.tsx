@@ -1,3 +1,7 @@
+import { auth } from "@/lib/auth";
+import { getViewContext } from "@/lib/session";
+import { UserMenu } from "./UserMenu";
+
 interface HeaderProps {
   title: string;
   subtitle?: string;
@@ -7,7 +11,14 @@ interface HeaderProps {
 // so the chrome stays uncluttered. Primary navigation lives in the TopNav above.
 // Pages opt into dynamic rendering via `export const dynamic = "force-dynamic"`,
 // so the date below is fresh on every request.
-export function Header({ title, subtitle }: HeaderProps) {
+//
+// Async server component (PRD §7.3): resolves the session itself to feed the
+// UserMenu avatar — auth() and getViewContext() are request-cached, so this
+// adds no extra lookups on pages that already called them.
+export async function Header({ title, subtitle }: HeaderProps) {
+  const [session, ctx] = await Promise.all([auth(), getViewContext()]);
+  const user = session?.user;
+
   const today = new Date().toLocaleDateString("en-US", {
     month: "2-digit",
     day: "2-digit",
@@ -28,12 +39,13 @@ export function Header({ title, subtitle }: HeaderProps) {
           </svg>
           <span className="tabular-nums">{today}</span>
         </div>
-        <div
-          title="Tejas Arackal"
-          className="w-8 h-8 rounded-full bg-brand-ink text-white flex items-center justify-center text-[12px] font-semibold shrink-0"
-        >
-          TA
-        </div>
+        <UserMenu
+          name={user?.name ?? null}
+          email={user?.email ?? ""}
+          image={user?.image ?? null}
+          // View-as is pixel-faithful (PRD §7.8) — the admin entry hides too.
+          isAdmin={ctx.isAdmin && !ctx.isViewAs}
+        />
       </div>
     </header>
   );

@@ -5,7 +5,9 @@
 // LinkedIn IDs. All sources feed the unchanged collectRows() filter/dedup/match
 // pass. Runs in one invocation within a ~48s budget (board GETs are fast +
 // parallel); the freshness window is 45d because board APIs return only OPEN roles.
-import { isH1bSponsor, checkLocation, isDeTitle, canonicalJobKey, canonicalUrl, roleKey, matchScore, normalizeCompany } from "./filters";
+import { isH1bSponsor, checkLocation, isDeTitle, canonicalJobKey, canonicalUrl, roleKey, matchScore, normalizeCompany, type ScoringPrefs } from "./filters";
+import { getUserPrefs } from "@/lib/prefs";
+import { scoringPrefsFor } from "@/lib/scoring";
 import { fetchBoardJobs, BOARD_LABEL, type RawJob } from "./boards";
 import { linkedinKeywordQuery } from "./boards/keywords";
 import {
@@ -178,6 +180,7 @@ interface CollectCtx {
   toCreate: Array<Record<string, unknown>>;
   windowDays?: number;
   sponsors: Set<string>; // normalized names of all Scrape_Targets (H1B sponsors)
+  scoringPrefs: ScoringPrefs; // the actor's prefs — owner gets OWNER_PREFS
   samples: { title: string[]; loc: string[]; stale: string[] };
 }
 
@@ -223,7 +226,7 @@ function collectRows(items: Raw[], sourceBoard: string, ctx: CollectCtx, trusted
       if (ctx.actionedRoles.has(roleKey(it.company, it.title))) { bump(ctx.totals, "suppressedRole"); continue; }
 
       const board = ck.board !== "Other" ? ck.board : sourceBoard;
-      const pct = matchScore({ title: it.title, location: it.location, remote: it.remote, postedAt: it.postedAt, actorScore: it.actorScore });
+      const pct = matchScore({ title: it.title, location: it.location, remote: it.remote, postedAt: it.postedAt, actorScore: it.actorScore }, ctx.scoringPrefs);
 
       const row: Record<string, unknown> = {
         [FIELDS.jobListings.title]: it.title,
@@ -298,21 +301,32 @@ export function buildExpiries(
 }
 
 export async function scrapeJobs(opts: {
-  ownerEmail: string; // engine identity — all listing rows + the run row are owner-stamped
+  ownerEmail: string; // ACTOR identity — all listing rows + the run row are stamped to it
   dryRun?: boolean;
   windowDays?: number;
   trigger?: WorkflowTrigger;
   deadlineMs?: number;
+  // Per-user scoping (Phase 3): when provided, the mart is filtered to these
+  // normalized company keys (the actor's effective targets). null/undefined =
+  // owner/cron → scrape the whole mart (legacy behavior, unchanged).
+  targetKeys?: Set<string> | null;
 }): Promise<RunResult> {
   const ownerEmail = opts.ownerEmail;
   const dryRun = Boolean(opts.dryRun);
   const windowDays = opts.windowDays ?? SCRAPE_WINDOW_DAYS;
   const deadline = Date.now() + (opts.deadlineMs ?? 48_000);
   const totals: Record<string, number> = {};
+  // Score against the ACTOR's prefs (owner → OWNER_PREFS, byte-for-byte legacy).
+  const scoringPrefs = scoringPrefsFor(ownerEmail, await getUserPrefs(ownerEmail));
   const logRunId = await createWorkflowRun({ workflow: "scrape_jobs", trigger: opts.trigger ?? "manual", ownerEmail });
 
   try {
-    const targets = await listScrapeTargets({ fresh: true });
+    const allTargets = await listScrapeTargets({ fresh: true });
+    // Per-user: keep only the actor's effective target companies. Owner/cron
+    // (targetKeys null) scrape the full mart.
+    const targets = opts.targetKeys
+      ? allTargets.filter((t) => opts.targetKeys!.has(normalizeCompany(t.company)))
+      : allTargets;
     const sponsors = new Set(targets.map((t) => normalizeCompany(t.company)));
     const native = targets.filter(nativeOk);
     const fallbackIds = targets.filter((t) => !nativeOk(t) && t.linkedinId).map((t) => t.linkedinId as string);
@@ -343,6 +357,7 @@ export async function scrapeJobs(opts: {
       toCreate: [],
       windowDays,
       sponsors,
+      scoringPrefs,
       samples: { title: [], loc: [], stale: [] },
     };
 

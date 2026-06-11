@@ -50,9 +50,14 @@ export function AdminActions({
     }
   }
 
+  // Three states: active → Disable; pending (awaiting approval) → Approve;
+  // disabled → Enable. "Approve" and "Enable" both map to the API's `enable`
+  // action (sets Account Status = active).
+  const action: "disable" | "enable" = accountStatus === "active" ? "disable" : "enable";
+  const verb =
+    accountStatus === "active" ? "Disable" : accountStatus === "pending" ? "Approve" : "Enable";
+
   async function toggle() {
-    const action = accountStatus === "disabled" ? "enable" : "disable";
-    const verb = action === "disable" ? "Disable" : "Enable";
     if (!window.confirm(`${verb} ${email}? Takes effect within about a minute.`)) return;
     setBusy(true);
     setMsg("");
@@ -83,7 +88,7 @@ export function AdminActions({
             View as
           </button>
           <button onClick={toggle} disabled={busy} className={btnClass}>
-            {accountStatus === "disabled" ? "Enable" : "Disable"}
+            {verb}
           </button>
         </>
       )}

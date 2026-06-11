@@ -9,10 +9,26 @@
 // field NAME. The names below are the PRD §6.1 names and are FROZEN in Airtable
 // (same rule that pins the formula names — a rename fails closed to "no rows").
 
+import { revalidateTag } from "next/cache";
 import { normalizeEmail } from "./auth-shared";
 import { primaryBase, usersTable, escapeFormulaString, updateRecords, FIELDS } from "./airtable";
 
 const API = "https://api.airtable.com/v0";
+
+/** Per-user cache tag for the 30s-cached Users-row read. Any write to a user's
+ *  row revalidates this tag so the next read is fresh — fixes the onboarding
+ *  race where the gate saw a stale "pending" row right after completion. */
+export const userTag = (email: string) => `user:${normalizeEmail(email)}`;
+
+/** Bust the cached Users row for one email. Best-effort: a revalidate failure
+ *  (e.g. called outside a request scope) must never fail the underlying write. */
+function bustUserCache(email: string): void {
+  try {
+    revalidateTag(userTag(email));
+  } catch (e) {
+    console.error("users: revalidateTag failed (non-fatal)", e);
+  }
+}
 
 // PRD §6.1 field names — frozen columns, never rename in Airtable.
 const F = {
@@ -94,7 +110,7 @@ function authHeaders(): Record<string, string> {
 
 async function queryByEmail(
   email: string,
-  cacheInit: { cache: "no-store" } | { next: { revalidate: number } },
+  cacheInit: { cache: "no-store" } | { next: { revalidate: number; tags?: string[] } },
 ): Promise<UserRow[]> {
   const url = new URL(usersUrl());
   url.searchParams.set("filterByFormula", ownerFormula(email));
@@ -134,7 +150,7 @@ export async function getUserRowCached(email: string): Promise<UserRow | null> {
   if (!usersConfigured()) return null;
   let rows: UserRow[];
   try {
-    rows = await queryByEmail(email, { next: { revalidate: 30 } });
+    rows = await queryByEmail(email, { next: { revalidate: 30, tags: [userTag(email)] } });
   } catch (e) {
     console.error("users: cached lookup failed (treated as no row)", e);
     return null;
@@ -193,6 +209,7 @@ export async function createUserRow(input: {
   });
   if (!res.ok) throw new Error(`Airtable users POST ${res.status} ${await res.text()}`);
   const json = (await res.json()) as { records: UsersRecord[] };
+  bustUserCache(input.email); // clear any cached "no row" so the new row reads immediately
   return json.records[0].id;
 }
 
@@ -225,6 +242,7 @@ export async function updateUserRow(email: string, patch: UserRowPatch): Promise
   if (patch.preferences !== undefined) fields[f.preferences] = patch.preferences;
   if (Object.keys(fields).length === 0) return;
   await updateRecords(usersTable(), primaryBase(), [{ id: row.id, fields }]);
+  bustUserCache(email); // fresh read next request — fixes the onboarding stale-gate race
 }
 
 /** Best-effort Last-Login touch, throttled to once per UTC day. Errors are

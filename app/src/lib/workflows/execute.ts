@@ -10,7 +10,8 @@ import { draftEmails } from "./draftEmails";
 import { refreshScrapeTargets } from "./refreshScrapeTargets";
 import { detectBoards } from "./detectBoards";
 import { revalidateListings } from "./revalidateListings";
-import { normalizeEmail } from "@/lib/auth-shared";
+import { normalizeEmail, isOwner } from "@/lib/auth-shared";
+import { scrapeableTargetKeys } from "@/lib/targets-server";
 import type { WorkflowName, WorkflowTrigger } from "@/lib/types";
 
 // Engine identity (PRD §5.6 / G11, fail-closed): the engine acts as the OWNER
@@ -64,23 +65,33 @@ export interface ChunkOpts {
   windowDays?: number;
   maxItems?: number;
   cursor?: unknown;
+  // The tenant this run acts for (Phase 3). The ROUTE sets this from the
+  // authenticated session (members → their own email only); cron/owner leave it
+  // unset → falls back to OWNER_EMAIL. Never trust a client-supplied value here.
+  actorEmail?: string;
 }
 
-// Runs exactly one bounded step of `name`. scrape_jobs self-manages its run-log
-// row (async multi-source); the others are wrapped in withRunLog per chunk.
+// Runs exactly one bounded step of `name` as `actorEmail` (default OWNER_EMAIL).
+// scrape_jobs self-manages its run-log row (async multi-source); the others are
+// wrapped in withRunLog per chunk. All reads/writes are stamped to the actor.
 export async function executeChunk(name: string, opts: ChunkOpts): Promise<ChunkResult> {
-  // OWNER_EMAIL resolved at entry, fail-closed: unset → failed result, no work,
-  // no rows written (a run row without an owner would itself be ownerless).
-  const ownerEmail = resolveOwnerEmail();
-  if (!ownerEmail) {
+  // Actor resolved at entry, fail-closed: a member run passes actorEmail; cron/
+  // owner fall back to OWNER_EMAIL. No actor → no work, no ownerless rows.
+  const actor = opts.actorEmail ? normalizeEmail(opts.actorEmail) : resolveOwnerEmail();
+  if (!actor) {
     console.error(`executeChunk(${name}): ${OWNER_EMAIL_UNSET}`);
     return { ok: false, more: false, counts: {}, error: OWNER_EMAIL_UNSET };
   }
 
   if (name === "scrape_jobs") {
+    // Per-user: scope the mart to the actor's effective targets. The owner
+    // (and cron, which runs as owner) scrape the whole mart — null filter,
+    // legacy behavior unchanged.
+    const targetKeys = isOwner(actor) ? null : await scrapeableTargetKeys(actor);
     // Parallel scrape completes in one invocation (no cursor / chunk loop).
     const r = await scrapeJobs({
-      ownerEmail,
+      ownerEmail: actor,
+      targetKeys,
       dryRun: opts.dryRun,
       windowDays: opts.windowDays,
       trigger: opts.trigger,
@@ -95,8 +106,8 @@ export async function executeChunk(name: string, opts: ChunkOpts): Promise<Chunk
 
   const slow = name === "draft_emails" || name === "research";
   const maxItems = Math.min(Math.max(opts.maxItems ?? (slow ? 1 : 3), 1), 5);
-  const outcome = await withRunLog(name as WorkflowName, opts.trigger, ownerEmail, () =>
-    runner({ ownerEmail, maxItems, dryRun: opts.dryRun, cursor: opts.cursor as { offset?: number } | undefined }),
+  const outcome = await withRunLog(name as WorkflowName, opts.trigger, actor, () =>
+    runner({ ownerEmail: actor, maxItems, dryRun: opts.dryRun, cursor: opts.cursor as { offset?: number } | undefined }),
   );
   return {
     ok: !outcome.error,

@@ -4,6 +4,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
 import { ListingsTable } from "./ListingsTable";
+import { JobTrigger } from "@/components/workflows/JobTrigger";
 import { getListings } from "@/lib/fetcher";
 import { getViewContext } from "@/lib/session";
 import type { JobListing } from "@/lib/types";
@@ -27,9 +28,15 @@ const SECTIONS: { status: string; title: string; hint: string }[] = [
 const titleCase = (s: string) =>
   s.replace(/(^|[_\s])(\w)/g, (_, sep, ch) => (sep ? " " : "") + ch.toUpperCase()).trim();
 
-export default async function ListingsPage() {
+export default async function ListingsPage({
+  searchParams,
+}: {
+  searchParams?: { welcome?: string };
+}) {
   const ctx = await getViewContext();
   const { data, source } = await getListings(ctx.effectiveEmail);
+  // Post-onboarding first landing: kick off the user's first scrape once.
+  const welcome = searchParams?.welcome != null && data.length === 0 && !ctx.isViewAs;
 
   // Group by status (lower-cased so "New"/"new" land together).
   const groups = new Map<string, JobListing[]>();
@@ -58,10 +65,16 @@ export default async function ListingsPage() {
       />
       <main className="p-8 space-y-6">
         {!ctx.isViewAs && (
-          <div className="flex justify-end">
+          <div className="flex justify-end items-start gap-3">
+            <JobTrigger
+              workflow="scrape_jobs"
+              idleLabel="Find jobs"
+              busyLabel="Finding jobs…"
+              autoStart={welcome}
+            />
             <Link
               href="/listings/new"
-              className="bg-brand-ink text-white text-[12px] font-medium px-3 py-1.5 rounded-md hover:bg-brand-inkHover"
+              className="bg-white border border-brand-border text-brand-body text-[12px] font-medium px-3 py-1.5 rounded-md hover:bg-brand-canvas"
             >
               Add listing
             </Link>
@@ -76,11 +89,19 @@ export default async function ListingsPage() {
 
         {ordered.length === 0 ? (
           <Card>
-            <CardHeader title="All listings" subtitle="0 postings" right={<SourceBadge source={source} />} />
+            <CardHeader
+              title={welcome ? "Finding your first jobs…" : "All listings"}
+              subtitle={welcome ? "Scraping your target companies — this takes up to a minute" : "0 postings"}
+              right={<SourceBadge source={source} />}
+            />
             <CardBody padded={false}>
               <ListingsTable
                 rows={[]}
-                empty="No job listings yet. Add roles as you find them — automated scraping runs for admin accounts only in this release."
+                empty={
+                  ctx.isViewAs
+                    ? "No job listings yet."
+                    : "No job listings yet. Click Find jobs to scrape your target companies, or add a role manually."
+                }
               />
             </CardBody>
           </Card>

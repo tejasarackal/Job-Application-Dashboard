@@ -465,4 +465,37 @@ describe("M2 isolation guardrails", () => {
     expect(air).toMatch(/RECORD_ID_RE|recordIdFilter/);
     expect(air).toMatch(/EMAIL_RE\.test/);
   });
+
+  // ── G14 — per-user run boundary (Phase 3a) ──────────────────────────────────
+  // Members may trigger workflows ONLY for themselves and ONLY the non-Gmail,
+  // non-owner-mart ones. A member run of a Gmail workflow would hit the OWNER's
+  // mailbox; the engine actor must come from the session, never the request body.
+  it("G14: workflow route gates members to scrape/research and derives the actor from the session", () => {
+    const route = fileText("app/api/workflows/[name]/route.ts");
+    expect(route).toMatch(/requireUserApi\(/); // members can reach it
+    expect(route).toMatch(/MEMBER_ALLOWED/);
+    expect(route).toMatch(/!isAdmin && !MEMBER_ALLOWED\.has\(name\)[\s\S]{0,120}?40[13]/);
+
+    const setMatch = route.match(/MEMBER_ALLOWED\s*=\s*new Set\(\[([^\]]*)\]/);
+    expect(setMatch, "MEMBER_ALLOWED set literal not found").toBeTruthy();
+    const allowed = setMatch![1];
+    for (const forbidden of [
+      "sync_applications",
+      "sync_interviews",
+      "draft_emails",
+      "refresh_scrape_targets",
+      "detect_boards",
+      "revalidate_listings",
+    ]) {
+      expect(allowed, `MEMBER_ALLOWED must not include ${forbidden} (Gmail/owner-only)`).not.toContain(forbidden);
+    }
+    expect(allowed).toContain("scrape_jobs");
+
+    // Actor identity is the authenticated session — never client-supplied.
+    expect(route).toMatch(/actorEmail:\s*session\.email/);
+    expect(route).not.toMatch(/actorEmail:\s*body\./);
+
+    // A weekly quota is checked before the run (cost cap, members).
+    expect(route).toMatch(/quotaStatus\(/);
+  });
 });

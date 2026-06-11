@@ -123,15 +123,15 @@ export function OnboardingWizard({ seed, sponsorCount }: { seed: WizardSeed; spo
         <CardBody className="pt-8 pb-8 text-center">
           <h1 className="text-[22px] font-semibold text-brand-heading">You&rsquo;re set.</h1>
           <p className="mt-2 text-[13px] leading-relaxed text-brand-body">
-            Your dashboard starts empty. Add applications as you submit them — tracking is
-            manual in this release.
+            We&rsquo;ll start finding jobs at your target companies now — it takes up to a minute.
+            You can track applications, interviews, and outreach as you go.
           </p>
           <button
             type="button"
-            onClick={() => window.location.assign("/")}
+            onClick={() => window.location.assign("/listings?welcome=1")}
             className="mt-6 text-[13px] font-semibold px-4 py-2 rounded-md bg-brand-ink text-white hover:opacity-90"
           >
-            Go to dashboard
+            Show me jobs
           </button>
         </CardBody>
       </Card>

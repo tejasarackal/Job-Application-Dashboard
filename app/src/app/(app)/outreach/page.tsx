@@ -6,6 +6,7 @@ import { DataTable } from "@/components/ui/DataTable";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { Stat } from "@/components/ui/Stat";
+import { JobTrigger } from "@/components/workflows/JobTrigger";
 import { getOutreach, getSequences } from "@/lib/fetcher";
 import { getViewContext } from "@/lib/session";
 import { formatRelative, pct } from "@/lib/utils";
@@ -42,10 +43,11 @@ export default async function OutreachPage() {
       />
       <main className="p-8 space-y-6">
         {!ctx.isViewAs && (
-          <div className="flex justify-end">
+          <div className="flex justify-end items-start gap-3">
+            <JobTrigger workflow="research" idleLabel="Research leads" busyLabel="Researching…" />
             <Link
               href="/outreach/new"
-              className="bg-brand-ink text-white text-[12px] font-medium px-3 py-1.5 rounded-md hover:bg-brand-inkHover"
+              className="bg-white border border-brand-border text-brand-body text-[12px] font-medium px-3 py-1.5 rounded-md hover:bg-brand-canvas"
             >
               Log outreach
             </Link>
@@ -132,7 +134,7 @@ export default async function OutreachPage() {
                   ),
                 },
               ]}
-              empty="No outreach tracked. Log contacts manually — automated research and drafting are not enabled for member accounts in this release."
+              empty="No outreach yet. Click Research leads to find recruiters at your target companies, or log a contact manually."
             />
           </CardBody>
         </Card>

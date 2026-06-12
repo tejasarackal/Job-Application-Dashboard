@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   isH1bSponsor,
   isDeTitle,
+  titleMatches,
   DE_TITLE_RE,
   checkLocation,
   canonicalJobKey,
@@ -18,6 +19,57 @@ import { DE_KEYWORDS } from "./boards/keywords";
 import { tejasDefaults, neutralDefaults, prefsOrNeutral } from "@/lib/prefs";
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString();
+
+// Synthetic member prefs for the de-hardcoding tests (Phase 4).
+const tpmPrefs: ScoringPrefs = {
+  titleKeywords: ["technical program manager", "program manager"],
+  locations: [],
+  disqualifiedMetros: [],
+  remotePref: "no_preference",
+};
+const seattlePrefs: ScoringPrefs = {
+  titleKeywords: ["program manager"],
+  locations: ["seattle"],
+  disqualifiedMetros: [],
+  remotePref: "no_preference",
+};
+
+describe("titleMatches (per-user title gate, Phase 4)", () => {
+  it("owner path keeps DE titles (byte-for-byte DE regex), drops non-DE", () => {
+    expect(titleMatches("Senior Data Engineer", OWNER_PREFS)).toBe(true);
+    expect(titleMatches("Staff Technical Program Manager", OWNER_PREFS)).toBe(false);
+  });
+  it("member path keeps THEIR role, drops the owner's DE roles", () => {
+    expect(titleMatches("Senior Technical Program Manager", tpmPrefs)).toBe(true);
+    expect(titleMatches("Program Manager, Payments", tpmPrefs)).toBe(true);
+    expect(titleMatches("Senior Data Engineer", tpmPrefs)).toBe(false); // the reported bug
+  });
+  it("excludes interns/new-grad for EVERYONE (FTE rule), regardless of keywords", () => {
+    expect(titleMatches("Data Engineer Intern", OWNER_PREFS)).toBe(false);
+    expect(titleMatches("Program Manager Intern", tpmPrefs)).toBe(false);
+    expect(titleMatches("New Grad Program Manager", tpmPrefs)).toBe(false);
+  });
+  it("empty member keywords → matches nothing (no basis to filter)", () => {
+    const empty: ScoringPrefs = { titleKeywords: [], locations: [], disqualifiedMetros: [], remotePref: "no_preference" };
+    expect(titleMatches("Anything At All", empty)).toBe(false);
+  });
+});
+
+describe("checkLocation (per-user location gate, Phase 4)", () => {
+  it("a Seattle member accepts Seattle and does NOT auto-accept Bay-Area-only roles", () => {
+    expect(checkLocation("Seattle, WA", seattlePrefs).pass).toBe(true);
+    // "San Jose" is not in the Seattle member's locations and carries no US/remote
+    // token, so it is not auto-accepted (it isn't the owner's Bay-Area list).
+    expect(checkLocation("San Jose, CA", seattlePrefs).pass).toBe(false);
+  });
+  it("neutral member (no locations) passes everything at the vague tier", () => {
+    expect(checkLocation("Anywhere, Mars", tpmPrefs).pass).toBe(true);
+  });
+  it("owner still rejects Seattle and accepts a Bay-Area city (parity)", () => {
+    expect(checkLocation("Seattle, WA", OWNER_PREFS).pass).toBe(false);
+    expect(checkLocation("Mountain View, CA", OWNER_PREFS).pass).toBe(true);
+  });
+});
 
 describe("isH1bSponsor", () => {
   it("matches registry sponsors exactly and via legal-suffix normalization", () => {

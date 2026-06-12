@@ -66,14 +66,14 @@ export async function POST(req: NextRequest, { params }: { params: { name: strin
     return NextResponse.json({ ok: true, inputs: await describeInputs() });
   }
 
-  // Per-user weekly cap (members only; owner/unmetered → ok). Checked before the
+  // Per-user daily cap (members only; owner/unmetered → ok). Checked before the
   // run so a member can't exceed their Apify/Apollo/Anthropic budget.
   const quota = await quotaStatus(session.email, name);
   if (!quota.ok) {
     return NextResponse.json(
       {
         ok: false,
-        error: `Weekly limit reached for this action (${quota.used}/${quota.cap}). It resets Monday.`,
+        error: `Daily limit reached for this action (${quota.used}/${quota.cap}). It resets tomorrow.`,
         quota,
       },
       { status: 429 },

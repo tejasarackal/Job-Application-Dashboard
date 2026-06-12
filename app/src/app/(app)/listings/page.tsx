@@ -61,7 +61,7 @@ export default async function ListingsPage({
     <>
       <Header
         title="Job Listings"
-        subtitle="Apify-scraped postings from Greenhouse, Lever, LinkedIn, Workday"
+        subtitle="Roles from your target companies, matched to your preferences"
       />
       <main className="p-8 space-y-6">
         {!ctx.isViewAs && (

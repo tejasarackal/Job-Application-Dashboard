@@ -2,7 +2,7 @@
 
 // Member-facing workflow trigger (Phase 3a). Drives a per-user workflow under
 // the Hobby 60s cap by POSTing one bounded chunk at a time until `more:false`,
-// exactly like the admin RunButton — but with member-friendly copy, weekly-quota
+// exactly like the admin RunButton — but with member-friendly copy, daily-quota
 // (429) handling, and an optional one-shot auto-start used right after
 // onboarding ("finding your first jobs…"). The server runs it as the signed-in
 // user and stamps results to them; this component never names an identity.
@@ -51,7 +51,7 @@ export function JobTrigger({ workflow, idleLabel, busyLabel = "Working…", auto
         });
         const j = (await res.json().catch(() => ({}))) as RunResponse;
         if (res.status === 429) {
-          setMsg(j.error ?? "Weekly limit reached. It resets Monday.");
+          setMsg(j.error ?? "Daily limit reached. It resets tomorrow.");
           setBusy(false);
           return;
         }

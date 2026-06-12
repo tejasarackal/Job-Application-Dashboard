@@ -5,11 +5,11 @@
 // LinkedIn IDs. All sources feed the unchanged collectRows() filter/dedup/match
 // pass. Runs in one invocation within a ~48s budget (board GETs are fast +
 // parallel); the freshness window is 45d because board APIs return only OPEN roles.
-import { isH1bSponsor, checkLocation, isDeTitle, canonicalJobKey, canonicalUrl, roleKey, matchScore, normalizeCompany, type ScoringPrefs } from "./filters";
+import { isH1bSponsor, checkLocation, titleMatches, canonicalJobKey, canonicalUrl, roleKey, matchScore, normalizeCompany, type ScoringPrefs } from "./filters";
 import { getUserPrefs } from "@/lib/prefs";
 import { scoringPrefsFor } from "@/lib/scoring";
 import { fetchBoardJobs, BOARD_LABEL, type RawJob } from "./boards";
-import { linkedinKeywordQuery } from "./boards/keywords";
+import { linkedinKeywordQuery, searchKeywordsFor, linkedinLocationFor } from "./boards/keywords";
 import {
   listJobListings,
   listScrapeTargets,
@@ -46,10 +46,15 @@ export function nativeOk(t: ScrapeTarget): boolean {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // ── LinkedIn f_C fallback (Apify) — only for targets with no native board ──────
-// keywords is an OR-expression over DE_KEYWORDS so adjacent roles (Analytics
-// Engineer, Data Platform, …) surface in the ONE run, not just "Data Engineer".
-function linkedinSearchUrl(ids: string[], keywords: string = linkedinKeywordQuery()): string {
-  const base = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(keywords)}&location=San%20Francisco%20Bay%20Area&f_TPR=r${SCRAPE_WINDOW_DAYS * 86_400}`;
+// keywords is an OR-expression over the ACTOR's search keywords (the owner's are
+// the data-engineering set) so adjacent roles surface in the ONE run; location
+// is the actor's (owner → Bay Area; member → their location; neutral → US).
+function linkedinSearchUrl(
+  ids: string[],
+  keywords: string = linkedinKeywordQuery(),
+  location = "San Francisco Bay Area",
+): string {
+  const base = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(keywords)}&location=${encodeURIComponent(location)}&f_TPR=r${SCRAPE_WINDOW_DAYS * 86_400}`;
   if (!ids.length) return base;
   try {
     const u = new URL(base);
@@ -79,9 +84,10 @@ async function fetchLinkedinFallback(
   token: string | undefined,
   deadline: number,
   totals: Record<string, number>,
+  search: { keywords: string; location: string } = { keywords: linkedinKeywordQuery(), location: "San Francisco Bay Area" },
 ): Promise<RawJob[]> {
   if (!token || !ids.length) return [];
-  const input = { urls: [linkedinSearchUrl(ids)], count: LI_COUNT, scrapeCompany: false };
+  const input = { urls: [linkedinSearchUrl(ids, search.keywords, search.location)], count: LI_COUNT, scrapeCompany: false };
   try {
     const res = await fetch(`${APIFY}/acts/${LINKEDIN_ACTOR}/runs?token=${token}`, {
       method: "POST",
@@ -170,7 +176,7 @@ function bump(t: Record<string, number>, k: string, n = 1) {
   t[k] = (t[k] ?? 0) + n;
 }
 
-interface CollectCtx {
+export interface CollectCtx {
   totals: Record<string, number>;
   keys: Set<string>;
   seen: Set<string>;
@@ -196,7 +202,7 @@ function sample(arr: string[], v: string): void {
 // `trusted` = the batch came from a known H1B target's own board, so the H1B gate
 // is satisfied by construction (skip it). LinkedIn fallback is untrusted → verify
 // the returned company is a known sponsor.
-function collectRows(items: Raw[], sourceBoard: string, ctx: CollectCtx, trusted: boolean): void {
+export function collectRows(items: Raw[], sourceBoard: string, ctx: CollectCtx, trusted: boolean): void {
   for (const raw of items) {
     bump(ctx.totals, "scraped");
     try {
@@ -205,8 +211,11 @@ function collectRows(items: Raw[], sourceBoard: string, ctx: CollectCtx, trusted
         bump(ctx.totals, "droppedH1b");
         continue;
       }
-      if (!isDeTitle(it.title)) { bump(ctx.totals, "droppedTitle"); sample(ctx.samples.title, it.title); continue; }
-      if (!checkLocation(it.location).pass) { bump(ctx.totals, "droppedLoc"); sample(ctx.samples.loc, it.location); continue; }
+      // Per-user gates (Phase 4): keep titles matching the ACTOR's keywords
+      // (owner → DE regex) and locations matching the ACTOR's prefs — not the
+      // owner's hardcoded DE/Bay-Area defaults.
+      if (!titleMatches(it.title, ctx.scoringPrefs)) { bump(ctx.totals, "droppedTitle"); sample(ctx.samples.title, it.title); continue; }
+      if (!checkLocation(it.location, ctx.scoringPrefs).pass) { bump(ctx.totals, "droppedLoc"); sample(ctx.samples.loc, it.location); continue; }
       if (it.postedAt && ctx.windowDays) {
         const t = Date.parse(it.postedAt);
         if (!Number.isNaN(t) && Date.now() - t > ctx.windowDays * 86_400_000) {
@@ -318,6 +327,11 @@ export async function scrapeJobs(opts: {
   const totals: Record<string, number> = {};
   // Score against the ACTOR's prefs (owner → OWNER_PREFS, byte-for-byte legacy).
   const scoringPrefs = scoringPrefsFor(ownerEmail, await getUserPrefs(ownerEmail));
+  // Source-search terms for the keyword-driven scrapers (Workday CXS, LinkedIn):
+  // the ACTOR's roles, not the owner's set (the helper maps the owner to the
+  // data-engineering keywords; a member to their own titleKeywords).
+  const searchKeywords = searchKeywordsFor(scoringPrefs);
+  const liSearch = { keywords: linkedinKeywordQuery(searchKeywords), location: linkedinLocationFor(scoringPrefs) };
   const logRunId = await createWorkflowRun({ workflow: "scrape_jobs", trigger: opts.trigger ?? "manual", ownerEmail });
 
   try {
@@ -336,11 +350,14 @@ export async function scrapeJobs(opts: {
     // cheap single-GET boards (Greenhouse/Lever/Ashby) stay fully parallel.
     const fetchOne = async (t: ScrapeTarget) => ({
       t,
-      jobs: await fetchBoardJobs({ company: t.company, ats: t.ats, boardToken: t.boardToken }, { deadlineMs: deadline }),
+      jobs: await fetchBoardJobs(
+        { company: t.company, ats: t.ats, boardToken: t.boardToken },
+        { deadlineMs: deadline, keywords: searchKeywords },
+      ),
     });
     const wdTargets = native.filter((t) => t.ats === "workday");
     const fastTargets = native.filter((t) => t.ats !== "workday");
-    const liPromise = fetchLinkedinFallback(fallbackIds, process.env.APIFY_TOKEN, deadline, totals);
+    const liPromise = fetchLinkedinFallback(fallbackIds, process.env.APIFY_TOKEN, deadline, totals, liSearch);
     const fastPromise = Promise.all(fastTargets.map(fetchOne));
     const wdPromise = mapLimit(wdTargets, WORKDAY_CONCURRENCY, fetchOne);
     const [fastResults, wdResults, liItems] = await Promise.all([fastPromise, wdPromise, liPromise]);

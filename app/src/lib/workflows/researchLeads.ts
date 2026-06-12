@@ -8,10 +8,15 @@
 // enrichment instead (honest, sourced) — NinjaPear enrichment is a future add.
 import { COMPANY_REGISTRY, deriveBrand } from "@/lib/company-registry";
 import { listLeads, createRecords, withOwner, TABLES, FIELDS, leadsBase } from "@/lib/airtable";
+import { getUserPrefs } from "@/lib/prefs";
+import { scoringPrefsFor } from "@/lib/scoring";
+import { isOwner } from "@/lib/auth-shared";
+import type { ScoringPrefs } from "./filters";
 import type { RunResult } from "./runLog";
 
 const APOLLO = "https://api.apollo.io/api/v1";
-const TITLES = [
+// Owner's curated DE hiring-manager titles (byte-for-byte legacy).
+const OWNER_TITLES = [
   "Data Engineering Manager",
   "Director of Data Engineering",
   "Head of Data",
@@ -19,6 +24,27 @@ const TITLES = [
   "VP Engineering",
   "Director of Data",
 ];
+
+const titleCase = (s: string) => s.replace(/\b\w/g, (c) => c.toUpperCase());
+
+// Apollo `person_titles` for the actor (multi-user Phase 4). Owner → curated DE
+// list; a member → contact/leadership variants derived from their OWN role
+// keywords (deterministic, no extra API call) so research finds the right
+// hiring managers for a TPM, PM, etc. — not data-engineering leaders.
+export function contactTitlesFor(prefs: ScoringPrefs): string[] {
+  if (prefs.ownerTitleTiers) return OWNER_TITLES;
+  const out = new Set<string>();
+  for (const kw of prefs.titleKeywords) {
+    const k = titleCase(kw.trim());
+    if (!k) continue;
+    out.add(k);
+    out.add(`Senior ${k}`);
+    out.add(`${k} Manager`);
+    out.add(`Director of ${k}`);
+    out.add(`Head of ${k}`);
+  }
+  return [...out].slice(0, 10); // keep the Apollo query bounded
+}
 
 // Derive a company domain from its careers URL; fall back to a brand-based guess
 // when the careers URL is an ATS host (Workday/Greenhouse) that hides the domain.
@@ -86,10 +112,23 @@ export async function researchLeads(
   const offset = prior.offset ?? 0;
   const dryRun = Boolean(opts.dryRun);
 
-  // Never target Tejas's own employer (he's at Meta — see knowledge/about).
+  // Actor's prefs → who to search for (contact titles) + the lead signal text.
+  const prefs = scoringPrefsFor(ownerEmail, await getUserPrefs(ownerEmail));
+  const personTitles = contactTitlesFor(prefs);
+  // Owner keeps the legacy "Bay Area / Remote" signal byte-for-byte; a member
+  // uses their first location; neutral → no location phrase.
+  const signalLocation = prefs.ownerTitleTiers
+    ? "Bay Area / Remote"
+    : prefs.locations[0]?.trim()
+      ? titleCase(prefs.locations[0].trim())
+      : "";
+
+  // Self-employer exclusion is OWNER-ONLY (Meta — see knowledge/about); members
+  // don't auto-exclude an employer (owner decision, Phase 4).
   const SELF_EMPLOYERS = /^meta\b|metacareers/i;
+  const excludeSelf = isOwner(ownerEmail);
   const targets = Object.entries(COMPANY_REGISTRY)
-    .filter(([name, meta]) => !SELF_EMPLOYERS.test(name) && !SELF_EMPLOYERS.test(meta.careersUrl))
+    .filter(([name, meta]) => !excludeSelf || (!SELF_EMPLOYERS.test(name) && !SELF_EMPLOYERS.test(meta.careersUrl)))
     .map(([name, meta]) => ({
       name,
       brand: meta.brand ?? deriveBrand(name),
@@ -116,7 +155,7 @@ export async function researchLeads(
         continue;
       }
       const search = (await apollo("/mixed_people/api_search", {
-        person_titles: TITLES,
+        person_titles: personTitles,
         q_organization_domains: t.domain,
         page: 1,
         per_page: 2,
@@ -157,8 +196,9 @@ export async function researchLeads(
 
       const channel = email && !lockedEmail(email) ? "email" : "linkedin";
       const org = person.organization;
+      // Signal reflects the ACTOR's location pref (owner → Bay Area; neutral → none).
       const recentSignal =
-        `H1B sponsor (Bay Area / Remote). ${org?.industry ?? "tech"}` +
+        `H1B sponsor${signalLocation ? ` (${signalLocation})` : ""}. ${org?.industry ?? "tech"}` +
         (org?.estimated_num_employees ? `, ~${org.estimated_num_employees.toLocaleString()} employees.` : ".");
 
       if (!dryRun) {

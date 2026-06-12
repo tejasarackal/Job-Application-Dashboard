@@ -26,6 +26,19 @@ export function isDeTitle(title: string | undefined): boolean {
   return Boolean(title && DE_TITLE_RE.test(title) && !INTERN_RE.test(title));
 }
 
+// Per-user title gate (multi-user Phase 4): which scraped titles a given user
+// keeps. Interns/co-ops are excluded for EVERYONE (FTE-only is a system rule,
+// not a preference). The OWNER keeps the curated DE regex byte-for-byte
+// (ownerTitleTiers); a member keeps titles matching ANY of their own
+// titleKeywords. Empty member keywords → matches nothing (no basis to filter;
+// pairs with canComputeMatch rendering "—").
+export function titleMatches(title: string | undefined, prefs: ScoringPrefs): boolean {
+  if (!title || INTERN_RE.test(title)) return false;
+  if (prefs.ownerTitleTiers) return DE_TITLE_RE.test(title);
+  const re = keywordsRe(prefs.titleKeywords);
+  return re ? re.test(title) : false;
+}
+
 // ── Location gate (vendored from _location_preferences.md) ────────────────────
 // Exported as the owner's Bay-Area city list — `lib/prefs.ts#tejasDefaults`
 // seeds the owner's UserPrefs.locations from it (PRD-multi-user §6.2).
@@ -105,7 +118,7 @@ export function escapeRegExp(s: string): string {
 }
 
 // Case-insensitive alternation over escaped keywords; null when empty.
-function keywordsRe(keywords: string[]): RegExp | null {
+export function keywordsRe(keywords: string[]): RegExp | null {
   const parts = keywords.map((k) => escapeRegExp(k.trim().toLowerCase())).filter(Boolean);
   return parts.length ? new RegExp(parts.join("|"), "i") : null;
 }

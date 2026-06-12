@@ -24,7 +24,10 @@ export const BOARD_LABEL: Record<string, string> = {
   workday: "Workday",
 };
 
-export async function fetchBoardJobs(t: BoardTarget, opts: { deadlineMs?: number } = {}): Promise<RawJob[]> {
+export async function fetchBoardJobs(
+  t: BoardTarget,
+  opts: { deadlineMs?: number; keywords?: readonly string[] } = {},
+): Promise<RawJob[]> {
   const token = (t.boardToken ?? "").trim();
   if (!token) return [];
   switch (t.ats) {
@@ -35,8 +38,10 @@ export async function fetchBoardJobs(t: BoardTarget, opts: { deadlineMs?: number
     case "ashby":
       return fetchAshby(token, t.company);
     case "workday":
-      // Workday paginates per keyword, so it needs the global deadline to stay in budget.
-      return fetchWorkdayBoard(token, t.company, { deadlineMs: opts.deadlineMs });
+      // Workday CXS is keyword-searched, so it takes the ACTOR's search keywords
+      // (Phase 4) + the global deadline (it paginates per keyword). Greenhouse/
+      // Lever/Ashby fetch ALL open roles and rely on the post-filter title gate.
+      return fetchWorkdayBoard(token, t.company, { deadlineMs: opts.deadlineMs, keywords: opts.keywords });
     default:
       return [];
   }

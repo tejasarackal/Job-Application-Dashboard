@@ -114,10 +114,12 @@ async function fetchWorkdayPage(
 export async function fetchWorkdayBoard(
   token: string,
   company: string,
-  opts: { deadlineMs?: number } = {},
+  opts: { deadlineMs?: number; keywords?: readonly string[] } = {},
 ): Promise<RawJob[]> {
   const [host, tenant, site] = (token || "").split("|");
   if (!host || !tenant || !site) return [];
+  // Search the ACTOR's keywords (Phase 4); owner/cron pass DE_KEYWORDS. Empty → DE_KEYWORDS.
+  const keywords = opts.keywords && opts.keywords.length ? opts.keywords : DE_KEYWORDS;
 
   const boardDeadline = Math.min(opts.deadlineMs ?? Date.now() + PER_BOARD_MS, Date.now() + PER_BOARD_MS);
   const ctrl = new AbortController();
@@ -127,7 +129,7 @@ export async function fetchWorkdayBoard(
 
     // Phase 1 — page 0 for every keyword, in parallel.
     const firsts = await Promise.all(
-      DE_KEYWORDS.map((kw) => fetchWorkdayPage(host, tenant, site, kw, 0, ctrl.signal)),
+      keywords.map((kw) => fetchWorkdayPage(host, tenant, site, kw, 0, ctrl.signal)),
     );
 
     // Phase 2 — deeper pages ONLY for keywords whose page 0 filled (== LIMIT),
@@ -137,7 +139,7 @@ export async function fetchWorkdayBoard(
       if (p?.length) pages.push(p);
       if (p && p.length >= LIMIT && Date.now() < boardDeadline) {
         for (let page = 1; page < PAGE_CAP; page++) {
-          deeper.push(fetchWorkdayPage(host, tenant, site, DE_KEYWORDS[i], page * LIMIT, ctrl.signal));
+          deeper.push(fetchWorkdayPage(host, tenant, site, keywords[i], page * LIMIT, ctrl.signal));
         }
       }
     });

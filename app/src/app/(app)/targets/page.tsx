@@ -103,14 +103,14 @@ export default async function TargetsPage() {
     <>
       <Header
         title="Target Companies"
-        subtitle="H1B-friendly employers with Bay Area / remote presence"
+        subtitle="H1B sponsors in your target list"
       />
       <main className="p-8 space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           <Card><div className="p-6"><Stat label="Targets" value={total} hint="H1B-verified" /></div></Card>
           <Card><div className="p-6"><Stat label="Done" value={done} hint="Reached out / applied" /></div></Card>
           <Card><div className="p-6"><Stat label="In Progress" value={inProgress} hint="Active research" /></div></Card>
-          <Card><div className="p-6"><Stat label="Bay Area" value={bayArea} hint="With local office" /></div></Card>
+          <Card><div className="p-6"><Stat label="Bay Area office" value={bayArea} hint="Companies with a Bay Area office" /></div></Card>
         </div>
 
         <ActivationBanner count={master.length} />

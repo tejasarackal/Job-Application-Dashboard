@@ -176,8 +176,8 @@ export function OnboardingWizard({ seed, sponsorCount }: { seed: WizardSeed; spo
                 setTitleKeywords(c);
                 if (c.length > 0) setErrors((e) => ({ ...e, titleKeywords: "" }));
               }}
-              placeholder="e.g. data engineer — press Enter to add"
-              helper="Job titles you're looking for. Listings are scored against these."
+              placeholder="e.g. product manager, data engineer — press Enter to add"
+              helper="Job titles you're looking for. Your job search is scored and filtered against these."
               error={errors.titleKeywords}
             />
             <ChipInput

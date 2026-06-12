@@ -529,4 +529,37 @@ describe("M2 isolation guardrails", () => {
     expect(cb).toMatch(/NextResponse\.redirect/);
     expect(cb).not.toMatch(/NextResponse\.json\([^)]*refresh_token/);
   });
+
+  // ── G16 — the experience follows the ACTOR's prefs, not hardcoded DE/Bay-Area ─
+  // (Phase 4) The scrape gates + source search must be prefs-driven, and research
+  // must search the actor's derived contact titles — so a non-DE member doesn't
+  // get the owner's data-engineer + Bay-Area results. Locks out a regression of
+  // the reported "TPM got Data-Engineer listings" bug.
+  it("G16: scrape gates + source keywords + research titles are prefs-driven (no hardcoded DE/Bay-Area in the member path)", () => {
+    const scrape = fileText("lib/workflows/scrapeJobs.ts");
+    // Title + location gates read the actor's prefs (ctx.scoringPrefs)…
+    expect(scrape).toMatch(/titleMatches\(it\.title,\s*ctx\.scoringPrefs\)/);
+    expect(scrape).toMatch(/checkLocation\(it\.location,\s*ctx\.scoringPrefs\)/);
+    // …and NOT the owner-default forms (bare title regex / no-prefs location).
+    expect(scrape).not.toMatch(/isDeTitle\(it\.title\)/);
+    expect(scrape).not.toMatch(/checkLocation\(it\.location\)\s*\./);
+    // Source search is derived from the actor's prefs (Workday CXS + LinkedIn),
+    // not DE_KEYWORDS referenced directly in the scrape body.
+    expect(scrape).toMatch(/searchKeywordsFor\(scoringPrefs\)/);
+    expect(scrape).toMatch(/linkedinLocationFor\(scoringPrefs\)/);
+    expect(scrape).not.toMatch(/\bDE_KEYWORDS\b/); // only the derivation helper may name it
+
+    // titleMatches keeps the owner on the DE regex (ownerTitleTiers) but routes
+    // members through their own keywords — never a single global title gate.
+    const filters = fileText("lib/workflows/filters.ts");
+    expect(filters).toMatch(/export function titleMatches\([^)]*prefs:\s*ScoringPrefs/);
+    expect(filters).toMatch(/prefs\.ownerTitleTiers\s*\)\s*return DE_TITLE_RE\.test/);
+
+    // Research searches the actor's derived contact titles, not a bare DE list,
+    // and the self-employer exclusion is owner-gated.
+    const research = fileText("lib/workflows/researchLeads.ts");
+    expect(research).toMatch(/person_titles:\s*personTitles/);
+    expect(research).toMatch(/contactTitlesFor\(/);
+    expect(research).toMatch(/excludeSelf\s*=\s*isOwner\(ownerEmail\)/);
+  });
 });

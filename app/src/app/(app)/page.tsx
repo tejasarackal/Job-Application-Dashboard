@@ -107,7 +107,7 @@ export default async function OverviewPage() {
               <Stat
                 label="Target Companies"
                 value={s.targets}
-                hint="H1B-friendly + Bay Area/Remote"
+                hint="H1B sponsors in your list"
               />
             </div>
           </Card>
